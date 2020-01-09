@@ -258,20 +258,20 @@ int makePack( uint8_t *packBuf, uint64_t packIndex, uint16_t packCmd, uint8_t pa
 
     for( int i = 0; i < 8; i++ )
     {
-        *packBuf++ = Uint64ToHex.Hex[i];
+        *packBuf++ = Uint64ToHex.Hex[7-i];
     }
 
     Uint16ToHex.Data = packCmd;
     for( int i = 0; i < 2; i++ )
     {
-        *packBuf++ = Uint16ToHex.Hex[i];
+        *packBuf++ = Uint16ToHex.Hex[1-i];
     }
     *packBuf++ = packErrorCode;
     Uint32ToHex.Data = packLen;
 
     for( int i = 0; i < 4; i++ )
     {
-        *packBuf++ = Uint32ToHex.Hex[i];
+        *packBuf++ = Uint32ToHex.Hex[3-i];
     }
 
     for( int i = 0; i < packLen; i++ )
@@ -282,7 +282,7 @@ int makePack( uint8_t *packBuf, uint64_t packIndex, uint16_t packCmd, uint8_t pa
     unsigned short crc = CRC16_MODBUS( buff, packBuf - buff );
     Uint16ToHex.Data = crc;
     *packBuf++ = Uint16ToHex.Hex[0];
-    *packBuf++ = Uint64ToHex.Hex[1];
+    *packBuf++ = Uint16ToHex.Hex[1];
     return packBuf - buff;
 }
 /***********************************************************************************************************************************************************
@@ -384,6 +384,8 @@ void protocolRun( void const *para )
                             debugOut( 0, (char *)"0X%02X ", data[i] );
                         }
                         debugOut( 0, (char *)"\r\n" );
+                        PackLen = makePack( buff, packIndex, packCMD, errorCode, PackLen, data );
+                        dataOut.pushData( buff, PackLen );
                     }
                 }
             }
