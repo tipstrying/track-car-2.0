@@ -298,11 +298,14 @@ void canHeartbeat(int oID, CANopenMaster::CANopenResponse::te_HeartBeat oStatus)
         {
             if (DebugCtrl.enableStartUp)
             {
+                /*
                 taskENTER_CRITICAL();
                 {
                     printf("[\t%d] Motor 1 Up\r\n", osKernelSysTick());
                 }
                 taskEXIT_CRITICAL();
+                */
+                debugOut( 0, (char *)"[\t%d] Motor 1 Up\r\n", osKernelSysTick());
             }
         }
         MotionStatus.CanDelay = false;
@@ -312,11 +315,14 @@ void canHeartbeat(int oID, CANopenMaster::CANopenResponse::te_HeartBeat oStatus)
             {
                 MotionStatus.CanRestDelay = false;
                 MotionStatus.EcodeDelay = true;
+                /*
                 taskENTER_CRITICAL();
                 {
                     printf("[\t%d] Motor 1 Rest OK\r\n", osKernelSysTick());
                 }
                 taskEXIT_CRITICAL();
+                */
+                debugOut( 0, (char *)"[\t%d] Motor 1 Rest OK\r\n", osKernelSysTick());
             }
         }
         break;
@@ -384,31 +390,18 @@ void MotionTask(void const *parment)
     DebugCtrl.MotorTemperature = 1;
     DebugCtrl.enableCanRawData = 0;
     DebugCtrl.enableMotorAlarm = 1;
-    // osDelay( 5000 );
-    /*
-    while( EXTIQue == 0 )
-    {
-        EXTIQue = xQueueCreate( 10, sizeof( ExtiQueDef ) );
-        osDelay( 10 );
-    }
-    */
-    setExti(1);
 
-    bool IsupDown;
     Can1Init();
-    //    InitMap();
 
     if (DebugCtrl.enableStartUp)
     {
-        taskENTER_CRITICAL();
-        {
-            printf("Motor Start Up Ok\r\n");
-        }
-        taskEXIT_CRITICAL();
+        debugOut( 0, (char *)"Motor Start Up Ok\r\n");
     }
-    //agv.Stop_Accuracy = 1;
+    agv.Stop_Accuracy = 1;
     agv.sArriveCtrlTime = 210;
     agv.sSpeed_min = 10;
+    agv.sSpeed_max = 1000;
+    agv.sDeceleration_distance = 5;
 
     //    sAccBackUp = agv.sAcceleration;
     uint32_t PreviousWakeTime = osKernelSysTick();
@@ -439,11 +432,14 @@ void MotionTask(void const *parment)
     uint32_t TickCount = 0;
     if (DebugCtrl.enableStartUp)
     {
+        /*
         taskENTER_CRITICAL();
         {
             printf("[\t%d] Motion Start1\r\n", osKernelSysTick());
         }
         taskEXIT_CRITICAL();
+        */
+        debugOut( 0, (char *)"[\t%d] Motion Start1\r\n", osKernelSysTick());
     }
     MotionStatus.alarm = false;
 
@@ -589,11 +585,14 @@ void MotionTask(void const *parment)
             {
                 if (enCodeAlarmCount < 3)
                 {
+        /*
                     taskENTER_CRITICAL();
                     {
                         printf("[\t%d] Encode up too much\r\n", PreviousWakeTime);
                     }
                     taskEXIT_CRITICAL();
+        */
+                    debugOut( 0, (char *)"[\t%d] Encode up too much\r\n", PreviousWakeTime);
                 }
                 if (agv.EncoderValue == 0)
                 {

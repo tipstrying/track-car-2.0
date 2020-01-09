@@ -163,7 +163,7 @@ void W5500Task( void const * par )
 
     httpServer_init(TX_BUF, RX_BUF, MAX_HTTPSOCK, socknumlist);
     startCLITask();
-    
+
     for( ;; )
     {
         osDelay(1);
@@ -314,7 +314,7 @@ int decodePack( uint8_t *packBuff, int buffLen, uint64_t *packIndex, uint16_t *p
         return -1;
     for( int i = 0; i < 8; i++ )
     {
-        Uint64ToHex.Hex[i] = *packPiont++;
+        Uint64ToHex.Hex[7 - i] = *packPiont++;
     }
     if( packIndex )
         *packIndex = Uint64ToHex.Data;
@@ -329,13 +329,15 @@ int decodePack( uint8_t *packBuff, int buffLen, uint64_t *packIndex, uint16_t *p
 
     for( int i = 0; i < 4; i++ )
     {
-        Uint32ToHex.Hex[i] = *packPiont++;
+        Uint32ToHex.Hex[3-i] = *packPiont++;
     }
     if( packLen )
         *packLen = Uint32ToHex.Data;
     if( *packLen + 21 > buffLen )
         return pdFALSE;
 
+    for( int i = 0; i < *packLen; i++ )
+        data[i] = *packPiont++;
     crc = CRC16_MODBUS( packBuff, 19 + *packLen );
     Uint16ToHex.Hex[0] = *(packBuff + 19 + *packLen );
     Uint16ToHex.Hex[1] = *(packBuff + 20 + *packLen );
@@ -359,7 +361,7 @@ void protocolRun( void const *para )
 
     createSocket( &dataIn, &dataOut, 5000, 0, 0 );
     uint8_t buff[500];
-    uint8_t data[10];
+    uint8_t data[100];
 
     for( ;; )
     {
@@ -370,12 +372,18 @@ void protocolRun( void const *para )
             {
                 if( dataIn.available() >= PackLen + 21 )
                 {
-                    dataIn.popData( buff, PackLen + 21 );
-                    if( decodePack( buff, 21, &packIndex, &packCMD, &errorCode, &PackLen, data ) == pdTRUE )
+                    PackLen = dataIn.popData( buff, PackLen + 21 );
+                    if( decodePack( buff, PackLen, &packIndex, &packCMD, &errorCode, &PackLen, data ) == pdTRUE )
                     {
-                        /* 
+                        /*
                         解包成功
                         */
+                        debugOut( 0, (char *)"Decode pack ok: index->%lld,cmd->%d,packLen->%d,date:", packIndex, packCMD, PackLen );
+                        for( int i = 0; i < PackLen; i++ )
+                        {
+                            debugOut( 0, (char *)"0X%02X ", data[i] );
+                        }
+                        debugOut( 0, (char *)"\r\n" );
                     }
                 }
             }

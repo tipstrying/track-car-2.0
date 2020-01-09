@@ -23,7 +23,7 @@ AGV_Parallel_Motion::AGV_Parallel_Motion()
     this->sAccelerationLow = 1500;
     this->sSpeed_max = 500;
     this->sSpeed_mid = 150;
-    this->sDeceleration_distance = 20;
+    this->sDeceleration_distance = 5;
 
     this->EncoderValue = 0;
     this->move_to_step = ms_Idle;
