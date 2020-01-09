@@ -1,0 +1,15 @@
+syntax: glob
+*.o
+*.d
+*.crf
+*.orig
+*.iex
+*.axf
+*.htm
+*.lnp
+*.map
+*.sct
+*.dep
+.git
+app/app.h-e5fbcc14
+app/map.h-789d8ca5

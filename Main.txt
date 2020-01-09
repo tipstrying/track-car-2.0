@@ -1,0 +1,153 @@
+Configuration	Main
+STM32CubeMX 	4.27.0
+Date	10/23/2018
+MCU	STM32F429IGTx
+
+
+
+PERIPHERALS	MODES	FUNCTIONS	PINS
+CAN1	Master	CAN1_RX	PA11
+CAN1	Master	CAN1_TX	PA12
+CAN2	Slave	CAN2_RX	PB12
+CAN2	Slave	CAN2_TX	PB13
+RCC	Crystal/Ceramic Resonator	RCC_OSC_IN	PH0/OSC_IN
+RCC	Crystal/Ceramic Resonator	RCC_OSC_OUT	PH1/OSC_OUT
+RCC	Crystal/Ceramic Resonator	RCC_OSC32_IN	PC14/OSC32_IN
+RCC	Crystal/Ceramic Resonator	RCC_OSC32_OUT	PC15/OSC32_OUT
+RTC	Activate Clock Source	RTC_VS_RTC_Activate	VP_RTC_VS_RTC_Activate
+RTC	Activate Calendar	RTC_VS_RTC_Calendar	VP_RTC_VS_RTC_Calendar
+SYS	SysTick	SYS_VS_Systick	VP_SYS_VS_Systick
+UART4	Asynchronous	UART4_RX	PA1
+UART4	Asynchronous	UART4_TX	PA0/WKUP
+UART7	Asynchronous	UART7_RX	PF6
+UART7	Asynchronous	UART7_TX	PF7
+UART8	Asynchronous	UART8_RX	PE0
+UART8	Asynchronous	UART8_TX	PE1
+USART1	Synchronous	USART1_CK	PA8
+USART1	Synchronous	USART1_RX	PA10
+USART1	Synchronous	USART1_TX	PA9
+USART2	Asynchronous	USART2_RX	PA3
+USART2	Asynchronous	USART2_TX	PA2
+USART3	Synchronous	USART3_CK	PD10
+USART3	Synchronous	USART3_RX	PD9
+USART3	Synchronous	USART3_TX	PD8
+
+
+
+Pin Nb	PINs	FUNCTIONs	LABELs
+1	PE2*	SPI4_SCK	
+2	PE3*	SAI1_SD_B	SPI-INIO
+3	PE4*	SPI4_NSS	
+4	PE5*	SPI4_MISO	
+5	PE6*	SPI4_MOSI	
+7	PI8	GPIO_Output	OUT-1
+8	PC13	GPIO_Output	OUT-2
+9	PC14/OSC32_IN	RCC_OSC32_IN	
+10	PC15/OSC32_OUT	RCC_OSC32_OUT	
+11	PI9	GPIO_Output	OUT-3
+12	PI10	GPIO_Output	OUT-4
+13	PI11	GPIO_Output	OUT-5
+16	PF0*	I2C2_SDA	NC
+17	PF1*	I2C2_SCL	NC
+19	PF3	GPIO_Output	OUT-6
+20	PF4	GPIO_Output	OUT-7
+21	PF5	GPIO_Output	OUT-8
+24	PF6	UART7_RX	
+25	PF7	UART7_TX	
+26	PF8	GPIO_Output	OUT-9
+27	PF9	GPIO_Output	OUT-10
+28	PF10	GPIO_Output	OUT-11
+29	PH0/OSC_IN	RCC_OSC_IN	
+30	PH1/OSC_OUT	RCC_OSC_OUT	
+32	PC0	GPIO_Output	OUT-12
+33	PC1	GPIO_Output	OUT-13
+34	PC2	GPIO_Output	OUT-14
+35	PC3	GPIO_Output	OUT-15
+40	PA0/WKUP	UART4_TX	
+41	PA1	UART4_RX	
+42	PA2	USART2_TX	
+43	PH2	GPIO_Output	WIFI-4
+44	PH3	GPIO_Output	WIFI-5
+45	PH4	GPIO_Output	WIFI-21
+47	PA3	USART2_RX	
+50	PA4	GPIO_Output	OUT-16
+51	PA5	GPIO_Output	OUT-17
+52	PA6	GPIO_Output	OUT-18
+53	PA7	GPIO_Output	OUT-19
+54	PC4	GPIO_Output	OUT-20
+55	PC5	GPIO_Output	OUT-21
+56	PB0	GPIO_Output	OUT-22
+57	PB1	GPIO_Output	OUT-23
+58	PB2/BOOT1	GPIO_Output	BOOT1
+59	PF11	GPIO_Output	OUT-24
+92	PB12	CAN2_RX	
+93	PB13	CAN2_TX	
+96	PD8	USART3_TX	
+97	PD9	USART3_RX	
+98	PD10	USART3_CK	
+101	PD13	GPIO_Input	IN-1
+104	PD14	GPIO_Input	IN-2
+105	PD15	GPIO_Input	IN-3
+106	PG2	GPIO_Input	IN-4
+107	PG3	GPIO_Input	IN-5
+108	PG4	GPIO_Input	IN-6
+109	PG5	GPIO_Input	IN-7
+110	PG6	GPIO_Input	IN-8
+111	PG7	GPIO_Input	IN-9
+112	PG8	GPIO_Input	IN-10
+119	PA8	USART1_CK	
+120	PA9	USART1_TX	
+121	PA10	USART1_RX	
+122	PA11	CAN1_RX	
+123	PA12	CAN1_TX	
+124	PA13*	SYS_JTMS-SWDIO	SWDIO
+128	PH13	GPIO_Input	IN-11
+129	PH14	GPIO_Input	IN-12
+130	PH15	GPIO_Input	IN-13
+131	PI0	GPIO_Input	IN-14
+132	PI1	GPIO_Input	IN-15
+133	PI2	GPIO_Input	IN-16
+134	PI3	GPIO_Input	IN-17
+142	PD0	GPIO_Input	IN-18
+143	PD1	GPIO_Input	IN--19
+145	PD3	GPIO_Input	IN-20
+146	PD4	GPIO_Input	IN-21
+147	PD5	GPIO_Input	IN-22
+150	PD6	GPIO_Input	IN-23
+151	PD7	GPIO_Input	IN-24
+152	PG9	GPIO_Input	IN-25
+153	PG10	GPIO_Input	IN-26
+154	PG11	GPIO_Input	IN-27
+155	PG12	GPIO_Input	IN-28
+156	PG13	GPIO_Input	IN-29
+157	PG14	GPIO_Input	IN-30
+169	PE0	UART8_RX	
+170	PE1	UART8_TX	
+176	PI7	GPIO_Input	LED-sleep
+
+
+
+SOFTWARE PROJECT
+
+Project Settings : 
+Project Name : Main
+Project Folder : F:\work\²ËÄñ\³ÌÐò\Main
+Toolchain / IDE : MDK-ARM V5
+Firmware Package Name and Version : STM32Cube FW_F4 V1.21.0
+
+
+Code Generation Settings : 
+STM32Cube Firmware Library Package : Copy all used libraries into the project folder
+Generate peripheral initialization as a pair of '.c/.h' files per peripheral : Yes
+Backup previously generated files when re-generating : Yes
+Delete previously generated files when not re-generated : Yes
+Set all free pins as analog (to optimize the power consumption) : No
+
+
+Toolchains Settings : 
+Compiler Optimizations : 
+
+
+
+
+

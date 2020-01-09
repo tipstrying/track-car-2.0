@@ -1,0 +1,23 @@
+syntax: glob
+*.o
+*.d
+*.crf
+*.orig
+*.iex
+*.axf
+*.htm
+*.lnp
+*.map
+*.sct
+*.dep
+.hg
+app/app.h-e5fbcc14
+app/map.h-789d8ca5
+*.hex
+*.bin
+.vscode
+*.lxp_1101
+*.tipstrying
+buildTime.h
+MDK-ARM/Main
+html
