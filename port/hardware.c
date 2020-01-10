@@ -108,7 +108,7 @@ OnOffDef getEmergencyKey()
     }
     return KeyStatus.OnOff;
 }
-OnOffDef getPowerKey()
+static OnOffDef getPowerKey()
 {
     static int firstBootUp = 1;
     if( firstBootUp )
@@ -129,7 +129,44 @@ OnOffDef getPowerKey()
         return off;
     }
 }
-
+OnOffDef powerKeyWork( uint32_t clock)
+{
+    static struct
+    {
+        uint32_t clock;
+        int flag;
+        int Poweroff;
+        int savePowerStatus;
+    } PowerCount;
+    PowerCount.Poweroff = 0;
+    PowerCount.savePowerStatus = 0;
+    PowerCount.flag = 0;
+    if (getPowerKey() == on)
+    {
+        if (PowerCount.flag)
+        {
+            if (clock - PowerCount.clock > 500)
+            {
+                PowerCount.Poweroff = 1;
+            }
+        }
+        else
+        {
+            PowerCount.flag = 1;
+            PowerCount.clock = clock;
+        }
+    }
+    else
+    {
+        if (PowerCount.Poweroff)
+        {
+            //setPowerKey(off);
+            return on;
+        }
+        PowerCount.flag = 0;
+    }
+    return off;
+}
 void setPowerKey( OnOffDef status )
 {
     if( status == on )

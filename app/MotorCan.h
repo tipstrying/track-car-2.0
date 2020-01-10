@@ -11,6 +11,7 @@ typedef struct {
     CAN_RxHeaderTypeDef RxHeader;
     uint8_t Data[8];
     uint8_t IsRecive;
+    uint32_t clock;
 } can1DataStd;
 
 typedef struct {

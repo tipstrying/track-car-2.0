@@ -358,11 +358,15 @@ void protocolRun( void const *para )
     uint16_t packCMD = 0;
     uint8_t  errorCode;
     int PackLen;
+    union {
+        uint8_t Hex[4];
+        int  Data;
+    } i32ToHex;
 
     createSocket( &dataIn, &dataOut, 5000, 0, 0 );
     uint8_t buff[500];
     uint8_t data[100];
-
+    NavigationOperationStd navData;
     for( ;; )
     {
         if( dataIn.available() >= 21 )
@@ -384,8 +388,84 @@ void protocolRun( void const *para )
                             debugOut( 0, (char *)"0X%02X ", data[i] );
                         }
                         debugOut( 0, (char *)"\r\n" );
-                        PackLen = makePack( buff, packIndex, packCMD, errorCode, PackLen, data );
-                        dataOut.pushData( buff, PackLen );
+
+                        switch( packCMD )
+                        {
+                        case 2001:
+                            break;
+                        case 2002:
+                            navData.cmd = 2;
+                            navData.Data.speedTo = data[0] + data[1] * 255;
+                            if( xQueueSend( NavigationOperationQue, &navData, 1000 ) == pdPASS )
+                            {
+                                PackLen = makePack( buff, packIndex, 12002, 0, 0, NULL );
+                                dataOut.pushData( buff, PackLen );
+                            }
+                            else
+                            {
+                                PackLen = makePack( buff, packIndex, 12002, 1, 0, NULL );
+                                dataOut.pushData( buff, PackLen );
+                            }
+                            break;
+                        case 2003:
+                            if( 1 )
+                            {
+                                uint8_t trails = data[2];
+                                int rValue = 0;
+                                for( int i = 0; i < trails; i++ )
+                                {
+                                    if( rValue )
+                                        break;
+                                    for( int j = 0; j < 4; j++ )
+                                    {
+                                        i32ToHex.Hex[3-j] = data[ 3 + j + i * 7];
+                                    }
+                                    navData.cmd = 3;
+                                    navData.Data.posTo = i32ToHex.Data;
+                                    if( xQueueSend( NavigationOperationQue, &navData, 100 ) != pdPASS )
+                                    {
+                                        if( !rValue )
+                                            rValue = 0;
+                                    }
+
+                                    if( data[ 7 + i * 7 ] + data[ 8 + i * 7 ] != 0 )
+                                    {
+                                        navData.cmd = 4;
+                                        navData.Data.speedTo = data[ 7 + i * 7 ] + data[ 8 + i * 7 ] * 255;
+                                        navData.Data.op = 1;
+                                        navData.Data.posTo = i32ToHex.Data;
+                                        if( xQueueSend( NavigationOperationQue, &navData, 100 ) == pdPASS )
+                                        {
+                                            if( !rValue )
+                                                rValue = 0;
+                                        }
+                                    }
+                                    if( data[ 9 + i * 7 ] )
+                                    {
+                                        navData.cmd = 4;
+                                        navData.Data.posTo = i32ToHex.Data;
+                                        navData.Data.op = data[ 9 + i * 7 ] + 1;
+                                        if( xQueueSend( NavigationOperationQue, &navData, 100 ) == pdPASS )
+                                        {
+                                            if( !rValue )
+                                                rValue = 0;
+                                        }
+                                    }
+                                }
+                                if( rValue )
+                                {
+                                    PackLen = makePack( buff, packIndex, 12003, 1, 0, 0 );
+                                }
+                                else
+                                {
+                                    PackLen = makePack( buff, packIndex, 12003, 0, 0, 0 );
+                                }
+                                dataOut.pushData( buff, PackLen );
+                            }
+                            PackLen = makePack( buff, packIndex, packCMD, errorCode, 0, data );
+                            dataOut.pushData( buff, PackLen );
+                            break;
+                        }
                     }
                 }
             }

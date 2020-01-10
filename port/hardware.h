@@ -1,5 +1,7 @@
 #ifndef __HARDWARE_H
 #define __HARDWARE_H
+#include "stdint.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -98,7 +100,7 @@ OnOffDef setChargeSensor( OnOffDef status );
 OnOffDef getChargeKey();
 InOutSwitch getSwitchStatus();
 InOutSwitch setSwitch( InOutSwitch target );
-
+OnOffDef powerKeyWork( uint32_t clock);
 #ifdef __cplusplus
 }
 #endif

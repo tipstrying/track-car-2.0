@@ -26,7 +26,8 @@ public:
     float AGV_Pos;
     float AGV_PosNext;
 
-    bool iEmergency; //急停
+    bool iEmergencyByKey; //急停
+    bool iEmergencyBySoftware; // 软件急停
 
     float Request_Speed;
     float Request_RPM;

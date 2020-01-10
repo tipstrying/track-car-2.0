@@ -27,7 +27,8 @@ AGV_Parallel_Motion::AGV_Parallel_Motion()
 
     this->EncoderValue = 0;
     this->move_to_step = ms_Idle;
-    iEmergency = false;
+    iEmergencyByKey = false;
+    iEmergencyBySoftware = false;
 
 }
 
@@ -39,7 +40,7 @@ AGV_Parallel_Motion::Motion_Status AGV_Parallel_Motion::Motion_work(float iTarge
 {
     Motion_Status rValue = ms_Idle;
     this->DetectDynamics();
-    if (this->iEmergency)
+    if (this->iEmergencyByKey || this->iEmergencyBySoftware)
     {
         this->Request_RPM = 0;
         this->Request_Speed = 0;

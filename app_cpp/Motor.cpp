@@ -46,11 +46,9 @@ void setTS_CURVEPAR(float k, float j, float a, float v)
 
 static struct
 {
-    int BootUp;
     bool CanDelay;
     bool CanRestDelay;
     bool EcodeDelay;
-    bool SpeedDelay;
     bool alarm;
 } MotionStatus;
 
@@ -62,40 +60,26 @@ static double milages = 0;
 int IsArriver()
 {
     int status = agv.Motion_Status_Now;
-    if (MotionStatus.BootUp == 2)
+    switch (status)
     {
-        return -1;
-    }
-    else
-    {
-        if (MotionStatus.BootUp)
-        {
-            return 6;
-        }
-        else
-        {
-            switch (status)
-            {
-            case 0:
-            case 5:
-                return 0;
-            case 1:
-            case 2:
-                return 1;
-            case 4:
-            case 8:
-            case 9:
-                return 2;
-            case 3:
-                return 3;
-            case 6:
-                return 4;
-            case 7:
-                return 5;
-            default:
-                return 3;
-            }
-        }
+    case 0:
+    case 5:
+        return 0;
+    case 1:
+    case 2:
+        return 1;
+    case 4:
+    case 8:
+    case 9:
+        return 2;
+    case 3:
+        return 3;
+    case 6:
+        return 4;
+    case 7:
+        return 5;
+    default:
+        return 3;
     }
 }
 
@@ -112,51 +96,33 @@ void GetSpeed(float *xSpeed)
 {
     *xSpeed = agv.Request_Speed;
 }
-void SetMaxSpeed(float xSpeeed)
-{
-    //   agv.sSpeed_max = xSpeeed;
-}
+
 int SetSelfPosition(float X)
 {
-    if (MotionStatus.BootUp)
-    {
-        agv.AGV_Pos = X;
-        AGV_Pos = agv.AGV_Pos;
-        lastPosition = agv.AGV_Pos;
-        MotionStatus.BootUp = 0;
+    agv.AGV_Pos = X;
+    AGV_Pos = agv.AGV_Pos;
+    lastPosition = agv.AGV_Pos;
 
+    if (DebugCtrl.enableStartUp)
+    {
+        debugOut( 0, (char *)"[\t%d] Set Self Position:%0.2f [...]\r\n", osKernelSysTick(), X );
+    }
+    if (!MotionStatus.EcodeDelay)
+    {
         if (DebugCtrl.enableStartUp)
         {
-            /*
-            taskENTER_CRITICAL();
-            {
-                printf("[\t%d] Set Self Position Ok\r\n", osKernelSysTick());
-            }
-            taskEXIT_CRITICAL();
-            */
-            debugOut( 0, (char *)"[\t%d] Set Self Position Ok\r\n", osKernelSysTick());
+            debugOut( 0, (char *)"[\t%d] Speed Up [ok]\r\n", osKernelSysTick());
         }
-        if (MotionStatus.SpeedDelay)
-        {
-            if (DebugCtrl.enableStartUp)
-            {
-                /*
-                taskENTER_CRITICAL();
-                {
-                    printf("[\t%d] Speed Up \r\n", osKernelSysTick());
-                }
-                taskEXIT_CRITICAL();
-                */
-                debugOut( 0, (char *)"[\t%d] Speed Up \r\n", osKernelSysTick());
-            }
-            MotionStatus.SpeedDelay = false;
-        }
-        return 0;
+        return pdTRUE;
     }
     else
     {
-        return 1;
+        if (DebugCtrl.enableStartUp)
+        {
+            debugOut( 0, (char *)"[\t%d] Speed Up [error]\r\n", osKernelSysTick());
+        }
     }
+    return pdFALSE;
 }
 
 void GetNextPiont(float *X)
@@ -170,9 +136,9 @@ void GetPosition( float * X )
 void SetiEmergency(int S)
 {
     if (S)
-        agv.iEmergency = true;
+        agv.iEmergencyBySoftware = true;
     else
-        agv.iEmergency = false;
+        agv.iEmergencyBySoftware = false;
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
@@ -211,18 +177,6 @@ bool CanRx(int *oID, int *oLength, char oArray[])
                 }
                 else
                 {
-                    /*
-                    taskENTER_CRITICAL();
-                    {
-                        printf("[\t%d] Can ID: %02X, DLC: %d Data: ", osKernelSysTick(), *oID, *oLength);
-                        for (int i = 0; i < *oLength; i++)
-                        {
-                            printf("%02X ", oArray[i]);
-                        }
-                        printf("\r\n");
-                    }
-                    taskEXIT_CRITICAL();
-                    */
                     debugOut( 0, (char *)"[\t%d] Can ID: %02X, DLC: %d Data: ", osKernelSysTick(), *oID, *oLength);
                     for (int i = 0; i < *oLength; i++)
                     {
@@ -239,25 +193,7 @@ bool CanRx(int *oID, int *oLength, char oArray[])
 // static int canHeartBestCount[3] = {0, 0, 0};
 void Rx_SDO_Commplate(int oID, int oIndex, char oSubindex, int oValue)
 {
-    switch (oID)
-    {
-    case 0x01:
-        switch (oIndex)
-        {
-        case 0x6063:
-            Encoder_Value = oValue;
-            if (MotionStatus.EcodeDelay)
-            {
-            }
-            MotionStatus.EcodeDelay = false;
-            break;
-        default:
-            break;
-        }
-        break;
-    default:
-        break;
-    }
+    return;
 }
 
 void Rx_PDO_Commplate(int oID, int oIndex, char oSubindex, int oValue)
@@ -271,16 +207,12 @@ void Rx_PDO_Commplate(int oID, int oIndex, char oSubindex, int oValue)
         {
             if (DebugCtrl.enableStartUp)
             {
-                /*
-                taskENTER_CRITICAL();
-                {
-                    printf("[\t%d] Ecode 0 Up\r\n", osKernelSysTick());
-                }
-                taskEXIT_CRITICAL();
-                */
-                
+                debugOut( 0, (char *)"[\t%d] Encode Up [ok]\r\n", osKernelSysTick() );
             }
             MotionStatus.EcodeDelay = false;
+            agv.EncoderValue = Encoder_Value;
+            agv.DetectDynamics();
+            SetSelfPosition( 0 );
         }
         break;
 
@@ -298,13 +230,6 @@ void canHeartbeat(int oID, CANopenMaster::CANopenResponse::te_HeartBeat oStatus)
         {
             if (DebugCtrl.enableStartUp)
             {
-                /*
-                taskENTER_CRITICAL();
-                {
-                    printf("[\t%d] Motor 1 Up\r\n", osKernelSysTick());
-                }
-                taskEXIT_CRITICAL();
-                */
                 debugOut( 0, (char *)"[\t%d] Motor 1 Up\r\n", osKernelSysTick());
             }
         }
@@ -315,13 +240,6 @@ void canHeartbeat(int oID, CANopenMaster::CANopenResponse::te_HeartBeat oStatus)
             {
                 MotionStatus.CanRestDelay = false;
                 MotionStatus.EcodeDelay = true;
-                /*
-                taskENTER_CRITICAL();
-                {
-                    printf("[\t%d] Motor 1 Rest OK\r\n", osKernelSysTick());
-                }
-                taskEXIT_CRITICAL();
-                */
                 debugOut( 0, (char *)"[\t%d] Motor 1 Rest OK\r\n", osKernelSysTick());
             }
         }
@@ -360,6 +278,7 @@ void MotionTask(void const *parment)
         int pollStep;
         int count;
         int TemperatureDelay;
+        int alarmBak[2];
     } canOpenStatus;
 
     //    if( CanManualQueue == 0 )
@@ -368,12 +287,11 @@ void MotionTask(void const *parment)
     //    }
     NavigationOperationStd navigationOperationData;
 
-    MotionStatus.BootUp = 3;
     MotionStatus.EcodeDelay = true;
-    MotionStatus.SpeedDelay = false;
-    MotionStatus.CanDelay = false;
+    MotionStatus.CanDelay = true;
     MotionStatus.CanRestDelay = true;
     MotionStatus.alarm = false;
+
     // defatult enable EXTI, Navigation, Switch, Operation, StartUp log
     DebugCtrl.enableNavigation = 1;
     DebugCtrl.enableOperation = 1;
@@ -393,17 +311,12 @@ void MotionTask(void const *parment)
 
     Can1Init();
 
-    if (DebugCtrl.enableStartUp)
-    {
-        debugOut( 0, (char *)"Motor Start Up Ok\r\n");
-    }
     agv.Stop_Accuracy = 1;
     agv.sArriveCtrlTime = 210;
     agv.sSpeed_min = 10;
     agv.sSpeed_max = 1000;
     agv.sDeceleration_distance = 5;
-
-    //    sAccBackUp = agv.sAcceleration;
+    
     uint32_t PreviousWakeTime = osKernelSysTick();
 
     CANopen_Rx.Event_Rx_SDO_Complete = Rx_SDO_Commplate;
@@ -415,16 +328,7 @@ void MotionTask(void const *parment)
     agv.AGV_Pos = 0;
 
     /* power key */
-    struct
-    {
-        uint32_t clock;
-        bool flag;
-        bool Poweroff;
-        bool savePowerStatus;
-    } PowerCount;
-    PowerCount.Poweroff = false;
-    PowerCount.savePowerStatus = false;
-    PowerCount.flag = false;
+
     canOpenStatus.count = 0;
     canOpenStatus.pollStep = -1;
     canOpenStatus.TemperatureDelay = 0;
@@ -432,19 +336,13 @@ void MotionTask(void const *parment)
     uint32_t TickCount = 0;
     if (DebugCtrl.enableStartUp)
     {
-        /*
-        taskENTER_CRITICAL();
-        {
-            printf("[\t%d] Motion Start1\r\n", osKernelSysTick());
-        }
-        taskEXIT_CRITICAL();
-        */
         debugOut( 0, (char *)"[\t%d] Motion Start1\r\n", osKernelSysTick());
     }
     MotionStatus.alarm = false;
 
     osDelay(5000);
-    //MotionStatus.BootUp = 0;
+    MotionStatus.CanDelay = false;
+    
     runTaskHeader.next = 0;
 
     InOutSwitch inOutTarget = getSwitchStatus();
@@ -453,7 +351,12 @@ void MotionTask(void const *parment)
 
     for (;;)
     {
-        if (1)
+
+        agv.clock = (int)PreviousWakeTime;
+        CANopen_Tx.clock_time = (int)PreviousWakeTime;
+        CANopen_Rx.clock_time = (int)PreviousWakeTime;
+
+        if (1) /// rec task work for server and add to run task
         {
             if (NavigationOperationQue)
             {
@@ -461,11 +364,11 @@ void MotionTask(void const *parment)
                 {
                     switch (navigationOperationData.cmd)
                     {
+                    case 2:
+                        agv.sSpeed_max = navigationOperationData.Data.speedTo;
+                        break;
                     case 3:
-                        if (!MotionStatus.BootUp)
-                        {
-                            AGV_Pos= navigationOperationData.Data.posTo;
-                        }
+                        AGV_Pos= navigationOperationData.Data.posTo;
                         break;
                     case 4:
                         if( 1 )
@@ -524,18 +427,11 @@ void MotionTask(void const *parment)
                             }
                         }
                         break;
-                    case 5:
-                        break;
 
                     case 6:
                         SetSelfPosition(navigationOperationData.Data.posTo);
                         break;
-                    case 10:
-                        if (!MotionStatus.BootUp)
-                        {
-                            // BeltOperatingConfig(navigationOperationData.Data.data, navigationOperationData.Data.time );
-                        }
-                        break;
+
                     case 14:
                         cancelNavigate();
                         break;
@@ -545,111 +441,84 @@ void MotionTask(void const *parment)
                 }
             }
         }
-        if (getPowerKey() == on)
+
+        if( 1 ) //// update hardware message
         {
-            if (PowerCount.flag)
+            if (getEmergencyKey() == on)
             {
-                if (PreviousWakeTime - PowerCount.clock > 500)
-                {
-                    PowerCount.Poweroff = true;
-                }
+                agv.iEmergencyByKey = false;
             }
             else
             {
-                PowerCount.flag = true;
-                PowerCount.clock = PreviousWakeTime;
+                agv.iEmergencyByKey = false;
             }
-        }
-        else
-        {
-            if (PowerCount.Poweroff)
+            if( powerKeyWork( PreviousWakeTime ) == on )
             {
-                setPowerKey(off);
+                //
+                setPowerKey( on );
             }
-            PowerCount.flag = false;
+
         }
 
-        if (getEmergencyKey() == on)
+        if( 1 ) // update encode and run status
         {
-            agv.iEmergency = false;
-        }
-        else
-        {
-            agv.iEmergency = false;
-        }
-#if 0
-        if (CANopen_Rx.work())
-        {
-            static int enCodeAlarmCount = 0;
-            if (abs(agv.EncoderValue - Encoder_Value) > 10000)
+            if (agv.iEmergencyByKey || agv.iEmergencyBySoftware )
             {
-                if (enCodeAlarmCount < 3)
+                AGV_Pos = agv.AGV_Pos;
+                agv.Motion_Status_Now = AGV_Parallel_Motion::ms_Emergency;
+            }
+#if 0
+            if (CANopen_Rx.work())
+            {
+                static int enCodeAlarmCount = 0;
+                if (abs(agv.EncoderValue - Encoder_Value) > 10000)
                 {
-        /*
-                    taskENTER_CRITICAL();
+                    if (enCodeAlarmCount < 3)
                     {
-                        printf("[\t%d] Encode up too much\r\n", PreviousWakeTime);
+                        /*
+                                    taskENTER_CRITICAL();
+                                    {
+                                        printf("[\t%d] Encode up too much\r\n", PreviousWakeTime);
+                                    }
+                                    taskEXIT_CRITICAL();
+                        */
+                        debugOut( 0, (char *)"[\t%d] Encode up too much\r\n", PreviousWakeTime);
                     }
-                    taskEXIT_CRITICAL();
-        */
-                    debugOut( 0, (char *)"[\t%d] Encode up too much\r\n", PreviousWakeTime);
-                }
-                if (agv.EncoderValue == 0)
-                {
-                    agv.EncoderValue = Encoder_Value;
+                    if (agv.EncoderValue == 0)
+                    {
+                        agv.EncoderValue = Encoder_Value;
+                    }
+                    else
+                    {
+                        enCodeAlarmCount++;
+                    }
                 }
                 else
                 {
-                    enCodeAlarmCount++;
+                    agv.EncoderValue = Encoder_Value;
                 }
+                agv.DetectDynamics();
             }
-            else
-            {
-                agv.EncoderValue = Encoder_Value;
-            }
-        }
 #else
-        agv.EncoderValue += agv.Request_RPM * AGV_EncoderCPC * 2 / 60 / 1000;
-        agv.DetectDynamics();
-        if( MotionStatus.BootUp )
-            MotionStatus.BootUp = 0;
+            if( MotionStatus.EcodeDelay )
+                MotionStatus.EcodeDelay = false;
+            agv.EncoderValue += agv.Request_RPM * AGV_EncoderCPC * 2 / 60 / 1000;
+           // agv.DetectDynamics();
 //       HAL_RTCEx_BKUPWrite( &hrtc, RTC_BKP_DR3, agv.AGV_Pos );
-
 #endif
 
-
-        if (MotionStatus.EcodeDelay)
-        {
-            ;
-        }
-        else
-        {
-            if (MotionStatus.BootUp > 0)
-                MotionStatus.BootUp = 0;
-        }
-
-        agv.clock = (int)PreviousWakeTime;
-        CANopen_Tx.clock_time = (int)PreviousWakeTime;
-        CANopen_Rx.clock_time = (int)PreviousWakeTime;
-
-        if (MotionStatus.BootUp)
-        {
-            agv.Motion_Status_Now = agv.Motion_work(agv.AGV_Pos);
-            if (agv.iEmergency == true)
-            {
-                agv.Motion_Status_Now = AGV_Parallel_Motion::ms_Emergency;
-            }
-            AGV_Pos = agv.AGV_Pos;
-            lastPosition = agv.AGV_Pos;
-        }
-        else
-        {
             agv.Motion_Status_Now = agv.Motion_work(AGV_Pos);
+        }
+
+        if( 1 ) // run task at position
+        {
             while( runTaskHeader.next )
             {
-                if( agv.AGV_Pos > runTaskHeader.next->position )
+                if( osKernelSysTick() - PreviousWakeTime > 2 )
+                    break;
+                if( agv.AGV_Pos > runTaskHeader.next->position - 1 )
                 {
-                    if( agv.AGV_Pos - runTaskHeader.next->position < 5 )
+                    if( agv.AGV_Pos - (runTaskHeader.next->position -1 ) < 5 )
                     {
                         /*
                             1: 设置速度
@@ -671,30 +540,17 @@ void MotionTask(void const *parment)
                             inOutTarget = InOutSwitchIn;
                             break;
                         case 4:
+
                         case 5:
                         case 6:
                             break;
                         default:
                             break;
                         }
-                        /*
-                        taskENTER_CRITICAL();
-                        {
-                            printf( "[\t%d] run Task at %0.2f: cmd->%d, position->%0.2f, speed->%0.2f\r\n", PreviousWakeTime, agv.AGV_Pos, runTaskHeader.next->cmd, runTaskHeader.next->position, runTaskHeader.next->data.fData );
-                        }
-                        taskEXIT_CRITICAL();
-                        */
                         debugOut( 0, (char *)"[\t%d] run Task at %0.2f: cmd->%d, position->%0.2f, speed->%0.2f\r\n", PreviousWakeTime, agv.AGV_Pos, runTaskHeader.next->cmd, runTaskHeader.next->position, runTaskHeader.next->data.fData );
                     }
                     else
                     {
-                        /*
-                        taskENTER_CRITICAL();
-                        {
-                            printf( "[\t%d] miss operation at %0.2f : cmd->%d, position->%0.2f, speed->%0.2f\r\n", PreviousWakeTime, agv.AGV_Pos, runTaskHeader.next->cmd, runTaskHeader.next->position, runTaskHeader.next->data.fData );
-                        }
-                        taskEXIT_CRITICAL();
-                        */
                         debugOut( 0, (char *)"[\t%d] miss operation at %0.2f : cmd->%d, position->%0.2f, speed->%0.2f\r\n", PreviousWakeTime, agv.AGV_Pos, runTaskHeader.next->cmd, runTaskHeader.next->position, runTaskHeader.next->data.fData );
 
                     }
@@ -702,17 +558,14 @@ void MotionTask(void const *parment)
                 }
                 else
                     break;
-
-            }
-            setSwitch( inOutTarget );
-            if (agv.iEmergency == true)
-            {
-                AGV_Pos = agv.AGV_Pos;
-                agv.Motion_Status_Now = AGV_Parallel_Motion::ms_Emergency;
             }
         }
+        if( 1 )
+        {
+            setSwitch( inOutTarget );
+        }
 
-        if (MotionStatus.SpeedDelay)
+        if (MotionStatus.EcodeDelay)
         {
             request_speed = 0;
         }
@@ -720,19 +573,13 @@ void MotionTask(void const *parment)
         {
             request_speed = -(int)(((double)agv.Request_RPM * 512 * 10000 * 9.3333333 ) / 1875);
         }
+
         if (DebugCtrl.enableRealTimeSpeed)
         {
             static float xSpeedBak, ySpeedBak;
             if (xSpeedBak != agv.Request_Speed)
             {
                 xSpeedBak = agv.Request_Speed;
-                /*
-                taskENTER_CRITICAL();
-                {
-                    printf("[\t%d] Real-Time Speed: %0.2f mm/s\r\n", PreviousWakeTime, agv.Request_Speed);
-                }
-                taskEXIT_CRITICAL();
-                */
                 debugOut( 0, (char *)"[\t%d] Real-Time Speed: %0.2f mm/s\r\n", PreviousWakeTime, agv.Request_Speed);
             }
         }
@@ -742,97 +589,54 @@ void MotionTask(void const *parment)
             milagesXBack = agv.AGV_Pos;
             if (DebugCtrl.enableRealTimeEcode)
             {
-                /*
-                taskENTER_CRITICAL();
-                {
-                    printf("[\t%d] X - Ecode: %d\tPosition: %0.2f\r\n", PreviousWakeTime, agv.EncoderValue, agv.AGV_Pos);
-                }
-                taskEXIT_CRITICAL();
-                */
                 debugOut( 0, (char *)"[\t%d] X - Ecode: %d\tPosition: %0.2f\r\n", PreviousWakeTime, agv.EncoderValue, agv.AGV_Pos);
             }
         }
-
-        static int alarmBack[2] = {0, 0};
-
-        static int canCount = 0;
-        if (canCount++ >= 1)
+        if( !MotionStatus.EcodeDelay )
         {
-            canCount = 0;
-            if( MotionStatus.alarm )
+            if (canOpenStatus.count ++ >= 1)
             {
-                if( canOpenStatus.pollStep < 11 )
-                {
-                    canOpenStatus.pollStep = 11;
-                }
-            }
-
-            switch (canOpenStatus.pollStep)
-            {
-            case -1:
-                if (CANopen_Tx.initialzation(1))
-                {
-                    canOpenStatus.pollStep = 1;
-                    debugOut( 0, (char *)"[\t%d]init 1 success\r\n", osKernelSysTick());
-                }
-                osDelay(10);
-                break;
-
-            case 1:
-                if (CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Start_Remote_Node))
-                    canOpenStatus.pollStep = 5;
-                osDelay(10);
-                break;
-
-            case 5:
                 canOpenStatus.count = 0;
-                CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_4Bit23, 0x60ff, 0, request_speed);
-                break;
-
-            case 9:
-                CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x1017, 0, 0x03EB);
-                canOpenStatus.pollStep = 12;
-                break;
-
-            case 11:
-                if (CANopen_Tx.InitialisingWithOutAcc(2))
-                    canOpenStatus.pollStep = 3;
-                break;
-            case 12:
-                if (MotionStatus.CanRestDelay)
+                if( MotionStatus.alarm )
                 {
-                    CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Rest_Node);
+                    /*
+                    if( canOpenStatus.pollStep < 11 )
+                    {
+                        canOpenStatus.pollStep = 11;
+                    }
+                    */
                 }
-                else
-                    canOpenStatus.pollStep = -2;
-                break;
-            case 13:
-                if (MotionStatus.alarm)
-                    CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_1Bit2f, 0x7006, 0, 0x01);
-                canOpenStatus.pollStep++;
-                break;
-            case 14:
-                if (MotionStatus.alarm)
+
+                switch (canOpenStatus.pollStep)
                 {
-                    CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x6040, 0, 0x80);
-                }
-                if (MotionStatus.alarm)
-                {
-                    canOpenStatus.pollStep = 11;
+                case -1:
+                    if (CANopen_Tx.initialzation(1))
+                    {
+                        canOpenStatus.pollStep++ ;
+                        debugOut( 0, (char *)"[\t%d]Init CanOpen Node ID:1 [ok]\r\n", osKernelSysTick());
+                    }
+                    osDelay(10);
+                    break;
+
+                case 0:
+                    if (CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Start_Remote_Node))
+                    {
+                        canOpenStatus.pollStep++ ;
+                        debugOut( 0, (char *)"[\t%d] Start CanOpen Node ID:1 [ok]\r\n" );
+                    }
+                    osDelay(10);
+                    break;
+
+                case 1:
+                    CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_4Bit23, 0x60ff, 0, request_speed);
+                    break;
+                default:
+                    canOpenStatus.pollStep = -1;
                     break;
                 }
-                MotionStatus.CanDelay = false;
-
-                MotionStatus.EcodeDelay = true;
-                canOpenStatus.pollStep = 9;
-                break;
-            default:
-                canOpenStatus.pollStep = 9;
-                break;
             }
         }
         // todo :
-        /* 读取上位机下发的RFID位置，当小车停在格口中间时使用RFID更新当前位置 */
         /* 绝对延时，绝对延时保证代码执行周期固定，即使程序运行时间不确定 此延时依赖FreeRTOS */
         osDelayUntil(&PreviousWakeTime, 2);
     }
