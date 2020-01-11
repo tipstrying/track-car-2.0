@@ -10,6 +10,7 @@
 #include "battery.h"
 #include "listRunTask.h"
 #include "hardware.h"
+#include "app.h"
 
 int GetPositionHttpApi( float *pos )
 {
@@ -90,7 +91,11 @@ int InOutStatus()
 {
     return getSwitchStatus();
 }
-
+int GetBatteryVoltageHttpApi( float *Voltage )
+{
+    *Voltage = Battery.Voltage;
+    return 0;
+}
 void getTaskStatus( uint8_t * buff )
 {
     const char * const pcHeader = "Task            Abs Time      % Time\r\n****************************************\r\n";

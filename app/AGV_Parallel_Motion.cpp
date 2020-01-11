@@ -16,8 +16,8 @@ AGV_Parallel_Motion::AGV_Parallel_Motion()
     this->sArriveCtrlTime = 300; // 20 * sample_Time  ms
     this->ts_curve_k = 700;
     this->ts_curve_j_max = 1200;
-    this->ts_curve_a_max = 500;
-    this->ts_curve_v_max = 500;
+    this->ts_curve_a_max = 1500;
+    this->ts_curve_v_max = 1000;
 
     this->sAcceleration = 3000;
     this->sAccelerationLow = 1500;
@@ -63,7 +63,7 @@ AGV_Parallel_Motion::Motion_Status AGV_Parallel_Motion::Move_to(float iTarget)
 #if 1
     switch( this->move_to_step )
     {
-        
+
     default:
     case ms_Arrived:
     case ms_Emergency:
@@ -323,7 +323,7 @@ float AGV_Parallel_Motion::ts_curve(unsigned char replan, unsigned int pMs, floa
 }
 float AGV_Parallel_Motion::Move(float iDistance)
 {
-#if 0
+#if 1
     static float speedNow,speedNowBak;
     static float distanceBak = iDistance;
     if( abs( iDistance ) > this->Stop_Accuracy * 0.5 )
@@ -337,7 +337,7 @@ float AGV_Parallel_Motion::Move(float iDistance)
             {
                 taskENTER_CRITICAL();
                 {
-                    printf( "[\t%d] New Position Move To Get: iDistanceNew->%fmm iDistanceOld->%fmm replan->%s speedNw->%fmm/s speedOld->%fmm/s Position Now: x->%fmm y->%fmm Position Next x->%fmm y->%fmm\r\n", clock, iDistance, distanceBak, isNewPosition == true ? "true" : "false", speedNow, speedNowBak, AGV_Pose.x, AGV_Pose.y, AGV_PoseNext.x, AGV_PoseNext.y );
+                    printf( "[\t%d] New Position Move To Get: iDistanceNew->%fmm iDistanceOld->%fmm replan->%s speedNw->%fmm/s speedOld->%fmm/s Position Now:%0.2fmm \r\n", clock, iDistance, distanceBak, isNewPosition == true ? "true" : "false", speedNow, speedNowBak, AGV_Pos );
                 }
                 taskEXIT_CRITICAL();
             }
@@ -348,7 +348,7 @@ float AGV_Parallel_Motion::Move(float iDistance)
             {
                 taskENTER_CRITICAL();
                 {
-                    printf( "[\t%d] New Position Move To \"replan\":%s\t\"Distance\":%fmm speedNew->%fmm/s speedOld->%fmm/s Position Now: x->%fmm y->%fmm Position Next x->%fmm y->%fmm\r\n", clock, isNewPosition == true ? "true" : "false", iDistance, speedNow, speedNowBak, AGV_Pose.x, AGV_Pose.y, AGV_PoseNext.x, AGV_PoseNext.y );
+                    printf( "[\t%d] New Position Move To Get: iDistanceNew->%fmm iDistanceOld->%fmm replan->%s speedNw->%fmm/s speedOld->%fmm/s Position Now:%0.2fmm \r\n", clock, iDistance, distanceBak, isNewPosition == true ? "true" : "false", speedNow, speedNowBak, AGV_Pos );
                 }
                 taskEXIT_CRITICAL();
             }
@@ -369,9 +369,9 @@ float AGV_Parallel_Motion::Move(float iDistance)
     static float speedNow = 0;
     float stopDistance;
 
-    if (speedNow > sSpeed_mid)
+    if (/* speedNow > sSpeed_mid */ 1 )
     {
-        stopDistance = (speedNow * speedNow) / (2.0 * sAcceleration) + (sSpeed_mid * sSpeed_mid) / (2 * sAccelerationLow) + (((speedNow - sSpeed_mid) / sAcceleration) * sSpeed_mid) + sDeceleration_distance;
+        stopDistance = (speedNow * speedNow) / (2.0 * sAcceleration) + sDeceleration_distance;
         if (abs(iDistance) > stopDistance)
         {
             SetSpeed = sSpeed_max;
@@ -407,7 +407,7 @@ float AGV_Parallel_Motion::Move(float iDistance)
 
     if (speedNow > SetSpeed)
     {
-        if (speedNow > sSpeed_mid)
+        if (1)
         {
             securityDelta_straight = sAcceleration * sample_Time / 1000.0;
         }
@@ -418,7 +418,7 @@ float AGV_Parallel_Motion::Move(float iDistance)
     }
     else
     {
-        /*
+#if 0
         if( abs(iDistance) > (sSpeed_mid2 * sSpeed_mid2 / ( 2 * sAccelerationLow2 ) ))
         {
             securityDelta_straight = sAcceleration * sample_Time / 1000.0;
@@ -434,32 +434,14 @@ float AGV_Parallel_Motion::Move(float iDistance)
                 securityDelta_straight = sAccelerationLow2 * sample_Time / 1000.0;
             }
         }
-        */
+#else
         securityDelta_straight = sAcceleration * sample_Time / 1000.0;
+#endif
     }
-    if (SetSpeed == 0)
-    {
-
-        if (abs(speedNow) <= sSpeed_min)
-        {
-            return 0;
-        }
-        else
-        {
-            if (speedNow > SetSpeed)
-                speedNow -= securityDelta_straight;
-            else if (speedNow < SetSpeed)
-                speedNow += securityDelta_straight;
-        }
-    }
-    else
-    {
-        if (speedNow > SetSpeed)
-            speedNow -= securityDelta_straight;
-        else if (speedNow < SetSpeed)
-            speedNow += securityDelta_straight;
-    }
-
+    if (speedNow > SetSpeed)
+        speedNow -= securityDelta_straight;
+    else if (speedNow < SetSpeed)
+        speedNow += securityDelta_straight;
     return speedNow;
 
 #endif

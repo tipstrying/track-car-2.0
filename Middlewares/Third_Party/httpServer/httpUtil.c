@@ -30,10 +30,11 @@ uint8_t http_get_cgi_handler(uint8_t *uri_name, uint8_t *buf, uint32_t *file_len
     uint16_t len = 0;
     if (strcmp((const char *)uri_name, "status.cgi") == 0)
     {
-        float sp, pos;
+        float sp, pos, voltage;
         GetSpeedHttpApi( &sp );
         GetPositionHttpApi( &pos );
-        sprintf( (char *)buf, "{\"sp\":%0.2f, \"pos\":%0.2f}", sp, pos );
+        GetBatteryVoltageHttpApi( &voltage );
+        sprintf( (char *)buf, "{\"sp\":%0.2f, \"pos\":%0.2f, \"Bv\":%0.1f}", sp, pos, voltage );
         len = strlen( (const char*)buf );
     }
     else if( strcmp( (const char *)uri_name, "getruntasklist.cgi" ) == 0 )
@@ -134,7 +135,6 @@ uint8_t http_post_cgi_handler(uint8_t *uri_name, st_http_request *p_http_request
             }
             if( cmd > 1 )
             {
-                cmd++;
                 SetOpHttpApi(position, cmd, 0 );
             }
             sprintf( (char *)buf, "set op ok\r\n" );

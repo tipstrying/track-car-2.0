@@ -8,11 +8,6 @@ extern "C" {
 #include "ff.h"
 #include "fatfs.h"
 
-/*
-typedef struct {
-    char buff[100];
-} DebugBuffStd;
-*/
 typedef struct {
     char enableRealTimeEcode;
     char enableRealTimeSpeed;
@@ -32,10 +27,13 @@ typedef struct {
     char RFIDUpdate;
     char MotorTemperature;
     char enableMotorAlarm;
-}DebugOutCtlDef;
+    char AddRunTask;
+    char DelRunTask;
+    
+} DebugOutCtlDef;
 
 extern DebugOutCtlDef DebugCtrl;
-    
+
 typedef struct {
     uint8_t  BatterStatus;
     uint16_t Battery;

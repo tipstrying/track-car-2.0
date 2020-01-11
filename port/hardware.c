@@ -63,6 +63,7 @@ InOutSwitch setSwitch( InOutSwitch target )
         HAL_GPIO_WritePin( OUT_4_GPIO_Port, OUT_4_Pin, GPIO_PIN_RESET );
         break;
     }
+    return InOutSwitchUnknow;
 }
 OnOffDef getEmergencyKey()
 {

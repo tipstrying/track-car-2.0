@@ -41,6 +41,7 @@
 #include "hardware.h"
 #include "math.h"
 #include "battery.h"
+#include "rtc.h"
 
 void startCLITask()
 {
@@ -158,9 +159,12 @@ static BaseType_t reboot( char *pcWriteBuffer, size_t xWriteBufferLen, const cha
 static const CLI_Command_Definition_t xParameterReboot =
 {
     "reboot",
-    "\r\nreboot: reboot car mcu\r\n",
+    "\r\n\
+    reboot: reboot car mcu\r\n\
+    reboot rec: reboot to bootloader\r\n\
+    ",
     reboot,
-    0,
+    -1,
 };
 static BaseType_t getRamFree( char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString );
 static const CLI_Command_Definition_t xParameterFree =
@@ -196,6 +200,7 @@ void vRegisterCLICommands( void )
     FreeRTOS_CLIRegisterCommand( &xParameterLogCtl );
     FreeRTOS_CLIRegisterCommand( &xParameterMotionCtl );
     FreeRTOS_CLIRegisterCommand( &xParameterFree );
+    FreeRTOS_CLIRegisterCommand( &xParameterReboot );
 }
 static BaseType_t setSwitchCli( char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString )
 {
@@ -230,6 +235,29 @@ static BaseType_t getRamFree( char *pcWriteBuffer, size_t xWriteBufferLen, const
 /*-----------------------------------------------------------*/
 static BaseType_t reboot( char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString )
 {
+    const char *pcParameter1;
+    BaseType_t parameterLen1;
+    union{
+        char Hex[4];
+        uint32_t Data;
+    }u32ToHex;
+    
+    pcParameter1 = FreeRTOS_CLIGetParameter( pcCommandString, 1, &parameterLen1 );
+    if( pcParameter1 )
+    {
+        if( strcmp( pcParameter1, "rec" ) == 0 )
+        {
+            u32ToHex.Hex[0] = 'r';
+            u32ToHex.Hex[1] = 'e';
+            u32ToHex.Hex[2] = 'c';
+            u32ToHex.Hex[3] = 'M';
+            HAL_RTCEx_BKUPWrite( &hrtc, RTC_BKP_DR0, u32ToHex.Data );
+        }
+        else
+        {
+            HAL_RTCEx_BKUPWrite( &hrtc, RTC_BKP_DR0, 0 );
+        }
+    }
     HAL_NVIC_SystemReset();
     return pdFALSE;
 }

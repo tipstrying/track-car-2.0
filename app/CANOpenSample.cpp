@@ -100,10 +100,10 @@ bool CANopenResponse::work()
                             short oIndex;
                             char oSubindex = 0;
                             int oData;
-                            char DataMap[] = { 4, 0, 0 };
-                            if(this->CheckRead_regs_PDO(oArray, &oLength, &oIndex, &oData, DataMap))
+                            int  ID = 0x180;
+                            if( this->Event_Rx_PDO_Complete )
                             {
-                                this->Event_Rx_PDO_Complete(oID, oIndex, oSubindex, oData);
+                                this->Event_Rx_PDO_Complete(oID, oArray );
                                 rValue = true;
                             }
                         }
@@ -114,12 +114,7 @@ bool CANopenResponse::work()
 
                         if( this->Event_Rx_PDO_Complete )
                         {
-                            short oIndex;
-                            char oSubindex = 0;
-                            int oData;
-                            char DataMap[] = { 2, 2, 2 };
-                            if(this->CheckRead_regs_PDO(oArray, &oLength, &oIndex, &oData, DataMap))
-                                this->Event_Rx_PDO_Complete(oID, oIndex, oSubindex, oData);
+                            this->Event_Rx_PDO_Complete(oID, oArray);
                         }
 
                         break;
@@ -196,24 +191,21 @@ bool CANopenResponse::CheckRead_regs(char iArray[8], int *iLength, short *oIndex
     }
     return rValue;
 }
-bool CANopenResponse::CheckRead_regs_PDO(char iArray[8], int *iLength, short *oIndex, int *oData, char * DataMap)
+bool CANopenResponse::CheckRead_regs_PDO(char iArray[8], int *iLength, short *oIndex, int *oData, int ID)
 {
 
     CANopenResponse::tu_convert16 iTool16;
     CANopenResponse::tu_convert32 iTool32;
 
-    if( DataMap[0] == *iLength )
+    if( ID == 180 )
     {
-        if( DataMap[0] == 4 )
+        for (int i = 0; i < 4; i++)
         {
-            for (int i = 0; i < 4; i++)
-            {
-                iTool32.cValue[i] = iArray[i];
-            }
-            *oData = iTool32.iValue;
-            this->time_ctrl = this->clock_time;
-            return true;
+            iTool32.cValue[i] = iArray[i];
         }
+        *oData = iTool32.iValue;
+        this->time_ctrl = this->clock_time;
+        return true;
     }
     else
     {
@@ -568,23 +560,22 @@ bool CANopenRequest::initialzation( int iNode_ID )
             this->polling_step++;
         break;
     case 2:
-        if( /* iNode_ID == 1 || iNode_ID == 2 */ 0 )
-        {
-            if (this->write(iNode_ID, Master2Slave_request_2Bit2b, 0x6040, 0, 0x0000006))
-                this->polling_step++;
-        }
-        else
-        {
-            if (this->write(iNode_ID, Master2Slave_request_2Bit2b, 0x6040, 0, 0x000000f))
-                this->polling_step++;
-        }
-        break;
+        if (this->write(iNode_ID, Master2Slave_request_4Bit23, 0x6083, 0, 163840))
+            this->polling_step++;
     case 3:
+        if (this->write(iNode_ID, Master2Slave_request_4Bit23, 0x6084, 0, 163840))
+            this->polling_step++;
+        break;
+    case 4:
+        if (this->write(iNode_ID, Master2Slave_request_2Bit2b, 0x6040, 0, 0x000000f))
+            this->polling_step++;
+        break;
+    case 5:
         if (this->write(iNode_ID, Master2Slave_request_4Bit23, 0x60ff, 0, 0x00000000))
             this->polling_step++;
         break;
     }
-    return (this->polling_step > 3);
+    return (this->polling_step > 5);
 }
 bool CANopenRequest::InitialisingWithOutAcc( int iNode_ID )
 {

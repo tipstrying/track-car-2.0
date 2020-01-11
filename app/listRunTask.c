@@ -3,6 +3,8 @@
 #include "cmsis_os.h"
 
 #define itemSize  sizeof( RunTaskDef )
+void listAddCallBack( RunTaskDef data );
+void listDelCallBack( RunTaskDef data );
 
 int listCreate( RunTaskDef * header )
 {
@@ -45,6 +47,7 @@ int listAdd( RunTaskDef * header, RunTaskDef dataIn )
     {
         *(next->next) = dataIn;
         next->next->next = NULL;
+        listAddCallBack( dataIn );
         return pdTRUE;
     }
     else
@@ -73,6 +76,26 @@ int listGetItemByID( RunTaskDef * header, int ID, RunTaskDef * dataOut)
         return pdFALSE;
 }
 
+int listGetItemByCMD( RunTaskDef *header, int cmd, RunTaskDef *dataOut )
+{
+    if( header )
+    {
+        RunTaskDef * next = header->next;
+        while( next )
+        {
+            if( next->cmd == cmd )
+            {
+                if( dataOut != NULL )
+                    *dataOut = *next;
+                return pdTRUE;
+            }
+            next = next->next;
+        }
+        return pdFALSE;
+    }
+    else
+        return pdFALSE;
+}
 static int listItemcmp( RunTaskDef data1, RunTaskDef data2 )
 {
     return pdFALSE;
@@ -112,6 +135,7 @@ int listDeleteItemByID( RunTaskDef *header, int ID )
             if( next->next->ID == ID )
             {
                 tmp = next->next;
+                listDelCallBack( *tmp);
                 next->next = next->next->next;
                 vPortFree( tmp );
                 return pdTRUE;
@@ -138,12 +162,13 @@ int listDeleteItemByIndex( RunTaskDef *header, int Index )
             if( index == Index )
             {
                 tmp = next->next;
+                listDelCallBack( *tmp );
                 next->next = next->next->next;
                 vPortFree( tmp );
                 return pdTRUE;
             }
             next = next->next;
-            
+
         }
         return pdTRUE;
     }

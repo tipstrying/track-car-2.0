@@ -152,57 +152,9 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>188</LineNumber>
-          <EnabledFlag>0</EnabledFlag>
-          <Address>134409660</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\Middlewares\Third_Party\FreeRTOS\Source\cli\CLI-commands.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\Main\../Middlewares/Third_Party/FreeRTOS/Source/cli/CLI-commands.c\188</Expression>
-        </Bp>
-        <Bp>
-          <Number>1</Number>
-          <Type>0</Type>
-          <LineNumber>196</LineNumber>
-          <EnabledFlag>0</EnabledFlag>
-          <Address>134409708</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\Middlewares\Third_Party\FreeRTOS\Source\cli\CLI-commands.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\Main\../Middlewares/Third_Party/FreeRTOS/Source/cli/CLI-commands.c\196</Expression>
-        </Bp>
-        <Bp>
-          <Number>2</Number>
-          <Type>0</Type>
-          <LineNumber>413</LineNumber>
+          <LineNumber>461</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134403676</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\app\W5500.cpp</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\Main\../app/W5500.cpp\413</Expression>
-        </Bp>
-        <Bp>
-          <Number>3</Number>
-          <Type>0</Type>
-          <LineNumber>465</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134377160</Address>
+          <Address>134377322</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -211,12 +163,44 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>..\app_cpp\Motor.cpp</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\Main\../app_cpp/Motor.cpp\465</Expression>
+          <Expression>\\Main\../app_cpp/Motor.cpp\461</Expression>
         </Bp>
         <Bp>
-          <Number>4</Number>
+          <Number>1</Number>
           <Type>0</Type>
-          <LineNumber>487</LineNumber>
+          <LineNumber>477</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>0</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>0</BreakIfRCount>
+          <Filename>..\app_cpp\Motor.cpp</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression></Expression>
+        </Bp>
+        <Bp>
+          <Number>2</Number>
+          <Type>0</Type>
+          <LineNumber>463</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>0</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>0</BreakIfRCount>
+          <Filename>..\app_cpp\Motor.cpp</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression></Expression>
+        </Bp>
+        <Bp>
+          <Number>3</Number>
+          <Type>0</Type>
+          <LineNumber>479</LineNumber>
           <EnabledFlag>1</EnabledFlag>
           <Address>0</Address>
           <ByteObject>0</ByteObject>
@@ -269,7 +253,7 @@
         <Ww>
           <count>7</count>
           <WinNumber>1</WinNumber>
-          <ItemText>agv</ItemText>
+          <ItemText>agv,0x0A</ItemText>
         </Ww>
       </WatchWindow1>
       <MemoryWindow1>

@@ -23,14 +23,14 @@ namespace CANopenMaster
 		bool work();
 		bool(*Event_Rx_Work)(int *oID, int *oLength, char oArray[8]);
 		void(*Event_Rx_SDO_Complete)(int oID, int oIndex, char oSubindex, int oValue);
-        void(*Event_Rx_PDO_Complete)(int oID, int oIndex, char oSubindex, int oValue);
+        void(*Event_Rx_PDO_Complete)( int oID, char Array[8] );
 		// *********I am still alive*******
 		void (*Event_Rx_HeartBeat_Complete)(int oID, te_HeartBeat oStatus);
 		void(*Event_Rx_Emergency_Complete)(int oID, short oError, char oRegiter, int oError_Area);
 		int clock_time;
 	private:	
 		bool CheckRead_regs( char iArray[8], int *iLength, short *oIndex, char *oSubIndex, int *oData);
-        bool CheckRead_regs_PDO(char iArray[8], int *iLength, short *oIndex, int *oData, char * DataMap);
+        bool CheckRead_regs_PDO(char iArray[8], int *iLength, short *oIndex, int *oData, int ID);
 		bool CheckRead_regs( char iArray[8], int *iLength, te_HeartBeat *oStatus);
 		bool CheckRead_regs( char iArray[8], int iLength, short oError,char  oRegiter,int oError_Area, bool iStop_All);
 		int time_ctrl;

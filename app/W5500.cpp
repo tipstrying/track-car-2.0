@@ -79,14 +79,14 @@ CONFIG_MSG SetNetWorkParment( void )
     CONFIG_MSG networkconfig;
     networkconfig.mac[0] = 0x00;
     networkconfig.mac[1] = 0x08;
-    networkconfig.mac[2] = 0x0dc;
+    networkconfig.mac[2] = 0xdc;
     networkconfig.mac[3] = 0x11;
     networkconfig.mac[4] = 0x11;
-    networkconfig.mac[5] = 0x17;
+    networkconfig.mac[5] = 0x13;
     networkconfig.lip[0] = 192;
     networkconfig.lip[1] = 168;
     networkconfig.lip[2] = 1;
-    networkconfig.lip[3] = 215;
+    networkconfig.lip[3] = 11;
     networkconfig.sub[0] = 255;
     networkconfig.sub[1] = 255;
     networkconfig.sub[2] = 255;
@@ -94,7 +94,7 @@ CONFIG_MSG SetNetWorkParment( void )
     networkconfig.gw[0] = 192;
     networkconfig.gw[1] = 168;
     networkconfig.gw[2] = 1;
-    networkconfig.gw[3] = 213;
+    networkconfig.gw[3] = 1;
     networkconfig.dhcp = 0;
     networkconfig.debug = 1;
     networkconfig.fw_len = 0;
@@ -169,7 +169,7 @@ void W5500Task( void const * par )
         osDelay(1);
 
         getSIPR (ip);
-        if( ( ip[0] != 192 ) || ( ip[1] != 168) || ( ip[2] != 1) || ( ip[3] != 215 ) )
+        if( ( ip[0] != 192 ) || ( ip[1] != 168) || ( ip[2] != 1) || ( ip[3] != 11 ) )
         {
             setSHAR( networkconfig.mac );
             setSUBR( networkconfig.sub );
@@ -363,7 +363,7 @@ void protocolRun( void const *para )
         int  Data;
     } i32ToHex;
 
-    createSocket( &dataIn, &dataOut, 5000, 0, 0 );
+    createSocket( &dataIn, &dataOut, 8802, 0, 0 );
     uint8_t buff[500];
     uint8_t data[100];
     NavigationOperationStd navData;
@@ -392,6 +392,45 @@ void protocolRun( void const *para )
                         switch( packCMD )
                         {
                         case 2001:
+                            if( 1 )
+                            {
+                                float pos, speed;
+                                int posInt;
+                                uint8_t status;
+                                uint8_t batVol;
+                                status = IsArriver();
+
+                                union {
+                                    uint8_t Hex[4];
+                                    int     Data;
+                                } i32ToHex;
+
+                                union {
+                                    uint8_t Hex[2];
+                                    uint16_t Data;
+                                } u16ToHex;
+
+                                GetPosition( &pos );
+                                GetSpeed( &speed );
+                                i32ToHex.Data = (int) pos;
+                                u16ToHex.Data = (uint16_t)speed;
+                                status  = 0;
+                                batVol = (uint8_t) (Battery.Voltage / 1000);
+                                for( int i = 0; i < 4; i++ )
+                                {
+                                    data[i] = i32ToHex.Hex[3-i];
+                                }
+                                data[4] = u16ToHex.Hex[1];
+                                data[5] = u16ToHex.Hex[0];
+
+                                data[6] = status;
+
+                                data[7] = batVol;
+
+                                PackLen = makePack( buff, packIndex, 12001, 0, 8, data );
+                                dataOut.pushData( buff, PackLen );
+                            }
+
                             break;
                         case 2002:
                             navData.cmd = 2;
@@ -406,6 +445,7 @@ void protocolRun( void const *para )
                                 PackLen = makePack( buff, packIndex, 12002, 1, 0, NULL );
                                 dataOut.pushData( buff, PackLen );
                             }
+
                             break;
                         case 2003:
                             if( 1 )
@@ -462,7 +502,145 @@ void protocolRun( void const *para )
                                 }
                                 dataOut.pushData( buff, PackLen );
                             }
-                            PackLen = makePack( buff, packIndex, packCMD, errorCode, 0, data );
+                            break;
+                        case 2004:
+                            if( 1 )
+                            {
+                                int rValue = 0;
+                                if( rValue )
+                                {
+                                    PackLen = makePack( buff, packIndex, 12004, 1, 0, 0 );
+                                }
+                                else
+                                {
+                                    PackLen = makePack( buff, packIndex, 12004, 0, 0, 0 );
+                                }
+                                dataOut.pushData( buff, PackLen );
+                            }
+                            break;
+                        case 2005:
+                            if( 1 )
+                            {
+                                int rValue = 0;
+                                if( rValue )
+                                {
+                                    PackLen = makePack( buff, packIndex, 12005, 1, 0, 0 );
+                                }
+                                else
+                                {
+                                    PackLen = makePack( buff, packIndex, 12005, 0, 0, 0 );
+                                }
+                                dataOut.pushData( buff, PackLen );
+                            }
+                            break;
+                        case 2006:
+                            if( 1 )
+                            {
+                                int rValue = 0;
+                                if( rValue )
+                                {
+                                    PackLen = makePack( buff, packIndex, 12006, 1, 0, 0 );
+                                }
+                                else
+                                {
+                                    PackLen = makePack( buff, packIndex, 12006, 0, 0, 0 );
+                                }
+                                dataOut.pushData( buff, PackLen );
+                            }
+                            break;
+                        case 2007:
+                            if( 1 )
+                            {
+
+                                int rValue = 0;
+                                if( rValue )
+                                {
+                                    PackLen = makePack( buff, packIndex, 12007, 1, 0, 0 );
+                                }
+                                else
+                                {
+                                    PackLen = makePack( buff, packIndex, 12007, 0, 0, 0 );
+                                }
+                                dataOut.pushData( buff, PackLen );
+                            }
+                            break;
+                        case 2008:
+                            if( 1 )
+                            {
+                                uint8_t isThingOnCar = 0;
+                                PackLen = makePack( buff, packIndex, 12008, 0, 1, &isThingOnCar );
+                                dataOut.pushData( buff, PackLen );
+                            }
+                            break;
+                        case 2010:
+                            if( 1 )
+                            {
+                                PackLen = makePack( buff, packIndex, 12010, 0, 0, 0 );
+                                dataOut.pushData( buff, PackLen );
+                            }
+                            break;
+                        case 2011:
+                            if( 1 )
+                            {
+                                navData.cmd = 1;
+                                xQueueSend( NavigationOperationQue, &navData, 100 );
+                                PackLen = makePack( buff, packIndex, 12011, 0, 0, 0 );
+                                dataOut.pushData( buff, PackLen );
+                            }
+
+                            break;
+                        case 2013:
+                            if( 1 )
+                            {
+                                PackLen = makePack( buff, packIndex, 12013, 0, 0, 0 );
+                                dataOut.pushData( buff, PackLen );
+                            }
+                            break;
+                        case 2016:
+                            if( data[0] )
+                            {
+                                HAL_GPIO_WritePin( OUT_9_GPIO_Port, OUT_9_Pin, GPIO_PIN_SET );
+                            }
+                            else
+                                HAL_GPIO_WritePin( OUT_9_GPIO_Port, OUT_9_Pin, GPIO_PIN_SET );
+
+                            PackLen = makePack( buff, packIndex, 12016, 0, 0, 0 );
+                            dataOut.pushData( buff, PackLen );
+                            break;
+                        case 2017:
+                            if( 1 )
+                            {
+                                uint8_t isChargeKeyOpen = HAL_GPIO_ReadPin( OUT_9_GPIO_Port, OUT_9_Pin );
+                                PackLen = makePack( buff, packIndex, 12017, 0, 1, &isChargeKeyOpen );
+                                dataOut.pushData( buff, PackLen );
+                            }
+                            break;
+                        case 2018:
+                            /*
+                            navData.cmd = 5;
+                            navData.Data.op = 1;
+                            xQueueSend( NavigationOperationQue, &navData, 100 );
+                            */
+                            PackLen = makePack( buff, packIndex, 12018, 0, 0, 0 );
+                            dataOut.pushData( buff, PackLen );
+                            break;
+                        case 2019:
+                            navData.cmd = 5;
+                            if( data[0] == 1 )
+
+                                navData.Data.op = 1;
+                            else if( data[0] == 2 )
+                                navData.Data.op = 0;
+                            else
+                            {
+                                PackLen = makePack( buff, packIndex, 12019, 1, 0, 0 );
+                                dataOut.pushData( buff, PackLen );
+                                break;
+                            }
+
+                            xQueueSend( NavigationOperationQue, &navData, 100 );
+
+                            PackLen = makePack( buff, packIndex, 12019, 0, 0, 0 );
                             dataOut.pushData( buff, PackLen );
                             break;
                         }
