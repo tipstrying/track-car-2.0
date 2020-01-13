@@ -541,7 +541,7 @@ void MotionTask(void const *parment)
                 AGV_Pos = agv.AGV_Pos;
                 agv.Motion_Status_Now = AGV_Parallel_Motion::ms_Emergency;
             }
-#if 1
+#if 0
             if (CANopen_Rx.work())
             {
                 static int enCodeAlarmCount = 0;

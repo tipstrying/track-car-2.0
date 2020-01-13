@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F429xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Inc;   ..\app;   ..\app_cpp;   ..\Src\Ethernet;   ..\Src\Ethernet\W5500;   ..\port;   ..\fifo\inc;   ../Drivers/CMSIS/Include;   ../Drivers/STM32F4xx_HAL_Driver/Inc;   ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;   ../Drivers/CMSIS/Device/ST/STM32F4xx/Include;   ../Middlewares/Third_Party/FatFs/src;   ../Middlewares/Third_Party/FreeRTOS/Source/include;   ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;   ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;   ..\Middlewares\Third_Party\FreeRTOS\Source\cli;   ..\MDK-ARM;   ..\Middlewares\Third_Party\httpServer</IncludePath>
+              <IncludePath>../Inc;     ..\app;     ..\app_cpp;     ..\Src\Ethernet;     ..\Src\Ethernet\W5500;     ..\port;     ..\fifo\inc;     ../Drivers/CMSIS/Include;     ../Drivers/STM32F4xx_HAL_Driver/Inc;     ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;     ../Drivers/CMSIS/Device/ST/STM32F4xx/Include;     ../Middlewares/Third_Party/FatFs/src;     ../Middlewares/Third_Party/FreeRTOS/Source/include;     ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;     ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;     ..\Middlewares\Third_Party\FreeRTOS\Source\cli;     ..\MDK-ARM;     ..\Middlewares\Third_Party\httpServer</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
