@@ -159,10 +159,7 @@ static BaseType_t reboot( char *pcWriteBuffer, size_t xWriteBufferLen, const cha
 static const CLI_Command_Definition_t xParameterReboot =
 {
     "reboot",
-    "\r\n\
-    reboot: reboot car mcu\r\n\
-    reboot rec: reboot to bootloader\r\n\
-    ",
+    "\r\nreboot: reboot car mcu\r\n\treboot rec: reboot to bootloader\r\n",
     reboot,
     -1,
 };
@@ -183,6 +180,14 @@ static const CLI_Command_Definition_t xParameterSetSwitch =
     setSwitchCli,
     -1
 };
+static BaseType_t setIpMac( char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString );
+static const CLI_Command_Definition_t xParameterSetIpMac =
+{
+    "ip",
+    "\r\nip [show] [set ip:192.168.%d.%d] [set mac:%d.%d]",
+    setIpMac,
+    -1
+};
 /*-----------------------------------------------------------*/
 
 void vRegisterCLICommands( void )
@@ -201,10 +206,59 @@ void vRegisterCLICommands( void )
     FreeRTOS_CLIRegisterCommand( &xParameterMotionCtl );
     FreeRTOS_CLIRegisterCommand( &xParameterFree );
     FreeRTOS_CLIRegisterCommand( &xParameterReboot );
+    FreeRTOS_CLIRegisterCommand( &xParameterSetIpMac );
+}
+static BaseType_t setIpMac( char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString )
+{
+    const char * arg1, *arg2;
+    BaseType_t argLen;
+    arg1 = FreeRTOS_CLIGetParameter( pcCommandString, 1, &argLen );
+    arg2 = FreeRTOS_CLIGetParameter( pcCommandString, 2, &argLen );
+    union
+    {
+        uint8_t Hex[4];
+        uint32_t Data;
+    } u32ToHex[2];
+    uint32_t ip, mac;
+    ip = HAL_RTCEx_BKUPRead( &hrtc, RTC_BKP_DR1 );
+    mac = HAL_RTCEx_BKUPRead( &hrtc, RTC_BKP_DR2 );
+    u32ToHex[0].Data = ip;
+    u32ToHex[1].Data = mac;
+    uint32_t tmp[2];
+
+    if( strstr( arg1, "show" ) != 0 )
+    {
+        sprintf( pcWriteBuffer, "IP:192.168.%d.%d\tMAC:0x00 0x08 0xDC 0x11 0x%X 0x%X\r\n", u32ToHex[0].Hex[0], u32ToHex[0].Hex[1], u32ToHex[1].Hex[0], u32ToHex[1].Hex[1] );
+        return pdFALSE;
+    }
+    else
+    {
+        if( sscanf( arg1, "set ip:192.168.%d.%d", tmp, tmp + 1 ) == 2 )
+        {
+            u32ToHex[0].Hex[0] = tmp[0];
+            u32ToHex[0].Hex[1] = tmp[1];
+            u32ToHex[0].Hex[2] = u32ToHex[0].Hex[0] + u32ToHex[0].Hex[1];
+            HAL_RTCEx_BKUPWrite( &hrtc, RTC_BKP_DR1, u32ToHex[0].Data );
+            sprintf( pcWriteBuffer, "\r\nip:192.168.%d.%d\r\n", u32ToHex[0].Hex[0], u32ToHex[0].Hex[1] );
+        }
+        else if( sscanf( arg1, "set mac:%d.%d", tmp, tmp + 1 ) == 2 )
+        {
+            u32ToHex[0].Hex[0] = tmp[0];
+            u32ToHex[0].Hex[1] = tmp[1];
+            u32ToHex[0].Hex[2] = u32ToHex[0].Hex[0] + u32ToHex[0].Hex[1];
+            HAL_RTCEx_BKUPWrite( &hrtc, RTC_BKP_DR2, u32ToHex[0].Data );
+            sprintf( pcWriteBuffer, "\r\nmac:%d.%d\r\n", u32ToHex[0].Hex[0], u32ToHex[0].Hex[1] );
+        }
+        else
+        {
+            sprintf( pcWriteBuffer, "unknow args\r\n" );
+        }
+    }
+    return pdFALSE;
 }
 static BaseType_t setSwitchCli( char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString )
 {
-    
+
 }
 static BaseType_t getRamFree( char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString )
 {
@@ -237,11 +291,11 @@ static BaseType_t reboot( char *pcWriteBuffer, size_t xWriteBufferLen, const cha
 {
     const char *pcParameter1;
     BaseType_t parameterLen1;
-    union{
+    union {
         char Hex[4];
         uint32_t Data;
-    }u32ToHex;
-    
+    } u32ToHex;
+
     pcParameter1 = FreeRTOS_CLIGetParameter( pcCommandString, 1, &parameterLen1 );
     if( pcParameter1 )
     {

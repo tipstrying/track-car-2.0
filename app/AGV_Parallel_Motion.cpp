@@ -14,12 +14,12 @@ AGV_Parallel_Motion::AGV_Parallel_Motion()
     this->Request_Speed = 0;
     this->Stop_Accuracy = 1;
     this->sArriveCtrlTime = 300; // 20 * sample_Time  ms
-    this->ts_curve_k = 700;
+    this->ts_curve_k = 400;
     this->ts_curve_j_max = 1200;
     this->ts_curve_a_max = 1500;
     this->ts_curve_v_max = 1000;
 
-    this->sAcceleration = 3000;
+    this->sAcceleration = 1500;
     this->sAccelerationLow = 1500;
     this->sSpeed_max = 500;
     this->sSpeed_mid = 150;
@@ -323,7 +323,7 @@ float AGV_Parallel_Motion::ts_curve(unsigned char replan, unsigned int pMs, floa
 }
 float AGV_Parallel_Motion::Move(float iDistance)
 {
-#if 1
+#if 0
     static float speedNow,speedNowBak;
     static float distanceBak = iDistance;
     if( abs( iDistance ) > this->Stop_Accuracy * 0.5 )

@@ -29,7 +29,7 @@ static int Encoder_Value;
 static float Speed_Value_PDO;
 static AGV_Parallel_Motion agv;
 static float AGV_Pos;
-
+QueueHandle_t setZerpSemap = 0;
 
 void listAddCallBack( RunTaskDef data )
 {
@@ -159,7 +159,12 @@ void SetiEmergency(int S)
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-    ;
+    debugOut( 1, ( char *)"[\t%d] GPIO ISR\r\n", osKernelSysTick() );
+    if( setZerpSemap )
+    {
+        BaseType_t nextTask;
+        xSemaphoreGiveFromISR( setZerpSemap, &nextTask );
+    }
 }
 
 bool CanTx(int ID, int iLength, char iArray[8])
@@ -277,12 +282,12 @@ void canHeartbeat(int oID, CANopenMaster::CANopenResponse::te_HeartBeat oStatus)
                 debugOut( 0, (char *)"[\t%d] Motor 1 Up\r\n", osKernelSysTick());
             }
         }
-       // MotionStatus.CanDelay = false;
+        // MotionStatus.CanDelay = false;
         if (oStatus == 0x7f)
         {
             if (MotionStatus.CanRestDelay)
             {
-             //   MotionStatus.CanRestDelay = false;
+                //   MotionStatus.CanRestDelay = false;
                 MotionStatus.EcodeDelay = true;
                 debugOut( 0, (char *)"[\t%d] Motor 1 Rest OK\r\n", osKernelSysTick());
             }
@@ -360,7 +365,7 @@ void MotionTask(void const *parment)
     agv.Stop_Accuracy = 1;
     agv.sArriveCtrlTime = 210;
     agv.sSpeed_min = 10;
-    agv.sSpeed_max = 1000;
+    agv.sSpeed_max = 300;
     agv.sDeceleration_distance = 40;
     agv.sAcceleration = 1500;
 
@@ -386,6 +391,11 @@ void MotionTask(void const *parment)
         debugOut( 0, (char *)"[\t%d] Motion Start1\r\n", osKernelSysTick());
     }
     MotionStatus.alarm = false;
+    setZerpSemap = xSemaphoreCreateBinary();
+    while( !setZerpSemap )
+    {
+        setZerpSemap = xSemaphoreCreateBinary();
+    }
 
     osDelay(5000);
     MotionStatus.CanDelay = false;
@@ -398,11 +408,9 @@ void MotionTask(void const *parment)
         inOutTarget = InOutSwitchIn;
     for (;;)
     {
-
         agv.clock = (int)PreviousWakeTime;
         CANopen_Tx.clock_time = (int)PreviousWakeTime;
         CANopen_Rx.clock_time = (int)PreviousWakeTime;
-
         if (1) /// rec task work for server and add to run task
         {
             if (NavigationOperationQue)
@@ -595,34 +603,44 @@ void MotionTask(void const *parment)
                             5：收摆杆到位确认
                             6：清零
                             */
+                        if( runTaskHeader.next->cmd != 6 )
                         debugOut( 0, (char *)"[\t%d] run Task at %0.2f: cmd->%d, position->%0.2f, speed->%0.2f\r\n", PreviousWakeTime, agv.AGV_Pos, runTaskHeader.next->cmd, runTaskHeader.next->position, runTaskHeader.next->data.fData );
                         switch( runTaskHeader.next->cmd )
                         {
                         case 1:
                             agv.sSpeed_max = runTaskHeader.next->data.fData;
+                            listDeleteItemByIndex( &runTaskHeader, 1 );
                             break;
                         case 2:
                             inOutTarget = InOutSwitchOut;
+                            listDeleteItemByIndex( &runTaskHeader, 1 );
                             break;
                         case 3:
                             inOutTarget = InOutSwitchIn;
+                            listDeleteItemByIndex( &runTaskHeader, 1 );
                             break;
                         case 4:
                             if( getSwitchStatus() != InOutSwitchOut )
                                 agv.iEmergencyBySoftware = true;
                             inOutTargetNow = InOutSwitchOut;
+                            listDeleteItemByIndex( &runTaskHeader, 1 );
                             break;
                         case 5:
                             if( getSwitchStatus() != InOutSwitchIn )
                                 agv.iEmergencyBySoftware = true;
                             inOutTargetNow = InOutSwitchIn;
+                            listDeleteItemByIndex( &runTaskHeader, 1 );
                             break;
                         case 6:
-                            if( 1 )
+                            if( 0 )
                             {
-                                float posNow = agv.AGV_Pos;
-                                agv.AGV_Pos = 0;
-                                AGV_Pos = AGV_Pos - posNow;
+                                if( xSemaphoreTake( setZerpSemap, 0 ) == pdPASS )
+                                {
+                                    float posNow = agv.AGV_Pos;
+                                    agv.AGV_Pos = 0;
+                                    AGV_Pos = AGV_Pos - posNow;
+                                    listDeleteItemByIndex( &runTaskHeader, 1 );
+                                }
                             }
                             break;
                         default:
@@ -633,8 +651,8 @@ void MotionTask(void const *parment)
                     else
                     {
                         debugOut( 0, (char *)"[\t%d] miss operation at %0.2f : cmd->%d, position->%0.2f, speed->%0.2f\r\n", PreviousWakeTime, agv.AGV_Pos, runTaskHeader.next->cmd, runTaskHeader.next->position, runTaskHeader.next->data.fData );
+                        listDeleteItemByIndex( &runTaskHeader, 1 );
                     }
-                    listDeleteItemByIndex( &runTaskHeader, 1 );
                 }
                 else
                 {
@@ -644,6 +662,24 @@ void MotionTask(void const *parment)
                         listDeleteItemByIndex( &runTaskHeader, 1 );
                     }
                     break;
+                }
+            }
+        }
+        if( 1 )
+        {
+            if( xSemaphoreTake( setZerpSemap, 0 ) == pdPASS )
+            {
+                RunTaskDef zeroTask;
+                if( listGetItemByCMD( &runTaskHeader, 6, &zeroTask ) )
+                {
+                    if( fabsf( zeroTask.position - agv.AGV_Pos ) < 10 )
+                    {
+                        debugOut( 0, (char *)"[\t%d] run Task at %0.2f: cmd->%d, position->%0.2f, speed->%0.2f\r\n", PreviousWakeTime, agv.AGV_Pos, runTaskHeader.next->cmd, runTaskHeader.next->position, runTaskHeader.next->data.fData );
+                        float posNow = agv.AGV_Pos;
+                        agv.AGV_Pos = 0;
+                        AGV_Pos = AGV_Pos - posNow;
+                        listDeleteItemByIndex( &runTaskHeader, 1 );
+                    }
                 }
             }
         }

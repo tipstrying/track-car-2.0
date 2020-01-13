@@ -8,6 +8,8 @@ extern "C" {
 #include "usart.h"
 #include "tim.h"
 #include "ff.h"
+#include "rtc.h"
+    
 
 #include "app.h"
 #include "Motor.h"
@@ -144,8 +146,33 @@ void W5500Task( void const * par )
     {
         socketServer[i].use = false;
     }
-
+    
     CONFIG_MSG networkconfig = SetNetWorkParment();
+    union
+    {
+        uint8_t Hex[4];
+        uint32_t Data;
+    }u32ToHex;
+    
+    u32ToHex.Data = HAL_RTCEx_BKUPRead( &hrtc, RTC_BKP_DR1 );
+    int sum = 0;
+    sum += u32ToHex.Hex[0];
+    sum += u32ToHex.Hex[1];
+    if( u32ToHex.Hex[2] == sum )
+    {
+        networkconfig.lip[2] = u32ToHex.Hex[0];
+        networkconfig.lip[3] = u32ToHex.Hex[1];
+    }
+    u32ToHex.Data = HAL_RTCEx_BKUPRead( &hrtc, RTC_BKP_DR2 );
+    sum = 0;
+    sum += u32ToHex.Hex[0];
+    sum += u32ToHex.Hex[1];
+    if( sum == u32ToHex.Hex[2] )
+    {
+        networkconfig.mac[4] = u32ToHex.Hex[0];
+        networkconfig.mac[5] = u32ToHex.Hex[1];
+    }
+
 //    reg_wizchip_cris_cbfunc(  vPortEnterCritical, vPortExitCritical);
     reg_wizchip_spi_cbfunc( spi4readbyte, spi4readwritebyte );
     reg_wizchip_cs_cbfunc( spi4select, spi4deselect );
@@ -169,7 +196,7 @@ void W5500Task( void const * par )
         osDelay(1);
 
         getSIPR (ip);
-        if( ( ip[0] != 192 ) || ( ip[1] != 168) || ( ip[2] != 1) || ( ip[3] != 11 ) )
+        if( ( ip[0] != networkconfig.lip[0] ) || ( ip[1] != networkconfig.lip[1]) || ( ip[2] != networkconfig.lip[2]) || ( ip[3] != networkconfig.lip[3] ) )
         {
             setSHAR( networkconfig.mac );
             setSUBR( networkconfig.sub );
@@ -471,7 +498,7 @@ void protocolRun( void const *para )
                                     if( data[ 7 + i * 7 ] + data[ 8 + i * 7 ] != 0 )
                                     {
                                         navData.cmd = 4;
-                                        navData.Data.speedTo = data[ 7 + i * 7 ] + data[ 8 + i * 7 ] * 255;
+                                        navData.Data.speedTo = data[ 7 + i * 7 ] * 255 + data[ 8 + i * 7 ];
                                         navData.Data.op = 1;
                                         navData.Data.posTo = i32ToHex.Data;
                                         if( xQueueSend( NavigationOperationQue, &navData, 100 ) == pdPASS )
@@ -765,6 +792,17 @@ void CLITask( void const * parment )
     vRegisterCLICommands();
     stdinBuff.clean();
 
+    union{
+        char Hex[4];
+        uint32_t Data;
+    }u32ToHex;
+    u32ToHex.Hex[0] = 'a';
+    u32ToHex.Hex[1] = 'p';
+    u32ToHex.Hex[2] = 'p';
+    u32ToHex.Hex[3] = 'M'; 
+    if( HAL_RTCEx_BKUPRead( &hrtc, RTC_BKP_DR0 ) != u32ToHex.Data )
+        HAL_RTCEx_BKUPWrite( &hrtc, RTC_BKP_DR0, u32ToHex.Data );
+    
     for( ;; )
     {
         if( stdinBuff.available() )

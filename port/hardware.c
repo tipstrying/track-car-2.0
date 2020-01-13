@@ -246,24 +246,7 @@ void setPowerKey( OnOffDef status )
 //}
 void setExti( int enable )
 {
-    if( enable )
-    {
-        /* EXTI interrupt init*/
-        HAL_NVIC_SetPriority(EXTI3_IRQn, 5, 0);
-        HAL_NVIC_EnableIRQ(EXTI3_IRQn);
 
-        HAL_NVIC_SetPriority(EXTI9_5_IRQn, 5, 0);
-        HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
-
-        HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
-        HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
-    }
-    else
-    {
-        HAL_NVIC_DisableIRQ( EXTI3_IRQn );
-        HAL_NVIC_DisableIRQ( EXTI9_5_IRQn );
-        HAL_NVIC_DisableIRQ( EXTI15_10_IRQn );
-    }
 }
 
 OnOffDef setChargeKey( OnOffDef status )
