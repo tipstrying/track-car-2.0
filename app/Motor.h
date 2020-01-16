@@ -47,7 +47,8 @@ int IsArriver( void );
 void SetiEmergency( int S );
 float GetStop_Accuracy(void);
 void setManualMode( int status );
-
+void GetMaxSpeed(float *xSpeed);
+    
 void SetMaxSpeed( float xSpeeed );
 void GetSpeed( float *xSpeed);
 void SetPositionMoveTo( float x );

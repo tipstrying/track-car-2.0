@@ -115,7 +115,7 @@ void BeltDriveController::motion_ctrl(void)
 			if (!this->info.read_input[0] && !this->info.read_input[1] && !this->info.read_input[2] )
 			{
 				//如果物体太小那就多转一段距离，在检测看看，这个距离只能用时间来表示500ms
-				if (this->info.clock - last_time_ctrl > 1000)
+				if (this->info.clock - last_time_ctrl > 500)
 				{
 					this->motor_ctrl(Push_idle);
 					this->motion_control_step = Push_idle;

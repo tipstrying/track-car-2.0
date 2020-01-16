@@ -26,7 +26,6 @@ int fatfsstatus = 0;                                    // 上电默认文件系
 void InitTask( void const * parment )
 {
     HAL_GPIO_WritePin( OUT_2_GPIO_Port, OUT_2_Pin, GPIO_PIN_SET );
-    MX_FATFS_Init();
 
     if( NavigationOperationQue == 0 )
         NavigationOperationQue = xQueueCreate( 5, sizeof( NavigationOperationStd ) );

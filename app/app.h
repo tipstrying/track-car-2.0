@@ -53,6 +53,24 @@ typedef struct {
     } Data;
 } NavigationOperationStd;
 
+typedef enum {
+    Enum_QueryCarInfo = 1,
+    Enum_SetMaxSpeed = 2,
+    Enum_SendNavigation = 3,
+    Enum_PauseNavigation = 4,
+    Enum_CancelNavigation = 5,
+    Enum_PullThing = 10,
+    Enum_PushThing = 6,
+    Enum_QueryThing = 7,
+    Enum_CleanError = 8,
+    Enum_SetZeroPosition = 9,
+    Enum_ChargeCtrl = 11,
+    Enum_QueryRelayStatus = 12,
+    Enum_SetInOutSwitch = 13,
+    Enum_sendOperation = 14,
+    Enum_disableMotor = 15
+}ServerMessageEnumDef;
+    
 //extern QueueHandle_t BatterQueRx;
 extern QueueHandle_t NavigationOperationQue;
 

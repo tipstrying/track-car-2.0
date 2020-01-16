@@ -40,7 +40,7 @@ AGV_Parallel_Motion::Motion_Status AGV_Parallel_Motion::Motion_work(float iTarge
 {
     Motion_Status rValue = ms_Idle;
     this->DetectDynamics();
-    if (this->iEmergencyByKey || this->iEmergencyBySoftware)
+    if (this->iEmergencyByKey || this->iEmergencyBySoftware || this->iEmergencyByError || this->iEmergencyByPause )
     {
         this->Request_RPM = 0;
         this->Request_Speed = 0;
@@ -400,9 +400,9 @@ float AGV_Parallel_Motion::Move(float iDistance)
     if (iDistance < 0)
         SetSpeed = -SetSpeed;
 
-    if (sSpeed_max == 0)
+    if( this->iEmergencyByCancel )
         SetSpeed = 0;
-
+    
     float securityDelta_straight;
 
     if (speedNow > SetSpeed)

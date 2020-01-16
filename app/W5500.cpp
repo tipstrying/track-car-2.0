@@ -9,7 +9,7 @@ extern "C" {
 #include "tim.h"
 #include "ff.h"
 #include "rtc.h"
-    
+
 
 #include "app.h"
 #include "Motor.h"
@@ -29,6 +29,7 @@ extern "C" {
 #include "httpServer.h"
 #include "cmsis_os.h"
 #include <stdarg.h>
+#include "cmsis_armcc.h"
 
 #define DEBUGENABLE 1
 #define MAX_SOCK_NUM    8
@@ -146,14 +147,14 @@ void W5500Task( void const * par )
     {
         socketServer[i].use = false;
     }
-    
+
     CONFIG_MSG networkconfig = SetNetWorkParment();
     union
     {
         uint8_t Hex[4];
         uint32_t Data;
-    }u32ToHex;
-    
+    } u32ToHex;
+
     u32ToHex.Data = HAL_RTCEx_BKUPRead( &hrtc, RTC_BKP_DR1 );
     int sum = 0;
     sum += u32ToHex.Hex[0];
@@ -421,6 +422,7 @@ void protocolRun( void const *para )
                         case 2001:
                             if( 1 )
                             {
+                                // Enum_QueryCarInfo
                                 float pos, speed;
                                 int posInt;
                                 uint8_t status;
@@ -460,8 +462,9 @@ void protocolRun( void const *para )
 
                             break;
                         case 2002:
-                            navData.cmd = 2;
-                            navData.Data.speedTo = data[0] + data[1] * 255;
+                            // Enum_SetMaxSpeed
+                            navData.cmd = Enum_SetMaxSpeed;
+                            navData.Data.speedTo = data[0] * 255 + data[1];
                             if( xQueueSend( NavigationOperationQue, &navData, 1000 ) == pdPASS )
                             {
                                 PackLen = makePack( buff, packIndex, 12002, 0, 0, NULL );
@@ -487,7 +490,7 @@ void protocolRun( void const *para )
                                     {
                                         i32ToHex.Hex[3-j] = data[ 3 + j + i * 7];
                                     }
-                                    navData.cmd = 3;
+                                    navData.cmd = Enum_SendNavigation;
                                     navData.Data.posTo = i32ToHex.Data;
                                     if( xQueueSend( NavigationOperationQue, &navData, 100 ) != pdPASS )
                                     {
@@ -497,7 +500,7 @@ void protocolRun( void const *para )
 
                                     if( data[ 7 + i * 7 ] + data[ 8 + i * 7 ] != 0 )
                                     {
-                                        navData.cmd = 4;
+                                        navData.cmd = Enum_sendOperation;
                                         navData.Data.speedTo = data[ 7 + i * 7 ] * 255 + data[ 8 + i * 7 ];
                                         navData.Data.op = 1;
                                         navData.Data.posTo = i32ToHex.Data;
@@ -509,7 +512,7 @@ void protocolRun( void const *para )
                                     }
                                     if( data[ 9 + i * 7 ] )
                                     {
-                                        navData.cmd = 4;
+                                        navData.cmd = Enum_sendOperation;
                                         navData.Data.posTo = i32ToHex.Data;
                                         navData.Data.op = data[ 9 + i * 7 ] + 1;
                                         if( xQueueSend( NavigationOperationQue, &navData, 100 ) == pdPASS )
@@ -534,6 +537,12 @@ void protocolRun( void const *para )
                             if( 1 )
                             {
                                 int rValue = 0;
+                                navData.cmd = Enum_PauseNavigation;
+                                navData.Data.op = 1;
+                                if( xQueueSend( NavigationOperationQue, &navData, 100 ) == pdPASS )
+                                    rValue = 0;
+                                else
+                                    rValue = 1;
                                 if( rValue )
                                 {
                                     PackLen = makePack( buff, packIndex, 12004, 1, 0, 0 );
@@ -549,6 +558,12 @@ void protocolRun( void const *para )
                             if( 1 )
                             {
                                 int rValue = 0;
+                                navData.cmd = Enum_PauseNavigation;
+                                navData.Data.op = 0;
+                                if( xQueueSend( NavigationOperationQue, &navData, 100 ) == pdPASS )
+                                    rValue = 0;
+                                else
+                                    rValue = 1;
                                 if( rValue )
                                 {
                                     PackLen = makePack( buff, packIndex, 12005, 1, 0, 0 );
@@ -564,6 +579,12 @@ void protocolRun( void const *para )
                             if( 1 )
                             {
                                 int rValue = 0;
+                                navData.cmd = Enum_CancelNavigation;
+                                navData.Data.op = 1;
+                                if( xQueueSend( NavigationOperationQue, &navData, 100 ) == pdPASS )
+                                    rValue = 0;
+                                else
+                                    rValue = 1;
                                 if( rValue )
                                 {
                                     PackLen = makePack( buff, packIndex, 12006, 1, 0, 0 );
@@ -580,6 +601,12 @@ void protocolRun( void const *para )
                             {
 
                                 int rValue = 0;
+                                navData.cmd = Enum_PushThing;
+                                navData.Data.op = 1;
+                                if( xQueueSend( NavigationOperationQue, &navData, 100 ) == pdPASS )
+                                    rValue = 0;
+                                else
+                                    rValue = 1;
                                 if( rValue )
                                 {
                                     PackLen = makePack( buff, packIndex, 12007, 1, 0, 0 );
@@ -594,7 +621,7 @@ void protocolRun( void const *para )
                         case 2008:
                             if( 1 )
                             {
-                                uint8_t isThingOnCar = 0;
+                                uint8_t isThingOnCar = isPackOnCar();
                                 PackLen = makePack( buff, packIndex, 12008, 0, 1, &isThingOnCar );
                                 dataOut.pushData( buff, PackLen );
                             }
@@ -609,7 +636,7 @@ void protocolRun( void const *para )
                         case 2011:
                             if( 1 )
                             {
-                                navData.cmd = 1;
+                                navData.cmd = Enum_SetZeroPosition;
                                 xQueueSend( NavigationOperationQue, &navData, 100 );
                                 PackLen = makePack( buff, packIndex, 12011, 0, 0, 0 );
                                 dataOut.pushData( buff, PackLen );
@@ -619,17 +646,40 @@ void protocolRun( void const *para )
                         case 2013:
                             if( 1 )
                             {
-                                PackLen = makePack( buff, packIndex, 12013, 0, 0, 0 );
-                                dataOut.pushData( buff, PackLen );
+                                if( PackLen == 1 )
+                                {
+                                    if( data[0] == 1 )
+                                    {
+                                        navData.Data.op = 1;
+                                    }
+                                    else
+                                        navData.Data.op = 0;
+                                    navData.cmd = Enum_PullThing;
+                                    if( xQueueSend( NavigationOperationQue, &navData, 100 ) == pdPASS )
+                                    {
+                                        PackLen = makePack( buff, packIndex, 12013, 0, 0, 0 );
+                                        dataOut.pushData( buff, PackLen );
+                                    }
+                                    else
+                                    {
+                                        PackLen = makePack( buff, packIndex, 12013, 1, 0, 0 );
+                                        dataOut.pushData( buff, PackLen );
+                                    }
+                                }
+                                else
+                                {
+                                    PackLen = makePack( buff, packIndex, 12013, 1, 0, 0 );
+                                    dataOut.pushData( buff, PackLen );
+                                }
                             }
                             break;
                         case 2016:
-                            if( data[0] )
+                            if( data[0] == 1 )
                             {
                                 HAL_GPIO_WritePin( OUT_9_GPIO_Port, OUT_9_Pin, GPIO_PIN_SET );
                             }
                             else
-                                HAL_GPIO_WritePin( OUT_9_GPIO_Port, OUT_9_Pin, GPIO_PIN_SET );
+                                HAL_GPIO_WritePin( OUT_9_GPIO_Port, OUT_9_Pin, GPIO_PIN_RESET );
 
                             PackLen = makePack( buff, packIndex, 12016, 0, 0, 0 );
                             dataOut.pushData( buff, PackLen );
@@ -652,7 +702,7 @@ void protocolRun( void const *para )
                             dataOut.pushData( buff, PackLen );
                             break;
                         case 2019:
-                            navData.cmd = 5;
+                            navData.cmd = Enum_SetInOutSwitch;
                             if( data[0] == 1 )
 
                                 navData.Data.op = 1;
@@ -792,17 +842,17 @@ void CLITask( void const * parment )
     vRegisterCLICommands();
     stdinBuff.clean();
 
-    union{
+    union {
         char Hex[4];
         uint32_t Data;
-    }u32ToHex;
+    } u32ToHex;
     u32ToHex.Hex[0] = 'a';
     u32ToHex.Hex[1] = 'p';
     u32ToHex.Hex[2] = 'p';
-    u32ToHex.Hex[3] = 'M'; 
+    u32ToHex.Hex[3] = 'M';
     if( HAL_RTCEx_BKUPRead( &hrtc, RTC_BKP_DR0 ) != u32ToHex.Data )
         HAL_RTCEx_BKUPWrite( &hrtc, RTC_BKP_DR0, u32ToHex.Data );
-    
+
     for( ;; )
     {
         if( stdinBuff.available() )
@@ -838,7 +888,8 @@ extern "C" {
 
 int debugOut( int isISR, char *fmt, ... )
 {
-    if( !isISR )
+
+    if( __get_BASEPRI() )
     {
         taskENTER_CRITICAL();
     }
@@ -846,7 +897,7 @@ int debugOut( int isISR, char *fmt, ... )
     va_start( args, fmt );
     vprintf( fmt, args );
     va_end(args);
-    if( !isISR )
+    if( __get_BASEPRI() )
         taskEXIT_CRITICAL();
     return 0;
 }

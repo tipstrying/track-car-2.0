@@ -93,14 +93,14 @@ OnOffDef getEmergencyKey();
 OnOffDef getPowerKey();
 int beltCtrl( int isRun, BeltDirectionDef dir, int speed );
 void setPowerKey( OnOffDef status );
-OnOffDef getThingSensor( int ID );
-void setExti( int enable );
-OnOffDef setChargeKey( OnOffDef status );
-OnOffDef setChargeSensor( OnOffDef status );
-OnOffDef getChargeKey();
+OnOffDef getThingSensor( int ID, int maxDelay );
+
 InOutSwitch getSwitchStatus();
 InOutSwitch setSwitch( InOutSwitch target );
 OnOffDef powerKeyWork( uint32_t clock);
+int writePosToBKP( float position );
+int readPosFromBKP( float *position );
+ int isPackOnCar();
 #ifdef __cplusplus
 }
 #endif

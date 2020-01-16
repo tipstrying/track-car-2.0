@@ -10,6 +10,7 @@
 #include "math.h"
 #include "rtc.h"
 #include "listRunTask.h"
+#include "BeltDriveController.h"
 
 #define MaxSpeed 2000
 
@@ -27,7 +28,12 @@ void listDelCallBack( RunTaskDef data );
 
 static int Encoder_Value;
 static float Speed_Value_PDO;
+
 static AGV_Parallel_Motion agv;
+
+static BeltDriveController Belt_Ctrl;
+static int BeltGetPack = 0;
+
 static float AGV_Pos;
 QueueHandle_t setZerpSemap = 0;
 
@@ -112,7 +118,10 @@ void GetSpeed(float *xSpeed)
 {
     *xSpeed = agv.Request_Speed;
 }
-
+void GetMaxSpeed(float *xSpeed)
+{
+    *xSpeed = agv.sSpeed_max;
+}
 int SetSelfPosition(float X)
 {
     agv.AGV_Pos = X;
@@ -156,10 +165,22 @@ void SetiEmergency(int S)
     else
         agv.iEmergencyBySoftware = false;
 }
-
+RunTaskDef runTaskHeader;
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-    debugOut( 1, ( char *)"[\t%d] GPIO ISR\r\n", osKernelSysTick() );
+    debugOut( 1, ( char *)"[\t%d] GPIO ISR position:%0.2f\r\n", osKernelSysTick(), agv.AGV_Pos );
+//    RunTaskDef zeroTask;
+//    if( listGetItemByCMD( &runTaskHeader, 6, &zeroTask ) )
+//    {
+//        if( fabsf( zeroTask.position - agv.AGV_Pos ) < 10 )
+//        {
+//            debugOut( 1, (char *)"[\t%d] run Task at %0.2f: cmd->%d, position->%0.2f, speed->%0.2f\r\n", osKernelSysTick(), agv.AGV_Pos, runTaskHeader.next->cmd, runTaskHeader.next->position, runTaskHeader.next->data.fData );
+//            float posNow = agv.AGV_Pos;
+//            agv.AGV_Pos = 0;
+//            AGV_Pos = AGV_Pos - posNow;
+//            listDeleteItemByIndex( &runTaskHeader, 1 );
+//        }
+//    }
     if( setZerpSemap )
     {
         BaseType_t nextTask;
@@ -243,7 +264,14 @@ void Rx_PDO_Commplate(int oID, char Array[8] )
                 MotionStatus.EcodeDelay = false;
                 agv.EncoderValue = Encoder_Value;
                 agv.DetectDynamics();
-                SetSelfPosition( 0 );
+                float posTmp = 0;
+
+                if( readPosFromBKP( &posTmp ) )
+                {
+                    SetSelfPosition( posTmp );
+                }
+                else
+                    SetSelfPosition( 0 );
             }
             for( int i = 0; i < 4; i++ )
             {
@@ -281,8 +309,9 @@ void canHeartbeat(int oID, CANopenMaster::CANopenResponse::te_HeartBeat oStatus)
             {
                 debugOut( 0, (char *)"[\t%d] Motor 1 Up\r\n", osKernelSysTick());
             }
+            MotionStatus.CanDelay = false;
         }
-        // MotionStatus.CanDelay = false;
+
         if (oStatus == 0x7f)
         {
             if (MotionStatus.CanRestDelay)
@@ -310,10 +339,6 @@ double GetMilage(void)
 
 static CANopenMaster::CANopenRequest CANopen_Tx;
 static CANopenMaster::CANopenResponse CANopen_Rx;
-
-
-RunTaskDef runTaskHeader;
-
 
 void MotionTask(void const *parment)
 {
@@ -367,7 +392,7 @@ void MotionTask(void const *parment)
     agv.sSpeed_min = 10;
     agv.sSpeed_max = 300;
     agv.sDeceleration_distance = 40;
-    agv.sAcceleration = 1500;
+    agv.sAcceleration = 3000;
 
     uint32_t PreviousWakeTime = osKernelSysTick();
 
@@ -419,20 +444,24 @@ void MotionTask(void const *parment)
                 {
                     switch (navigationOperationData.cmd)
                     {
-                    case 1:
+                    case Enum_SetZeroPosition:
                         agv.AGV_Pos = 0;
                         AGV_Pos = 0;
                         break;
-                    case 2:
+                    case Enum_SetMaxSpeed:
                         agv.sSpeed_max = navigationOperationData.Data.speedTo;
+                        debugOut( 0, (char *)"[\t%d] Set Speed:%0.2f\r\n", PreviousWakeTime, agv.sSpeed_max );
                         break;
-                    case 3:
+                    case Enum_SendNavigation:
                         if( /* navigationOperationData.Data.posTo < agv.AGV_Pos */ 1 )
                         {
                             RunTaskDef runTask;
                             if( listGetItemByCMD( &runTaskHeader, 6, &runTask ) )
                             {
-                                AGV_Pos = runTask.position + navigationOperationData.Data.posTo;
+                                if( navigationOperationData.Data.posTo < runTask.position )
+                                    AGV_Pos = runTask.position + navigationOperationData.Data.posTo;
+                                else
+                                    AGV_Pos = navigationOperationData.Data.posTo;
                             }
                             else
                             {
@@ -442,8 +471,11 @@ void MotionTask(void const *parment)
                         else
                             AGV_Pos = navigationOperationData.Data.posTo;
                         agv.isNewPosition = true;
+                        if( agv.iEmergencyByCancel )
+                            agv.iEmergencyByCancel = false;
+                        debugOut( 0, (char *)"[\t%d] Sest Position :%0.2f\r\n", PreviousWakeTime, AGV_Pos );
                         break;
-                    case 4:
+                    case Enum_sendOperation:
                         if( 1 )
                         {
                             RunTaskDef runTask;
@@ -500,22 +532,46 @@ void MotionTask(void const *parment)
                             }
                         }
                         break;
-                    case 5:
+                    case Enum_SetInOutSwitch:
                         if( navigationOperationData.Data.op )
                             inOutTarget = InOutSwitchOut;
                         else
                             inOutTarget = InOutSwitchIn;
                         break;
+                    /*
                     case 6:
-                        SetSelfPosition(navigationOperationData.Data.posTo);
-                        break;
-                    case 7:
+                    SetSelfPosition(navigationOperationData.Data.posTo);
+                    break;
+                    */
+
+                    case Enum_disableMotor:
                         if( navigationOperationData.Data.op )
                             canOpenStatus.pollStep = 2;
                         else
                             canOpenStatus.pollStep = 3;
-                    case 14:
-                        cancelNavigate();
+
+                    case Enum_CancelNavigation:
+                        agv.iEmergencyByCancel = true;
+                        
+                        break;
+                    case Enum_PauseNavigation:
+                        if( navigationOperationData.Data.op )
+                            agv.iEmergencyByPause = true;
+                        else
+                            agv.iEmergencyByPause = false;
+                        break;
+                    case Enum_PullThing:
+                        if( navigationOperationData.Data.op )
+                            BeltOperating = 7;
+                        else
+                            BeltOperating = 6;
+                        break;
+                    case Enum_PushThing:
+                        BeltOperatingTime  = 2000;
+                        if( navigationOperationData.Data.op )
+                            BeltOperating = 2;
+                        else
+                            BeltOperating = 1;
                         break;
                     default:
                         break;
@@ -524,6 +580,106 @@ void MotionTask(void const *parment)
             }
         }
 
+        if( 1 )
+        {
+            static int thingSensorBak[3];
+            Belt_Ctrl.info.clock = (int)PreviousWakeTime;
+            Belt_Ctrl.info.read_input[0] = getThingSensor( 1, 25 ) == on ? 1 : 0;
+            Belt_Ctrl.info.read_input[1] = getThingSensor( 2, 25 ) == on ? 1 : 0;
+            Belt_Ctrl.info.read_input[2] = getThingSensor( 3, 25 ) == on ? 1 : 0;
+            for( int i = 0; i < 3; i++ )
+            {
+                if( thingSensorBak[i] != Belt_Ctrl.info.read_input[i] )
+                {
+                    thingSensorBak[i] = Belt_Ctrl.info.read_input[i];
+                    taskENTER_CRITICAL();
+                    {
+                        printf( "[\t%d] ThingSensor status charge. [%d]->%d\r\n", PreviousWakeTime, i, thingSensorBak[i] );
+                    }
+                    taskEXIT_CRITICAL();
+                }
+            }
+
+            Belt_Ctrl.work();
+            switch( BeltOperating )
+            {
+            case 0:
+                if( Belt_Ctrl.info.motor_stop )
+                {
+                    beltCtrl( 0, BeltFront, 20 );
+                    if( !Belt_Ctrl.info.read_input[0] && Belt_Ctrl.info.read_input[1] && !Belt_Ctrl.info.read_input[2] )
+                    {
+                        BeltGetPack = 0;
+                    }
+                }
+                else
+                {
+                    beltCtrl( 1, Belt_Ctrl.info.motor_direction == true ? BeltFront : BeltRev, 10 );
+                }
+                break;
+            case 1:
+                for( int i = 0; i < 2; i++ )
+                {
+                    if( BeltOperatingTime > 0 )
+                        BeltOperatingTime --;
+                }
+                if( BeltOperatingTime > 0 )
+                {
+                    beltCtrl( 1, BeltFront, 10 );
+                }
+                else
+                {
+                    beltCtrl( 0, BeltFront, 10 );
+                    BeltOperating = 0;
+                }
+                break;
+            case 2:
+                for( int i = 0; i < 2; i++ )
+                {
+                    if( BeltOperatingTime > 0 )
+                        BeltOperatingTime --;
+                }
+                if( BeltOperatingTime > 0 )
+                {
+                    beltCtrl( 1, BeltRev, 10 );
+                }
+                else
+                {
+                    beltCtrl( 0, BeltRev, 10 );
+                    BeltOperating = 0;
+                }
+                break;
+            case 3:
+                beltCtrl( 0, BeltFront, 10 );
+                break;
+            case 4:
+                beltCtrl( 1, BeltFront, 10 );
+                break;
+            case 5:
+                beltCtrl( 1, BeltRev, 10 );
+                break;
+            case 6:
+                if( !Belt_Ctrl.info.read_input[0] && !Belt_Ctrl.info.read_input[1] && !Belt_Ctrl.info.read_input[2] )
+                {
+                    BeltGetPack = 1;
+                    beltCtrl( 1, BeltFront, 10 );
+                }
+                else
+                    BeltOperating = 0;
+                break;
+            case 7:
+                if( !Belt_Ctrl.info.read_input[0] && !Belt_Ctrl.info.read_input[1] && !Belt_Ctrl.info.read_input[2] )
+                {
+                    beltCtrl( 1, BeltRev, 10 );
+                }
+                else
+                    BeltOperating = 0;
+                break;
+            default:
+                BeltOperating = 0;
+                break;
+            }
+        }
         if( 1 ) //// update hardware message
         {
             if (getEmergencyKey() == on)
@@ -549,7 +705,7 @@ void MotionTask(void const *parment)
                 AGV_Pos = agv.AGV_Pos;
                 agv.Motion_Status_Now = AGV_Parallel_Motion::ms_Emergency;
             }
-#if 0
+#if 1
             if (CANopen_Rx.work())
             {
                 static int enCodeAlarmCount = 0;
@@ -573,6 +729,12 @@ void MotionTask(void const *parment)
                     agv.EncoderValue = Encoder_Value;
                 }
                 agv.DetectDynamics();
+                static float posBakForBKP;
+                if( fabsf( posBakForBKP - agv.AGV_Pos ) > 1 )
+                {
+                    posBakForBKP = agv.AGV_Pos;
+                    writePosToBKP( agv.AGV_Pos );
+                }
             }
 #else
             if( MotionStatus.EcodeDelay )
@@ -604,12 +766,13 @@ void MotionTask(void const *parment)
                             6：清零
                             */
                         if( runTaskHeader.next->cmd != 6 )
-                        debugOut( 0, (char *)"[\t%d] run Task at %0.2f: cmd->%d, position->%0.2f, speed->%0.2f\r\n", PreviousWakeTime, agv.AGV_Pos, runTaskHeader.next->cmd, runTaskHeader.next->position, runTaskHeader.next->data.fData );
+                            debugOut( 0, (char *)"[\t%d] run Task at %0.2f: cmd->%d, position->%0.2f, speed->%0.2f\r\n", PreviousWakeTime, agv.AGV_Pos, runTaskHeader.next->cmd, runTaskHeader.next->position, runTaskHeader.next->data.fData );
                         switch( runTaskHeader.next->cmd )
                         {
                         case 1:
                             agv.sSpeed_max = runTaskHeader.next->data.fData;
                             listDeleteItemByIndex( &runTaskHeader, 1 );
+                            debugOut( 0, (char *)"Set speed by Running-task :%0.2f\r\n", agv.sSpeed_max );
                             break;
                         case 2:
                             inOutTarget = InOutSwitchOut;
@@ -653,6 +816,8 @@ void MotionTask(void const *parment)
                         debugOut( 0, (char *)"[\t%d] miss operation at %0.2f : cmd->%d, position->%0.2f, speed->%0.2f\r\n", PreviousWakeTime, agv.AGV_Pos, runTaskHeader.next->cmd, runTaskHeader.next->position, runTaskHeader.next->data.fData );
                         listDeleteItemByIndex( &runTaskHeader, 1 );
                     }
+                    if( runTaskHeader.next->cmd == 6 )
+                        break;
                 }
                 else
                 {
@@ -665,6 +830,7 @@ void MotionTask(void const *parment)
                 }
             }
         }
+
         if( 1 )
         {
             if( xSemaphoreTake( setZerpSemap, 0 ) == pdPASS )
@@ -676,13 +842,17 @@ void MotionTask(void const *parment)
                     {
                         debugOut( 0, (char *)"[\t%d] run Task at %0.2f: cmd->%d, position->%0.2f, speed->%0.2f\r\n", PreviousWakeTime, agv.AGV_Pos, runTaskHeader.next->cmd, runTaskHeader.next->position, runTaskHeader.next->data.fData );
                         float posNow = agv.AGV_Pos;
+                        float dis = posNow - zeroTask.position;
                         agv.AGV_Pos = 0;
-                        AGV_Pos = AGV_Pos - posNow;
-                        listDeleteItemByIndex( &runTaskHeader, 1 );
+                        AGV_Pos = AGV_Pos - zeroTask.position;
+                        //   AGV_Pos = AGV_Pos + dis;
+                        listDeleteItemByCMD( &runTaskHeader, 6 );
+
                     }
                 }
             }
         }
+
         if( 1 )
         {
             setSwitch( inOutTarget );

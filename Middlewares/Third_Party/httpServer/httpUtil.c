@@ -30,11 +30,12 @@ uint8_t http_get_cgi_handler(uint8_t *uri_name, uint8_t *buf, uint32_t *file_len
     uint16_t len = 0;
     if (strcmp((const char *)uri_name, "status.cgi") == 0)
     {
-        float sp, pos, voltage;
+        float sp, spMax, pos, voltage;
         GetSpeedHttpApi( &sp );
+        GetMaxSpeedHttpApi( &spMax );
         GetPositionHttpApi( &pos );
         GetBatteryVoltageHttpApi( &voltage );
-        sprintf( (char *)buf, "{\"sp\":%0.2f, \"pos\":%0.2f, \"Bv\":%0.1f}", sp, pos, voltage );
+        sprintf( (char *)buf, "{\"sp\":%0.2f, \"spMax\":%0.2f, \"pos\":%0.2f, \"Bv\":%0.1f}", sp, spMax, pos, voltage );
         len = strlen( (const char*)buf );
     }
     else if( strcmp( (const char *)uri_name, "getruntasklist.cgi" ) == 0 )
@@ -69,6 +70,18 @@ uint8_t http_get_cgi_handler(uint8_t *uri_name, uint8_t *buf, uint32_t *file_len
         getRamStatus( buf );
         len = strlen( (const char*)buf );
     }
+    else if( strcmp( (const char *)uri_name, "disableMotor.cgi" ) == 0 )
+    {
+        setMotorDisable(1);
+        sprintf( (char *)buf, "set op ok\r\n" );
+        len = strlen( (char *)buf );
+    }
+    else if( strcmp( (const char *)uri_name, "enableMotor.cgi" ) == 0 )
+    {
+        setMotorDisable(0);
+        sprintf( (char *)buf, "set op ok\r\n" );
+        len = strlen( (char *)buf );
+    }
     else
     {
         // CGI file not found
@@ -98,14 +111,18 @@ uint8_t http_post_cgi_handler(uint8_t *uri_name, st_http_request *p_http_request
         float position;
         if( posXNumber )
         {
-            position = ATOI( posXNumber, 10 );
-            sprintf( (char *)buf, "Set Pos Ok" );
-            if( SetPositionHttpApi( position ) )
+            if( sscanf( (char *)posXNumber, "%f", &position ) == 1 )
             {
-                sprintf( (char *)buf + strlen( (char *)buf ), "\tsend to motor ok\r\n" );
+                //position = ATOI( posXNumber, 10 );
+                sprintf( (char *)buf, "Set Pos Ok" );
+                if( SetPositionHttpApi( position ) )
+                {
+                    sprintf( (char *)buf + strlen( (char *)buf ), "\tsend to motor ok\r\n" );
+                }
+                len = strlen( (char *)buf );
             }
-
-            len = strlen( (char *)buf );
+            else
+                len = 0;
         }
         else
             len = 0;
@@ -117,7 +134,12 @@ uint8_t http_post_cgi_handler(uint8_t *uri_name, st_http_request *p_http_request
         uint8_t *posNumber = get_http_param_value((char *)p_http_request->URI, "position");
         if( posNumber )
         {
-            position = ATOI( posNumber, 10 );
+            if( sscanf( (char *)posNumber, "%f", &position ) == 1 )
+            {
+                ;
+            }
+            else
+                position = ATOI( posNumber, 10 );
         }
         uint8_t *cmdString = get_http_param_value((char *)p_http_request->URI, "cmd");
         if( cmdString )

@@ -432,6 +432,11 @@
               <FileType>1</FileType>
               <FilePath>..\app\listRunTask.c</FilePath>
             </File>
+            <File>
+              <FileName>BeltDriveController.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\app\BeltDriveController.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

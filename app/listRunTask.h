@@ -36,6 +36,7 @@ int listUpdateItemByID( RunTaskDef *header, int ID, RunTaskDef dataIn );
 int listDeleteItemByIndex( RunTaskDef *header, int Index );
 int listConverToJson( RunTaskDef *header, char *buff );
 int listGetItemByCMD( RunTaskDef *header, int cmd, RunTaskDef *dataOut );
+int listDeleteItemByCMD( RunTaskDef *header, int ID );
 
 #ifdef __cplusplus
 }

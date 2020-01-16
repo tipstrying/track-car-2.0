@@ -17,6 +17,8 @@ int SetOpHttpApi( float position, int cmd, float data );
 void beltOpHttpApi( int cmd );
 int InOutStatus();
 int GetBatteryVoltageHttpApi( float *Voltage );
+int setMotorDisable(int status );
+int GetMaxSpeedHttpApi( float *sp );
     
 #ifdef __cplusplus
 }

@@ -22,19 +22,35 @@ int GetSpeedHttpApi( float *sp )
     GetSpeed( sp );
     return 0;
 }
+int GetMaxSpeedHttpApi( float *sp )
+{
+    GetMaxSpeed( sp );
+    return 0;
+}
 int SetPositionHttpApi( float pos )
 {
     NavigationOperationStd navigationOperationData;
-    navigationOperationData.cmd = 3;
+    navigationOperationData.cmd = Enum_SendNavigation;
     navigationOperationData.Data.posTo = pos;
     if( xQueueSend( NavigationOperationQue, &navigationOperationData, 100 ) == pdPASS )
     {
+        debugOut( 0, "[\t%d] Set Position HttpApi: %0.2f\r\n", pos );
         return pdTRUE;
     }
     else
     {
         return pdFALSE;
     }
+}
+int setMotorDisable(int status )
+{
+    NavigationOperationStd navData;
+    navData.cmd = Enum_disableMotor;
+    if( status )
+        navData.Data.op = 1;
+    else
+        navData.Data.op = 0;
+    return xQueueSend( NavigationOperationQue, &navData, 100 );
 }
 int SetOpHttpApi( float position, int cmd, float data )
 {
@@ -47,7 +63,7 @@ int SetOpHttpApi( float position, int cmd, float data )
     6：清零
     */
     NavigationOperationStd navigationOperationData;
-    navigationOperationData.cmd =  4;
+    navigationOperationData.cmd = Enum_sendOperation;
     navigationOperationData.Data.op = cmd;
     navigationOperationData.Data.posTo = position;
     if( cmd == 1 )

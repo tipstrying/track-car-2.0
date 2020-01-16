@@ -26,6 +26,7 @@ void deleteList( RunTaskDef * header )
         vPortFree( header );
         header = next;
     }
+    header->next = 0;
 }
 
 int listAdd( RunTaskDef * header, RunTaskDef dataIn )
@@ -169,6 +170,29 @@ int listDeleteItemByIndex( RunTaskDef *header, int Index )
             }
             next = next->next;
 
+        }
+        return pdTRUE;
+    }
+    else
+        return pdFALSE;
+}
+int listDeleteItemByCMD( RunTaskDef *header, int ID )
+{
+    if( header )
+    {
+        RunTaskDef * next = header;
+        RunTaskDef *tmp;
+        while( next->next )
+        {
+            if( next->next->cmd == ID )
+            {
+                tmp = next->next;
+                listDelCallBack( *tmp);
+                next->next = next->next->next;
+                vPortFree( tmp );
+                return pdTRUE;
+            }
+            next = next->next;
         }
         return pdTRUE;
     }

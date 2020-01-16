@@ -30,6 +30,9 @@ public:
 
     bool iEmergencyByKey; //急停
     bool iEmergencyBySoftware; // 软件急停
+    bool iEmergencyByPause;
+    bool iEmergencyByCancel;
+    bool iEmergencyByError;
 
     float Request_Speed;
     float Request_RPM;
