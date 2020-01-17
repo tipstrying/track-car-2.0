@@ -60,7 +60,6 @@ AGV_Parallel_Motion::Motion_Status AGV_Parallel_Motion::Move_to(float iTarget)
     static int lastTimeCtrl = this->clock;
     float iDistance = fabsf( this->AGV_Pos - iTarget );
     static Motion_Status move_to_step_bak = move_to_step;
-#if 1
     switch( this->move_to_step )
     {
 
@@ -124,63 +123,6 @@ AGV_Parallel_Motion::Motion_Status AGV_Parallel_Motion::Move_to(float iTarget)
         break;
 
     }
-#else
-    if (this->move_to_step == ms_Idle)
-    {
-        move_to_step_bak = move_to_step;
-        if (iDistance < this->Stop_Accuracy)
-        {
-            if (this->clock - lastTimeCtrl > this->sArriveCtrlTime)
-            {
-                rValue = ms_Arrived;
-            }
-            this->Request_Speed = 0;
-        }
-        else
-        {
-            this->move_to_step = ms_Straight;
-            return ms_Straight;
-        }
-    }
-    else if (this->move_to_step == ms_Straight)
-    {
-        move_to_step_bak = move_to_step;
-
-        if( fabsf(iTarget - this->AGV_Pos) > this->Stop_Accuracy * 0.5)
-        {
-            lastTimeCtrl = this->clock;
-            if( this->AGV_Pos > iTarget )
-            {
-                this->Request_Speed = this->Move(iDistance);
-            }
-            else
-            {
-                this->Request_Speed = -this->Move(iDistance);
-            }
-        }
-        else
-        {
-            lastTimeCtrl = this->clock;
-            this->Request_Speed = 0.0f;
-
-            if (this->clock - lastTimeCtrl > 10)
-            {
-                taskENTER_CRITICAL();
-                {
-                    printf("[\t%d] Motion Finish at %f mm\r\n", this->clock, this->AGV_Pos);
-                }
-                taskEXIT_CRITICAL();
-                this->move_to_step = ms_Idle;
-            }
-
-        }
-        rValue = ms_Straight;
-    }
-    else if (this->move_to_step == ms_Error)
-    {
-        rValue = ms_Error;
-    }
-#endif
     this->Request_RPM = this->Request_Speed * mm2RPM;
     return rValue;
 }
@@ -367,6 +309,7 @@ float AGV_Parallel_Motion::Move(float iDistance)
 #else
     float SetSpeed = 0.000;
     static float speedNow = 0;
+    static float speedOld = 0;
     float stopDistance;
 
     if (/* speedNow > sSpeed_mid */ 1 )
@@ -438,10 +381,22 @@ float AGV_Parallel_Motion::Move(float iDistance)
         securityDelta_straight = sAcceleration * sample_Time / 1000.0;
 #endif
     }
+    
     if (speedNow > SetSpeed)
         speedNow -= securityDelta_straight;
     else if (speedNow < SetSpeed)
         speedNow += securityDelta_straight;
+
+    if( speedNow * speedNow / ( 2 * sAcceleration ) - iDistance - this->sDeceleration_distance > 10 )
+    {
+        float dis = abs(2 * sAcceleration * (iDistance - sDeceleration_distance));
+        speedOld = sqrtf( dis );
+        debugOut( 0, (char *)"[\t%d] Real-Time speed slower then request real->%0.2f, next->%0.2f\r\n", clock, speedNow, speedOld );
+        speedNow = speedOld;
+    }
+    if( speedNow > sSpeed_max )
+        speedNow = sSpeed_max;
+    
     return speedNow;
 
 #endif

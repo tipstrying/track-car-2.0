@@ -113,52 +113,80 @@ int beltCtrl( int isRun, BeltDirectionDef dir, int speed )
         HAL_GPIO_WritePin( OUT_6_GPIO_Port, OUT_6_Pin, GPIO_PIN_RESET );
     }
 }
-int writePosToBKP( float position )
+int writePosToBKP( float position, double mils )
 {
     union {
         float fData;
         uint32_t uData;
-
-    } u32Tof32;
-    union {
-        uint32_t Data;
         uint8_t Hex[4];
-    } u32ToHex;
+    } u32Tof32;
 
+    union {
+        double dData;
+        uint32_t uData[2];
+        uint8_t Hex[8];
+    } u64ToHex;
+    u64ToHex.dData = mils;
     u32Tof32.fData = position;
-    u32ToHex.Data = u32Tof32.uData;
     uint32_t sum = 0;
     for( int i = 0; i < 4; i++ )
     {
-        sum += u32ToHex.Hex[i];
+        sum += u32Tof32.Hex[i];
+    }
+    for( int i = 0; i < 8; i++ )
+    {
+        sum += u64ToHex.Hex[i];
     }
     HAL_RTCEx_BKUPWrite( &hrtc, RTC_BKP_DR10, u32Tof32.uData );
-    HAL_RTCEx_BKUPWrite( &hrtc, RTC_BKP_DR11, sum );
+    HAL_RTCEx_BKUPWrite( &hrtc, RTC_BKP_DR11, u64ToHex.uData[0] );
+    HAL_RTCEx_BKUPWrite( &hrtc, RTC_BKP_DR12, u64ToHex.uData[1] );
+    HAL_RTCEx_BKUPWrite( &hrtc, RTC_BKP_DR13, sum );
 
 }
-int readPosFromBKP( float *position )
+/* BKP map:
+DR0: bootloader flag-> "appM" load app
+DR1: IP addr
+DR2: MAC addr
+DR10: real-time position
+DR11-DR12: milages
+DR13: sum of real-time position and milages
+*/
+int readPosFromBKP( float *position, double *mils )
 {
     union {
         float fData;
         uint32_t uData;
+        uint8_t Hex[4];
 
     } u32Tof32;
+    
     union {
-        uint32_t Data;
-        uint8_t Hex[4];
-    } u32ToHex;
+        double dData;
+        uint32_t uData[2];
+        uint8_t Hex[8];
+    } u64ToHex;
 
     u32Tof32.uData = HAL_RTCEx_BKUPRead( &hrtc, RTC_BKP_DR10 );
-    u32ToHex.Data = u32Tof32.uData;
+    u64ToHex.uData[0] = HAL_RTCEx_BKUPRead( &hrtc, RTC_BKP_DR11 );
+    u64ToHex.uData[1] = HAL_RTCEx_BKUPRead( &hrtc, RTC_BKP_DR12 );
+    
     uint32_t sum = 0;
     for( int i = 0; i < 4; i++ )
     {
-        sum += u32ToHex.Hex[i];
+        sum += u32Tof32.Hex[i];
     }
-    if( sum == HAL_RTCEx_BKUPRead( &hrtc, RTC_BKP_DR11 ) )
+    for( int i = 0; i < 8; i++ )
     {
-        if( position )
+        sum += u64ToHex.Hex[i];
+    }
+    
+    if( sum == HAL_RTCEx_BKUPRead( &hrtc, RTC_BKP_DR13 ) )
+    {
+        if( position && mils )
+        {
             *position = u32Tof32.fData;
+            *mils = u64ToHex.dData;
+        }
         return 1;
     }
     else

@@ -79,32 +79,6 @@ static int BeltOperatingTime = 0;
 static bool BeltOperatingPause = false;
 static double milages = 0;
 
-int IsArriver()
-{
-    int status = agv.Motion_Status_Now;
-    switch (status)
-    {
-    case 0:
-    case 5:
-        return 0;
-    case 1:
-    case 2:
-        return 1;
-    case 4:
-    case 8:
-    case 9:
-        return 2;
-    case 3:
-        return 3;
-    case 6:
-        return 4;
-    case 7:
-        return 5;
-    default:
-        return 3;
-    }
-}
-
 float GetStop_Accuracy()
 {
     return agv.Stop_Accuracy;
@@ -265,9 +239,10 @@ void Rx_PDO_Commplate(int oID, char Array[8] )
                 agv.EncoderValue = Encoder_Value;
                 agv.DetectDynamics();
                 float posTmp = 0;
-
-                if( readPosFromBKP( &posTmp ) )
+                double milsTmp = 0;
+                if( readPosFromBKP( &posTmp, &milsTmp ) )
                 {
+                    milages = milsTmp;
                     SetSelfPosition( posTmp );
                 }
                 else
@@ -391,7 +366,7 @@ void MotionTask(void const *parment)
     agv.sArriveCtrlTime = 210;
     agv.sSpeed_min = 10;
     agv.sSpeed_max = 300;
-    agv.sDeceleration_distance = 40;
+    agv.sDeceleration_distance = 5;
     agv.sAcceleration = 3000;
 
     uint32_t PreviousWakeTime = osKernelSysTick();
@@ -733,7 +708,7 @@ void MotionTask(void const *parment)
                 if( fabsf( posBakForBKP - agv.AGV_Pos ) > 1 )
                 {
                     posBakForBKP = agv.AGV_Pos;
-                    writePosToBKP( agv.AGV_Pos );
+                    writePosToBKP( agv.AGV_Pos, milages );
                 }
             }
 #else

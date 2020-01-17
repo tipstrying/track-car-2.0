@@ -427,7 +427,7 @@ void protocolRun( void const *para )
                                 int posInt;
                                 uint8_t status;
                                 uint8_t batVol;
-                                status = IsArriver();
+                                status = 0;
 
                                 union {
                                     uint8_t Hex[4];

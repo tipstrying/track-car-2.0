@@ -27,6 +27,11 @@ int GetMaxSpeedHttpApi( float *sp )
     GetMaxSpeed( sp );
     return 0;
 }
+int getMilagesHttpApi ( double * mils )
+{
+    *mils = GetMilage();
+    return 0;
+}
 int SetPositionHttpApi( float pos )
 {
     NavigationOperationStd navigationOperationData;

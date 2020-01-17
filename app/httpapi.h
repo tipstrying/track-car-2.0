@@ -19,6 +19,7 @@ int InOutStatus();
 int GetBatteryVoltageHttpApi( float *Voltage );
 int setMotorDisable(int status );
 int GetMaxSpeedHttpApi( float *sp );
+int getMilagesHttpApi ( double * mils );
     
 #ifdef __cplusplus
 }

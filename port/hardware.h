@@ -98,8 +98,8 @@ OnOffDef getThingSensor( int ID, int maxDelay );
 InOutSwitch getSwitchStatus();
 InOutSwitch setSwitch( InOutSwitch target );
 OnOffDef powerKeyWork( uint32_t clock);
-int writePosToBKP( float position );
-int readPosFromBKP( float *position );
+int writePosToBKP( float position, double mils );
+int readPosFromBKP( float *position, double *mils );
  int isPackOnCar();
 #ifdef __cplusplus
 }
