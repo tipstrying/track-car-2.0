@@ -89,7 +89,7 @@ CONFIG_MSG SetNetWorkParment( void )
     networkconfig.lip[0] = 192;
     networkconfig.lip[1] = 168;
     networkconfig.lip[2] = 1;
-    networkconfig.lip[3] = 11;
+    networkconfig.lip[3] = 216;
     networkconfig.sub[0] = 255;
     networkconfig.sub[1] = 255;
     networkconfig.sub[2] = 255;
@@ -161,8 +161,11 @@ void W5500Task( void const * par )
     sum += u32ToHex.Hex[1];
     if( u32ToHex.Hex[2] == sum )
     {
-        networkconfig.lip[2] = u32ToHex.Hex[0];
-        networkconfig.lip[3] = u32ToHex.Hex[1];
+        if( sum != 0 )
+        {
+            networkconfig.lip[2] = u32ToHex.Hex[0];
+            networkconfig.lip[3] = u32ToHex.Hex[1];
+        }
     }
     u32ToHex.Data = HAL_RTCEx_BKUPRead( &hrtc, RTC_BKP_DR2 );
     sum = 0;
@@ -599,23 +602,34 @@ void protocolRun( void const *para )
                         case 2007:
                             if( 1 )
                             {
-
-                                int rValue = 0;
-                                navData.cmd = Enum_PushThing;
-                                navData.Data.op = 1;
-                                if( xQueueSend( NavigationOperationQue, &navData, 100 ) == pdPASS )
-                                    rValue = 0;
+                                if( PackLen == 1 )
+                                {
+                                    int rValue = 0;
+                                    if( !data[0] )
+                                        navData.Data.op = 0;
+                                    else
+                                        navData.Data.op = 1;
+                                    
+                                    navData.cmd = Enum_PushThing;
+                                    if( xQueueSend( NavigationOperationQue, &navData, 100 ) == pdPASS )
+                                        rValue = 0;
+                                    else
+                                        rValue = 1;
+                                    if( rValue )
+                                    {
+                                        PackLen = makePack( buff, packIndex, 12007, 1, 0, 0 );
+                                    }
+                                    else
+                                    {
+                                        PackLen = makePack( buff, packIndex, 12007, 0, 0, 0 );
+                                    }
+                                    dataOut.pushData( buff, PackLen );
+                                }
                                 else
-                                    rValue = 1;
-                                if( rValue )
                                 {
                                     PackLen = makePack( buff, packIndex, 12007, 1, 0, 0 );
+                                    dataOut.pushData( buff, PackLen );
                                 }
-                                else
-                                {
-                                    PackLen = makePack( buff, packIndex, 12007, 0, 0, 0 );
-                                }
-                                dataOut.pushData( buff, PackLen );
                             }
                             break;
                         case 2008:
@@ -648,12 +662,12 @@ void protocolRun( void const *para )
                             {
                                 if( PackLen == 1 )
                                 {
-                                    if( data[0] == 1 )
+                                    if( !data[0] )
                                     {
-                                        navData.Data.op = 1;
+                                        navData.Data.op = 0;
                                     }
                                     else
-                                        navData.Data.op = 0;
+                                        navData.Data.op = 1;
                                     navData.cmd = Enum_PullThing;
                                     if( xQueueSend( NavigationOperationQue, &navData, 100 ) == pdPASS )
                                     {

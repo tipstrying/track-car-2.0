@@ -40,7 +40,7 @@ AGV_Parallel_Motion::Motion_Status AGV_Parallel_Motion::Motion_work(float iTarge
 {
     Motion_Status rValue = ms_Idle;
     this->DetectDynamics();
-    if (this->iEmergencyByKey || this->iEmergencyBySoftware || this->iEmergencyByError || this->iEmergencyByPause )
+    if (this->iEmergencyByKey || this->iEmergencyBySoftware || this->iEmergencyByError || this->iEmergencyByPause || this->iEmergencyByCancel )
     {
         this->Request_RPM = 0;
         this->Request_Speed = 0;
@@ -306,7 +306,8 @@ float AGV_Parallel_Motion::Move(float iDistance)
     if (iDistance < 0)
         return -speedNow;
     return speedNow;
-#else
+#endif
+#if 1
     float SetSpeed = 0.000;
     static float speedNow = 0;
     static float speedOld = 0;
@@ -345,7 +346,7 @@ float AGV_Parallel_Motion::Move(float iDistance)
 
     if( this->iEmergencyByCancel )
         SetSpeed = 0;
-    
+
     float securityDelta_straight;
 
     if (speedNow > SetSpeed)
@@ -381,24 +382,107 @@ float AGV_Parallel_Motion::Move(float iDistance)
         securityDelta_straight = sAcceleration * sample_Time / 1000.0;
 #endif
     }
-    
+
+#if 0
     if (speedNow > SetSpeed)
         speedNow -= securityDelta_straight;
     else if (speedNow < SetSpeed)
         speedNow += securityDelta_straight;
-
-    if( speedNow * speedNow / ( 2 * sAcceleration ) - iDistance - this->sDeceleration_distance > 10 )
+#else
+    if (speedNow > SetSpeed)
     {
-        float dis = abs(2 * sAcceleration * (iDistance - sDeceleration_distance));
-        speedOld = sqrtf( dis );
-        debugOut( 0, (char *)"[\t%d] Real-Time speed slower then request real->%0.2f, next->%0.2f\r\n", clock, speedNow, speedOld );
-        speedNow = speedOld;
+        if( stopDistance > iDistance )
+        {
+            if( iDistance > sDeceleration_distance )
+                speedNow = sqrt( 2 * sAcceleration * (iDistance - sDeceleration_distance) );
+            else
+                speedNow = sSpeed_min;
+        }
+        else
+        {
+            if( speedNow > sSpeed_max )
+            {
+                speedNow -= securityDelta_straight;
+            }
+        }
     }
+    else if (speedNow < SetSpeed)
+        speedNow += securityDelta_straight;
+#endif
+
+    /*
+       if( speedNow * speedNow / ( 2 * sAcceleration ) - iDistance - this->sDeceleration_distance > 10 )
+       {
+           float dis = abs(2 * sAcceleration * (iDistance - sDeceleration_distance));
+           speedOld = sqrtf( dis );
+           debugOut( 0, (char *)"[\t%d] Real-Time speed slower then request real->%0.2f, next->%0.2f\r\n", clock, speedNow, speedOld );
+           speedNow = speedOld;
+       }
+       */
+
+    /*
     if( speedNow > sSpeed_max )
         speedNow = sSpeed_max;
-    
+    */
     return speedNow;
 
+#endif
+#if 0
+    //	static int lastTimeCtrl = this->clock;
+
+    //	this->sample_Time = this->clock - lastTimeCtrl;
+
+    //	lastTimeCtrl = this->clock;
+
+    double SetSpeed = 0.000;
+    static double speedNow = 0;
+    static double xData = 0;
+    double stopDistance;
+    //double x = speedNow / 0.001;
+    //x = sqrt(x);
+    // xData += sample_Time;
+    stopDistance = 0;
+    // stopDistance = (1/3) * x * x * x * 0.002;
+    /*
+        for (float x = xData; x > 0;)
+        {
+            stopDistance += x * x * sA / 1000;
+            x -= 1;
+        }
+    */
+    stopDistance = 0.333333 * sA * xData * xData * xData;
+
+    if (stopDistance - iDistance > 1)
+        SetSpeed = sSpeed_min;
+    else
+    {
+        SetSpeed = sSpeed_max;
+    }
+
+    if( abs( iDistance ) <= Stop_Accuracy /* * 0.5 */ )
+    {
+        SetSpeed = sSpeed_min;
+    }
+    if( iDistance < 0 )
+        SetSpeed = -SetSpeed;
+    float securityDelta_straight;
+    if (speedNow > SetSpeed)
+    {
+//        double x = speedNow / 0.001;
+//        x = sqrt(x);
+//        x -= 1;
+        xData -= sample_Time;
+        speedNow = xData * xData * sA;
+    }
+    else
+    {
+//        float x = speedNow / 0.001;
+//        x = sqrt(x);
+//        x += 1;
+        xData += sample_Time;
+        speedNow = xData * xData * sA;
+    }
+    return (float)speedNow ;// > sSpeed_min ? speedNow : sSpeed_min;
 #endif
 }
 

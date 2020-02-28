@@ -367,8 +367,9 @@ void MotionTask(void const *parment)
     agv.sSpeed_min = 10;
     agv.sSpeed_max = 300;
     agv.sDeceleration_distance = 5;
-    agv.sAcceleration = 3000;
-
+    agv.sAcceleration = 2000;
+    agv.sA = 0.003;
+    
     uint32_t PreviousWakeTime = osKernelSysTick();
 
     CANopen_Rx.Event_Rx_SDO_Complete = Rx_SDO_Commplate;
@@ -527,7 +528,7 @@ void MotionTask(void const *parment)
 
                     case Enum_CancelNavigation:
                         agv.iEmergencyByCancel = true;
-                        
+                        deleteList( &runTaskHeader );
                         break;
                     case Enum_PauseNavigation:
                         if( navigationOperationData.Data.op )
@@ -714,7 +715,7 @@ void MotionTask(void const *parment)
 #else
             if( MotionStatus.EcodeDelay )
                 MotionStatus.EcodeDelay = false;
-            agv.EncoderValue += agv.Request_RPM * AGV_EncoderCPC * 2 / 60 / 1000;
+            agv.EncoderValue += agv.Request_RPM * AGV_EncoderCPC * 5 / 60 / 1000;
             // agv.DetectDynamics();
 //       HAL_RTCEx_BKUPWrite( &hrtc, RTC_BKP_DR3, agv.AGV_Pos );
 #endif
@@ -813,7 +814,7 @@ void MotionTask(void const *parment)
                 RunTaskDef zeroTask;
                 if( listGetItemByCMD( &runTaskHeader, 6, &zeroTask ) )
                 {
-                    if( fabsf( zeroTask.position - agv.AGV_Pos ) < 10 )
+                    if( fabsf( zeroTask.position - agv.AGV_Pos ) < 20 )
                     {
                         debugOut( 0, (char *)"[\t%d] run Task at %0.2f: cmd->%d, position->%0.2f, speed->%0.2f\r\n", PreviousWakeTime, agv.AGV_Pos, runTaskHeader.next->cmd, runTaskHeader.next->position, runTaskHeader.next->data.fData );
                         float posNow = agv.AGV_Pos;
@@ -822,7 +823,6 @@ void MotionTask(void const *parment)
                         AGV_Pos = AGV_Pos - zeroTask.position;
                         //   AGV_Pos = AGV_Pos + dis;
                         listDeleteItemByCMD( &runTaskHeader, 6 );
-
                     }
                 }
             }

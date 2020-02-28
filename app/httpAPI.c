@@ -134,5 +134,5 @@ void getRamStatus( uint8_t *buff )
     size_t free = xPortGetFreeHeapSize();
     size_t freeMin = xPortGetMinimumEverFreeHeapSize();
     sprintf( (char *)buff, "Type\tTotal\tFree\tFreeMin\r\n**************************************\r\n" );
-    sprintf( (char *)(buff + strlen( (char *)buff ) ), "RAM:\t%u kb\t%u kb\t%u kb\r\n", configTOTAL_HEAP_SIZE / 1024, free/1024, freeMin/1024 );
+    sprintf( (char *)(buff + strlen( (char *)buff ) ), "RAM:\t%u b\t%u b\t%u b\r\n", configTOTAL_HEAP_SIZE, free, freeMin );
 }

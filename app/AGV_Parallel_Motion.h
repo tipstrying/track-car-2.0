@@ -44,6 +44,7 @@ public:
     float sAccelerationLow;
     float sDeceleration_distance;
     float sSpeed_max;
+    float sA;
 
     float sSpeed_min; //最小线速度 mm/s
     float Stop_Accuracy;//停止精度
