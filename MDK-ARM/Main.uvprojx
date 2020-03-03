@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F429xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Inc;     ..\app;     ..\app_cpp;     ..\Src\Ethernet;     ..\Src\Ethernet\W5500;     ..\port;     ..\fifo\inc;     ../Drivers/CMSIS/Include;     ../Drivers/STM32F4xx_HAL_Driver/Inc;     ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;     ../Drivers/CMSIS/Device/ST/STM32F4xx/Include;     ../Middlewares/Third_Party/FatFs/src;     ../Middlewares/Third_Party/FreeRTOS/Source/include;     ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;     ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;     ..\Middlewares\Third_Party\FreeRTOS\Source\cli;     ..\MDK-ARM;     ..\Middlewares\Third_Party\httpServer</IncludePath>
+              <IncludePath>../Inc;..\app;..\app_cpp;..\Src\Ethernet;..\Src\Ethernet\W5500;..\port;..\fifo\inc;../Drivers/CMSIS/Include;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Middlewares/Third_Party/FatFs/src;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;..\Middlewares\Third_Party\FreeRTOS\Source\cli;..\MDK-ARM;..\Middlewares\Third_Party\httpServer;..\Middlewares\Third_Party\modbus\include\common;..\Middlewares\Third_Party\modbus\include\internal;..\Middlewares\Third_Party\modbus\include;..\Middlewares\Third_Party\modbus\port</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -436,6 +436,11 @@
               <FileName>BeltDriveController.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>..\app\BeltDriveController.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>modbusTask.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\app\modbusTask.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -841,6 +846,96 @@
               <FileName>syscall.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Middlewares/Third_Party/FatFs/src/option/syscall.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Modbus/Kernel</GroupName>
+          <Files>
+            <File>
+              <FileName>mbutils.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\Third_Party\modbus\common\mbutils.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbmfunccoils.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\Third_Party\modbus\functions\mbmfunccoils.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbmfunccustom1.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\Third_Party\modbus\functions\mbmfunccustom1.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbmfuncdisc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\Third_Party\modbus\functions\mbmfuncdisc.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbmfuncfiles.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\Third_Party\modbus\functions\mbmfuncfiles.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbmfuncholding.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\Third_Party\modbus\functions\mbmfuncholding.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbmfuncinput.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\Third_Party\modbus\functions\mbmfuncinput.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbmfuncraw.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\Third_Party\modbus\functions\mbmfuncraw.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbmfuncslaveid.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\Third_Party\modbus\functions\mbmfuncslaveid.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbmcrc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\Third_Party\modbus\rtu\mbmcrc.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbmrtu.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\Third_Party\modbus\rtu\mbmrtu.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\Third_Party\modbus\mbm.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Modbus/Port</GroupName>
+          <Files>
+            <File>
+              <FileName>mbportevent.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\Third_Party\modbus\port\mbportevent.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbportother.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\Third_Party\modbus\port\mbportother.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbportserial.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\Third_Party\modbus\port\mbportserial.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbporttimer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\Third_Party\modbus\port\mbporttimer.c</FilePath>
             </File>
           </Files>
         </Group>

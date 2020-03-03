@@ -54,18 +54,6 @@ AGV_Parallel_Motion *getAGVHandle()
     return &agv;
 }
 
-void getTS_CURVEPAR(float *k, float *j, float *a, float *v)
-{
-    agv.get_ts_curve(k, j, a, v);
-    return;
-}
-
-void setTS_CURVEPAR(float k, float j, float a, float v)
-{
-    agv.set_ts_curve(k, j, a, v);
-    return;
-}
-
 static struct
 {
     bool CanDelay;
@@ -366,16 +354,15 @@ void MotionTask(void const *parment)
     agv.sArriveCtrlTime = 210;
     agv.sSpeed_min = 10;
     agv.sSpeed_max = 300;
-    agv.sDeceleration_distance = 5;
+    agv.sDeceleration_distance = 2;
     agv.sAcceleration = 2000;
-    agv.sA = 0.003;
     
     uint32_t PreviousWakeTime = osKernelSysTick();
 
     CANopen_Rx.Event_Rx_SDO_Complete = Rx_SDO_Commplate;
     CANopen_Rx.Event_Rx_PDO_Complete = Rx_PDO_Commplate;
     CANopen_Tx.Event_Tx_Work = CanTx;
-    CANopen_Rx.Event_Rx_Work = CanRx;
+    CANopen_Rx.Event_Rx_Work = CanRx;    
     CANopen_Rx.Event_Rx_HeartBeat_Complete = canHeartbeat;
 
     agv.AGV_Pos = 0;

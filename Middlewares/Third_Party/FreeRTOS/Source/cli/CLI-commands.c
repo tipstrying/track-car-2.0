@@ -616,7 +616,6 @@ static BaseType_t MotionCtl( char *pcWriteBuffer, size_t xWriteBufferLen, const 
         if( sscanf( parment[0], "set k=%f j=%f a=%f v=%f", &ts_k, &ts_j, &ts_a, &ts_v ) == 4 )
         {
             sprintf( pcWriteBuffer, "set k=%f j=%f a=%f v=%f\r\n", ts_k, ts_j, ts_a, ts_v );
-            setTS_CURVEPAR( ts_k, ts_j, ts_a, ts_v );
         }
         else
         {
@@ -625,7 +624,6 @@ static BaseType_t MotionCtl( char *pcWriteBuffer, size_t xWriteBufferLen, const 
     }
     else
     {
-        getTS_CURVEPAR( &ts_k, &ts_j, &ts_a, &ts_v );
         sprintf( pcWriteBuffer, "Motion parameter: k=%f j=%f a=%f v=%f\r\n", ts_k, ts_j, ts_a, ts_v );
     }
     return pdFALSE;
