@@ -231,5 +231,5 @@ vMBPExitCritical( void )
     /* WARNING: Assume special version of portENTER_CRITICAL for FreeRTOS
      * on SAM7X
      */
-   // portEXIT_CRITICAL(  );
+    //portEXIT_CRITICAL(  );
 }

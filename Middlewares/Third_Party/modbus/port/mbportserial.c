@@ -228,7 +228,8 @@ void uart2RecTask( void const *arg )
         if( xSemaphoreTake( u2Seamp, portMAX_DELAY ) == pdPASS )
         {
             len = sizeof(data) - huart2.hdmarx->Instance->NDTR;
-            xSerialHdls[0].pvMBPReceiveFN( xSerialHdls[0].xMBHdl, data, len );
+            if( xSerialHdls[0].pvMBPReceiveFN )
+                xSerialHdls[0].pvMBPReceiveFN( xSerialHdls[0].xMBHdl, data, len );
             HAL_UART_AbortReceive( &huart2 );
             HAL_UART_Receive_DMA( &huart2, data, sizeof(data) );
             

@@ -13,6 +13,7 @@
 
 /* ----------------------- Platform includes --------------------------------*/
 #include "usart.h"
+#include "app.h"
 
 /* ----------------------- Modbus includes ----------------------------------*/
 #include "mbport.h"
@@ -25,53 +26,68 @@
 
 void modbusTask( void const * arg )
 {
-    USHORT          usRegCnt = 0;
-    eMBErrorCode    eStatus, eStatus2;
     xMBHandle       xMBMMaster;
-    USHORT          usNRegs[5];
-
-
-
-    if( MB_ENOERR ==
-            ( eStatus = eMBMSerialInit( &xMBMMaster, MB_RTU, MBM_SERIAL_PORT, MBM_SERIAL_BAUDRATE, MBM_PARITY ) ) )
+    USHORT modbusReadBackRegs[10];
+    if( MB_ENOERR == eMBMSerialInit( &xMBMMaster, MB_RTU, MBM_SERIAL_PORT, MBM_SERIAL_BAUDRATE, MBM_PARITY ) )
     {
-        do
+        debugOut(0, "[\t%d] Modbus task start up [ok]\r\n", osKernelSysTick() );
+       /*
+        while( Battery.Voltage < 25000 )
         {
-#if 1
-            /* Write an incrementing counter to register address 0. */
-            /*
-             if( MB_ENOERR != ( eStatus2 = eMBMWriteSingleRegister( xMBMMaster, 1, 0, usRegCnt++ ) ) )
-             {
-                 eStatus = eStatus2;
-             }
-             vTaskDelay( 100 );
-             */
-            /* Read holding register from adress 5 - 10, increment them by one and store
-             * them at address 10.
-             */
-
-            if( MB_ENOERR != ( eStatus2 = eMBMReadHoldingRegisters( xMBMMaster, 1, 0x3600, 1, usNRegs ) ) )
-            {
-                eStatus = eStatus2;
-            }
-
-#endif
-            switch ( eStatus )
-            {
-            case MB_ENOERR:
-                break;
-            default:
-                break;
-            }
-            vTaskDelay( 1 );
+            osDelay(10);
         }
-        while( TRUE );
+        */
+        debugOut(0, "[\t%d] Battery voltage up to 25000mV [ok]\r\n", osKernelSysTick() );
+        for( ;; )
+        {
+            while( MB_ENOERR != eMBMReadHoldingRegisters( xMBMMaster, 1, 0x3600, 1, modbusReadBackRegs ) )
+            {
+                osDelay(3);
+            }
+            if( modbusReadBackRegs[0] != 3 )
+            {
+                while( MB_ENOERR != eMBMWriteSingleRegister( xMBMMaster, 1, 0x3100, 0x80 ) )
+                {
+                    osDelay(2);
+                }
+                while( MB_ENOERR != eMBMWriteSingleRegister( xMBMMaster, 1, 0x3100, 0x06 ) )
+                {
+                    osDelay(2);
+                }
+                while( MB_ENOERR != eMBMWriteSingleRegister( xMBMMaster, 1, 0x3500, 0x03 ) )
+                {
+                    osDelay(2);
+                }
+            }
+            else
+            {
+                debugOut(0, "[\t%d] set belt motor status 3 [ok]\r\n", osKernelSysTick() );
+                break;
+            }
+        }
+        union
+        {
+            int iData;
+            USHORT uData[2];
+        }iToUShortData;
+        
+        for( ;; )
+        {
+            iToUShortData.iData = 8192000;
+            debugOut(0, "[\t%d] set belt speed 100RPM\r\n", osKernelSysTick() );
+            eMBMWriteMultipleRegisters( xMBMMaster, 1, 0x6f00, 2, iToUShortData.uData );
+            osDelay( 1000 );
+            iToUShortData.iData = 0;
+            debugOut(0, "[\t%d] set belt speed 0RPM\r\n", osKernelSysTick() );
+            eMBMWriteMultipleRegisters( xMBMMaster, 1, 0x6f00, 2, iToUShortData.uData );
+            osDelay( 5000 );
+        }
     }
     else
     {
         MBP_ASSERT( 0 );
     }
-    if( MB_ENOERR != ( eStatus = eMBMClose( xMBMMaster ) ) )
+    if( MB_ENOERR != eMBMClose( xMBMMaster ) )
     {
         MBP_ASSERT( 0 );
     }
