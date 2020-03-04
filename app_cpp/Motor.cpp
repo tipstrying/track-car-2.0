@@ -711,6 +711,12 @@ void MotionTask(void const *parment)
                     posBakForBKP = agv.AGV_Pos;
                     writePosToBKP( agv.AGV_Pos, milages );
                 }
+                static float posBakForLog;
+                if( fabsf( posBakForLog - agv.AGV_Pos ) > 100 )
+                {
+                    posBakForLog = agv.AGV_Pos;
+                    debugOut(0, (char *)"[\t%d] Real-Time Position: pos->%0.2f, encoder->%d\r\n", PreviousWakeTime, posBakForLog, agv.EncoderValue );
+                }
             }
 #else
             if( MotionStatus.EcodeDelay )
