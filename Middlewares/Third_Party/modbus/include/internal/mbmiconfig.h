@@ -217,7 +217,7 @@
  * small systems.
  */
 #ifndef MBM_ENABLE_FULL_API_CHECKS
-#define MBM_ENABLE_FULL_API_CHECKS              ( 1 )
+#define MBM_ENABLE_FULL_API_CHECKS              ( 0 )
 #endif
 
 /*! \brief If the RTU layer should at least wait 3,5 times

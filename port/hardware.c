@@ -3,6 +3,12 @@
 #include "tim.h"
 #include "rtc.h"
 
+#include "mbport.h"
+#include "mbm.h"
+#include "common/mbportlayer.h"
+#include "usart.h"
+#include "app.h"
+
 #define OUT_UpDownC_Port    OUT_9_GPIO_Port
 #define OUT_UpDownC_Pin     OUT_9_Pin
 
@@ -21,8 +27,102 @@
 #define IN_T3_Port  IN_4_GPIO_Port
 #define IN_T3_Pin   IN_4_Pin
 
-int init ()
+#define BeltAddr    2
+#define SwitchAddr  3
+
+static xMBHandle       xMBMMaster;
+int prvInitHardwares ()
 {
+    USHORT modbusReadBackRegs[10];
+    debugOut(0, "[\t%d] Waitting for Battery Voltage bigger then 25000mV\r\n", osKernelSysTick() );
+    while( Battery.Voltage < 25000 )
+    {
+        osDelay(10);
+    }
+    debugOut(0, "[\t%d] Battery voltage up to 25000mV [ok]\r\n", osKernelSysTick() );
+
+    debugOut(0, "[\t%d] Start hardware setup [ok]\r\n", osKernelSysTick() );
+    if( MB_ENOERR == eMBMSerialInit( &xMBMMaster, MB_RTU, 0, 38400, MB_PAR_NONE ) )
+    {
+
+    }
+    else
+    {
+        debugOut(0, "[\t%d] Modbus init error\r\n",osKernelSysTick() );
+        return -1;
+    }
+    debugOut(0, "[\t%d] Start set up Belt Motor [ok]\r\n", osKernelSysTick() );
+    for( ;; )
+    {
+        while( MB_ENOERR != eMBMReadHoldingRegisters( xMBMMaster, BeltAddr, 0x3600, 1, modbusReadBackRegs ) )
+        {
+            osDelay(3);
+        }
+        if( modbusReadBackRegs[0] != 3 )
+        {
+            while( MB_ENOERR != eMBMWriteSingleRegister( xMBMMaster, BeltAddr, 0x3100, 0x80 ) )
+            {
+                osDelay(2);
+            }
+            while( MB_ENOERR != eMBMWriteSingleRegister( xMBMMaster, BeltAddr, 0x3100, 0x06 ) )
+            {
+                osDelay(2);
+            }
+            while( MB_ENOERR != eMBMWriteSingleRegister( xMBMMaster, BeltAddr, 0x3100, 0xaf ) )
+            {
+                osDelay(2);
+            }
+            while( MB_ENOERR != eMBMWriteSingleRegister( xMBMMaster, BeltAddr, 0x3500, 0x03 ) )
+            {
+                osDelay(2);
+            }
+        }
+        else
+        {
+            debugOut(0, "[\t%d] set belt motor status 3 [ok]\r\n", osKernelSysTick() );
+            break;
+        }
+    }
+
+    debugOut(0, "[\t%d] Start set up Switch Motor [ok]\r\n", osKernelSysTick() );
+    for( ;; )
+    {
+        while( MB_ENOERR != eMBMReadHoldingRegisters( xMBMMaster, SwitchAddr, 0x3600, 1, modbusReadBackRegs ) )
+        {
+            osDelay(3);
+        }
+        if( modbusReadBackRegs[0] != 3 )
+        {
+            union
+            {
+                int iData;
+                USHORT uData[2];
+            } iToUShortData;
+
+            while( MB_ENOERR != eMBMWriteSingleRegister( xMBMMaster, SwitchAddr, 0x3100, 0x80 ) )
+            {
+                osDelay(2);
+            }
+            while( MB_ENOERR != eMBMWriteSingleRegister( xMBMMaster, SwitchAddr, 0x3100, 0x06 ) )
+            {
+                osDelay(2);
+            }
+            while( MB_ENOERR != eMBMWriteSingleRegister( xMBMMaster, SwitchAddr, 0x3100, 0xaf ) )
+            {
+                osDelay(2);
+            }
+            while( MB_ENOERR != eMBMWriteSingleRegister( xMBMMaster, SwitchAddr, 0x3500, 0x03 ) )
+            {
+                osDelay(2);
+            }
+        }
+        else
+        {
+            debugOut(0, "[\t%d] set Switch motor status 3 [ok]\r\n", osKernelSysTick() );
+            break;
+        }
+    }
+
     return 0;
 }
 
@@ -91,28 +191,7 @@ int isPackOnCar()
         return 0;
 }
 
-int beltCtrl( int isRun, BeltDirectionDef dir, int speed )
-{
-    if( isRun )
-    {
-        if( dir == BeltRev )
-        {
-            HAL_GPIO_WritePin( OUT_5_GPIO_Port, OUT_5_Pin, GPIO_PIN_SET );
-            HAL_GPIO_WritePin( OUT_6_GPIO_Port, OUT_6_Pin, GPIO_PIN_SET );
-        }
-        else
-        {
-            HAL_GPIO_WritePin( OUT_5_GPIO_Port, OUT_5_Pin, GPIO_PIN_RESET );
-            HAL_GPIO_WritePin( OUT_6_GPIO_Port, OUT_6_Pin, GPIO_PIN_SET );
 
-        }
-    }
-    else
-    {
-        HAL_GPIO_WritePin( OUT_5_GPIO_Port, OUT_5_Pin, GPIO_PIN_RESET );
-        HAL_GPIO_WritePin( OUT_6_GPIO_Port, OUT_6_Pin, GPIO_PIN_RESET );
-    }
-}
 int writePosToBKP( float position, double mils )
 {
     union {
@@ -159,7 +238,7 @@ int readPosFromBKP( float *position, double *mils )
         uint8_t Hex[4];
 
     } u32Tof32;
-    
+
     union {
         double dData;
         uint32_t uData[2];
@@ -169,7 +248,7 @@ int readPosFromBKP( float *position, double *mils )
     u32Tof32.uData = HAL_RTCEx_BKUPRead( &hrtc, RTC_BKP_DR10 );
     u64ToHex.uData[0] = HAL_RTCEx_BKUPRead( &hrtc, RTC_BKP_DR11 );
     u64ToHex.uData[1] = HAL_RTCEx_BKUPRead( &hrtc, RTC_BKP_DR12 );
-    
+
     uint32_t sum = 0;
     for( int i = 0; i < 4; i++ )
     {
@@ -179,7 +258,7 @@ int readPosFromBKP( float *position, double *mils )
     {
         sum += u64ToHex.Hex[i];
     }
-    
+
     if( sum == HAL_RTCEx_BKUPRead( &hrtc, RTC_BKP_DR13 ) )
     {
         if( position && mils )
@@ -206,42 +285,6 @@ InOutSwitch getSwitchStatus()
     return InOutSwitchUnknow;
 }
 
-InOutSwitch setSwitch( InOutSwitch target )
-{
-    switch( target )
-    {
-    case InOutSwitchIn:
-        if( getSwitchStatus() == target )
-        {
-            HAL_GPIO_WritePin( OUT_3_GPIO_Port, OUT_3_Pin, GPIO_PIN_RESET );
-            HAL_GPIO_WritePin( OUT_4_GPIO_Port, OUT_4_Pin, GPIO_PIN_RESET );
-        }
-        else
-        {
-            HAL_GPIO_WritePin( OUT_3_GPIO_Port, OUT_3_Pin, GPIO_PIN_SET );
-            HAL_GPIO_WritePin( OUT_4_GPIO_Port, OUT_4_Pin, GPIO_PIN_SET );
-        }
-        break;
-    case InOutSwitchOut:
-        if( getSwitchStatus() == target )
-        {
-            HAL_GPIO_WritePin( OUT_3_GPIO_Port, OUT_3_Pin, GPIO_PIN_RESET );
-            HAL_GPIO_WritePin( OUT_4_GPIO_Port, OUT_4_Pin, GPIO_PIN_RESET );
-        }
-        else
-        {
-            HAL_GPIO_WritePin( OUT_3_GPIO_Port, OUT_3_Pin, GPIO_PIN_RESET );
-            HAL_GPIO_WritePin( OUT_4_GPIO_Port, OUT_4_Pin, GPIO_PIN_SET );
-        }
-        break;
-    case InOutSwitchUnknow:
-    default:
-        HAL_GPIO_WritePin( OUT_3_GPIO_Port, OUT_3_Pin, GPIO_PIN_RESET );
-        HAL_GPIO_WritePin( OUT_4_GPIO_Port, OUT_4_Pin, GPIO_PIN_RESET );
-        break;
-    }
-    return InOutSwitchUnknow;
-}
 OnOffDef getEmergencyKey()
 {
     static struct {

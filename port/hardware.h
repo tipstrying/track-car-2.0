@@ -89,6 +89,9 @@ typedef enum {
     off = 0
 } OnOffDef;
 
+
+int prvInitHardwares ();
+    
 OnOffDef getEmergencyKey();
 OnOffDef getPowerKey();
 int beltCtrl( int isRun, BeltDirectionDef dir, int speed );

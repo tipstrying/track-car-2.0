@@ -21,6 +21,8 @@
 #include "semphr.h"
 #include "FreeRTOS.h"
 
+#include "app.h"
+
 /* ----------------------- Defines ------------------------------------------*/
 
 #define USART_INTERRUPT_LEVEL           ( AT91C_AIC_PRIOR_HIGHEST )
@@ -177,6 +179,14 @@ eMBPSerialTxEnable( xMBPSerialHandle xSerialHdl, pbMBPSerialTransmitterEmptyCB p
             
             while( pxSerialIntHdl->pbMBPTransmitterEmptyFN( pxSerialIntHdl->xMBHdl, data, sizeof(data), &BytesToSend ) )
             {
+                /*
+                debugOut(0, "[\t%d] Modbus:", osKernelSysTick() );
+                for( int i = 0; i < BytesToSend; i++ )
+                {
+                    debugOut(0, "0x%X ", data[i] );
+                }
+                debugOut(0, "\r\n" );
+                */
                 HAL_UART_Transmit( &huart2, data, BytesToSend, 100 );
             }
         }

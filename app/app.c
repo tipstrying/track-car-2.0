@@ -38,6 +38,11 @@ void InitTask( void const * parment )
     }
     taskEXIT_CRITICAL();
 
+    osThreadDef( u2RecService, uart2RecTask, osPriorityHigh, 0, 256 );
+    osThreadCreate( osThread( u2RecService ), NULL);
+
+    osThreadDef( BatteryTask, UartTask, osPriorityHigh, 0, 256 );
+    osThreadCreate( osThread( BatteryTask ), NULL);
 
     osThreadDef(MotionTask, MotionTask, osPriorityRealtime, 0, 4096 );
     osThreadCreate(osThread(MotionTask), NULL);
@@ -45,16 +50,10 @@ void InitTask( void const * parment )
     osThreadDef( EthernetTask, W5500Task, osPriorityHigh, 0, 2000  );
     osThreadCreate( osThread( EthernetTask ), NULL);
 
-    osThreadDef( BatteryTask, UartTask, osPriorityHigh, 0, 256 );
-    osThreadCreate( osThread( BatteryTask ), NULL);
-
-    osThreadDef( u2RecService, uart2RecTask, osPriorityHigh, 0, 256 );
-    osThreadCreate( osThread( u2RecService ), NULL);
-    
     osThreadDef( modbus, modbusTask, osPriorityHigh, 0, 1280 );
     osThreadCreate( osThread( modbus ), NULL);
 
-    
+
 
     uint32_t tick = osKernelSysTick();
 

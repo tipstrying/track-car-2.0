@@ -43,6 +43,8 @@ void UartTask( void const * par )
     uint8_t SendBuff[] = {0x01,0x03,0x00, 0x56, 0x00, 0x01, 0x64, 0x1a};
     U3_Sema_Rx = xSemaphoreCreateBinary();
     uint8_t Status;
+    uint16_t voltageRealTime = 0;
+    
     if( DebugCtrl.enableStartUp )
     {
         taskENTER_CRITICAL();
@@ -61,8 +63,14 @@ void UartTask( void const * par )
         if( xSemaphoreTake( U3_Sema_Rx, 1000 ) == pdPASS )
         {
             
-            Battery.Voltage = U3_485_buff[3] * 255 + U3_485_buff[4];
-            Battery.Voltage = Battery.Voltage * 10;            
+            voltageRealTime = U3_485_buff[3] * 255 + U3_485_buff[4];
+            voltageRealTime = voltageRealTime * 10;
+            if( abs( voltageRealTime - Battery.Voltage ) < 10000 )
+                Battery.Voltage = voltageRealTime; 
+            else
+                if( Battery.Voltage == 0 )
+                    Battery.Voltage = voltageRealTime;
+                
             
             /*
             if( U3_485_buff[0] == 0xDD )

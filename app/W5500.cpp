@@ -413,7 +413,7 @@ void protocolRun( void const *para )
                         /*
                         解包成功
                         */
-                        debugOut( 0, (char *)"Decode pack ok: index->%lld,cmd->%d,packLen->%d,date:", packIndex, packCMD, PackLen );
+                        debugOut( 0, (char *)"[\t%d] Decode pack ok: index->%lld,cmd->%d,packLen->%d,date:", osKernelSysTick(), packIndex, packCMD, PackLen );
                         for( int i = 0; i < PackLen; i++ )
                         {
                             debugOut( 0, (char *)"0X%02X ", data[i] );
@@ -718,7 +718,6 @@ void protocolRun( void const *para )
                         case 2019:
                             navData.cmd = Enum_SetInOutSwitch;
                             if( data[0] == 1 )
-
                                 navData.Data.op = 1;
                             else if( data[0] == 2 )
                                 navData.Data.op = 0;

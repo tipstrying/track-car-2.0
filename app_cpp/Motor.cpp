@@ -14,6 +14,10 @@
 
 #define MaxSpeed 2000
 
+extern QueueHandle_t SwitchBeltTaskQue;
+extern int switchRunning;
+extern InOutSwitch target;
+
 static float lastPosition;
 
 #ifdef __cplusplus
@@ -390,10 +394,15 @@ void MotionTask(void const *parment)
 
     runTaskHeader.next = 0;
 
-    InOutSwitch inOutTarget = getSwitchStatus();
+    InOutSwitch inOutTarget = InOutSwitchIn;
     InOutSwitch inOutTargetNow;
+/*
+    = getSwitchStatus();
+    
     if( inOutTarget == InOutSwitchUnknow )
         inOutTarget = InOutSwitchIn;
+*/
+  //   prvInitHardwares();
     for (;;)
     {
         agv.clock = (int)PreviousWakeTime;
@@ -801,7 +810,7 @@ void MotionTask(void const *parment)
                 RunTaskDef zeroTask;
                 if( listGetItemByCMD( &runTaskHeader, 6, &zeroTask ) )
                 {
-                    if( fabsf( zeroTask.position - agv.AGV_Pos ) < 20 )
+                    if( fabsf( zeroTask.position - agv.AGV_Pos ) < 100 )
                     {
                         debugOut( 0, (char *)"[\t%d] run Task at %0.2f: cmd->%d, position->%0.2f, speed->%0.2f\r\n", PreviousWakeTime, agv.AGV_Pos, runTaskHeader.next->cmd, runTaskHeader.next->position, runTaskHeader.next->data.fData );
                         float posNow = agv.AGV_Pos;
@@ -817,7 +826,19 @@ void MotionTask(void const *parment)
 
         if( 1 )
         {
-            setSwitch( inOutTarget );
+            
+//            if( getSwitchStatus() != inOutTarget )
+//            {
+//                if( /* !switchRunning  */ 1 )
+//                {
+//                    navigationOperationData.cmd = 1;
+//                    navigationOperationData.Data.op = inOutTarget;
+//                    xQueueSend( SwitchBeltTaskQue, &navigationOperationData, 0 );
+//                }
+//            }
+            target = inOutTarget;
+            
+           // setSwitch( inOutTarget );
             if( agv.iEmergencyBySoftware )
             {
                 if( inOutTargetNow == getSwitchStatus() )
