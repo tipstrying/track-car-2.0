@@ -40,6 +40,8 @@ static int BeltGetPack = 0;
 
 static float AGV_Pos;
 QueueHandle_t setZerpSemap = 0;
+QueueHandle_t SwitchIN6Semap = 0;
+QueueHandle_t SwitchIN7Semap = 0;
 
 void listAddCallBack( RunTaskDef data )
 {
@@ -134,23 +136,32 @@ void SetiEmergency(int S)
 RunTaskDef runTaskHeader;
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-    debugOut( 1, ( char *)"[\t%d] GPIO ISR position:%0.2f\r\n", osKernelSysTick(), agv.AGV_Pos );
-//    RunTaskDef zeroTask;
-//    if( listGetItemByCMD( &runTaskHeader, 6, &zeroTask ) )
-//    {
-//        if( fabsf( zeroTask.position - agv.AGV_Pos ) < 10 )
-//        {
-//            debugOut( 1, (char *)"[\t%d] run Task at %0.2f: cmd->%d, position->%0.2f, speed->%0.2f\r\n", osKernelSysTick(), agv.AGV_Pos, runTaskHeader.next->cmd, runTaskHeader.next->position, runTaskHeader.next->data.fData );
-//            float posNow = agv.AGV_Pos;
-//            agv.AGV_Pos = 0;
-//            AGV_Pos = AGV_Pos - posNow;
-//            listDeleteItemByIndex( &runTaskHeader, 1 );
-//        }
-//    }
-    if( setZerpSemap )
+    if( HAL_GPIO_ReadPin( IN_5_GPIO_Port, IN_5_Pin ) )
     {
-        BaseType_t nextTask;
-        xSemaphoreGiveFromISR( setZerpSemap, &nextTask );
+        if( setZerpSemap )
+        {
+            debugOut( 1, ( char *)"[\t%d] GPIO ISR position:%0.2f\r\n", osKernelSysTick(), agv.AGV_Pos );
+            BaseType_t nextTask;
+            xSemaphoreGiveFromISR( setZerpSemap, &nextTask );
+        }
+    }
+    if( !HAL_GPIO_ReadPin( IN_6_GPIO_Port, IN_6_Pin ) )
+    {
+        if( SwitchIN6Semap )
+        {
+            debugOut( 1, ( char *)"[\t%d] GPIO ISR IN6 [ok]\r\n", osKernelSysTick() );
+            BaseType_t nextTask;
+            xSemaphoreGiveFromISR( SwitchIN6Semap, &nextTask );
+        }
+    }
+    if( !HAL_GPIO_ReadPin( IN_7_GPIO_Port, IN_7_Pin ) )
+    {
+        if( SwitchIN7Semap )
+        {
+            debugOut( 1, ( char *)"[\t%d] GPIO ISR IN6 [ok]\r\n", osKernelSysTick() );
+            BaseType_t nextTask;
+            xSemaphoreGiveFromISR( SwitchIN7Semap, &nextTask );
+        }
     }
 }
 
@@ -360,13 +371,13 @@ void MotionTask(void const *parment)
     agv.sSpeed_max = 300;
     agv.sDeceleration_distance = 2;
     agv.sAcceleration = 2000;
-    
+
     uint32_t PreviousWakeTime = osKernelSysTick();
 
     CANopen_Rx.Event_Rx_SDO_Complete = Rx_SDO_Commplate;
     CANopen_Rx.Event_Rx_PDO_Complete = Rx_PDO_Commplate;
     CANopen_Tx.Event_Tx_Work = CanTx;
-    CANopen_Rx.Event_Rx_Work = CanRx;    
+    CANopen_Rx.Event_Rx_Work = CanRx;
     CANopen_Rx.Event_Rx_HeartBeat_Complete = canHeartbeat;
 
     agv.AGV_Pos = 0;
@@ -396,13 +407,13 @@ void MotionTask(void const *parment)
 
     InOutSwitch inOutTarget = InOutSwitchIn;
     InOutSwitch inOutTargetNow;
-/*
-    = getSwitchStatus();
-    
-    if( inOutTarget == InOutSwitchUnknow )
-        inOutTarget = InOutSwitchIn;
-*/
-  //   prvInitHardwares();
+    /*
+        = getSwitchStatus();
+
+        if( inOutTarget == InOutSwitchUnknow )
+            inOutTarget = InOutSwitchIn;
+    */
+    //   prvInitHardwares();
     for (;;)
     {
         agv.clock = (int)PreviousWakeTime;
@@ -826,7 +837,7 @@ void MotionTask(void const *parment)
 
         if( 1 )
         {
-            
+
 //            if( getSwitchStatus() != inOutTarget )
 //            {
 //                if( /* !switchRunning  */ 1 )
@@ -837,8 +848,8 @@ void MotionTask(void const *parment)
 //                }
 //            }
             target = inOutTarget;
-            
-           // setSwitch( inOutTarget );
+
+            // setSwitch( inOutTarget );
             if( agv.iEmergencyBySoftware )
             {
                 if( inOutTargetNow == getSwitchStatus() )

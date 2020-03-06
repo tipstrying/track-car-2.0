@@ -28,6 +28,9 @@
 #define BeltAddr    2
 #define SwitchAddr  3
 
+extern QueueHandle_t SwitchIN6Semap;
+extern QueueHandle_t SwitchIN7Semap;
+
 QueueHandle_t SwitchBeltTaskQue = 0;
 int switchRunning = 0;
 InOutSwitch target;
@@ -37,7 +40,10 @@ void modbusTask( void const * arg )
     xMBHandle       xMBMMaster;
     USHORT modbusReadBackRegs[10];
     NavigationOperationStd switchBeltTaskData;
-
+    
+    SwitchIN6Semap = xSemaphoreCreateBinary();
+    SwitchIN7Semap = xSemaphoreCreateBinary();
+    
     debugOut(0, "[\t%d] Modbus task start up [ok]\r\n", osKernelSysTick() );
     debugOut(0, "[\t%d] Start Create Switch and Belt Task QueueHandle\r\n", osKernelSysTick() );
     do
@@ -290,6 +296,11 @@ void modbusTask( void const * arg )
                     while( MB_ENOERR != eMBMWriteSingleRegister( xMBMMaster, SwitchAddr, 0x3100, 0x7f ) )
                         osDelay(2);
                     debugOut(0, "[\t%d] Switch Ctrl Word Send Ok\r\n", osKernelSysTick() );
+                    while( xSemaphoreTake( SwitchIN6Semap, 0 ) == pdPASS )
+                        osDelay(1);
+                    while( xSemaphoreTake( SwitchIN7Semap, 0 ) == pdPASS )
+                        osDelay(1);
+                    
                     switchStatus = 3;
                     osDelay( 100 );
                     break;
@@ -317,9 +328,19 @@ void modbusTask( void const * arg )
                         } while( modbusReadBackRegs[0] != 3 );
                         switchMotorMode = 3;
                         if( targetGoing == InOutSwitchIn )
-                            iToUShortData.iData = 491520;
+                        {
+                            if( (xSemaphoreTake( SwitchIN6Semap, 0 ) == pdPASS) && (xSemaphoreTake( SwitchIN7Semap, 0 ) == pdPASS ) )
+                                iToUShortData.iData = -491520;
+                            else
+                                iToUShortData.iData = 491520;
+                        }
                         else
-                            iToUShortData.iData = -491520;
+                        {
+                            if( xSemaphoreTake( SwitchIN7Semap, 0 ) == pdPASS )
+                                iToUShortData.iData = 491520;
+                            else
+                                iToUShortData.iData = -491520;
+                        }
 
                         while( MB_ENOERR != eMBMWriteMultipleRegisters( xMBMMaster, SwitchAddr, 0x6f00, 2, iToUShortData.uData ) )
                             osDelay(2);
