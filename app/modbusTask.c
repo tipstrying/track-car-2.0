@@ -40,10 +40,10 @@ void modbusTask( void const * arg )
     xMBHandle       xMBMMaster;
     USHORT modbusReadBackRegs[10];
     NavigationOperationStd switchBeltTaskData;
-    
+
     SwitchIN6Semap = xSemaphoreCreateBinary();
     SwitchIN7Semap = xSemaphoreCreateBinary();
-    
+
     debugOut(0, "[\t%d] Modbus task start up [ok]\r\n", osKernelSysTick() );
     debugOut(0, "[\t%d] Start Create Switch and Belt Task QueueHandle\r\n", osKernelSysTick() );
     do
@@ -184,6 +184,7 @@ void modbusTask( void const * arg )
 
         int switchMotorMode = 0;
         InOutSwitch targetGoing = target;
+        InOutSwitch targetLast;
 
         for( ;; )
         {
@@ -234,75 +235,82 @@ void modbusTask( void const * arg )
                     break;
                 case 2:
                     debugOut(0, "[\t%d] Switch Case 2 target->%d\r\n", osKernelSysTick(), targetGoing );
-                    if( switchMotorMode != 1 )
+                    if( targetLast == targetGoing )
                     {
-                        modbusReadBackRegs[0] = 0;
-                        while( MB_ENOERR != eMBMReadHoldingRegisters( xMBMMaster, SwitchAddr, 0x3600, 1, modbusReadBackRegs ) )
-                            osDelay(2);
-                        debugOut(0, "[\t%d] Switch Mode Read\r\n", osKernelSysTick() );
-                        if( modbusReadBackRegs[0] != 1 )
-                        {
-                            debugOut(0, "[\t%d] Switch Motor Mode charge\r\n", osKernelSysTick() );
-                            do
-                            {
-                                while( MB_ENOERR != eMBMWriteSingleRegister( xMBMMaster, BeltAddr, 0x3100, 0x80 ) )
-                                {
-                                    osDelay(2);
-                                }
-                                while( MB_ENOERR != eMBMWriteSingleRegister( xMBMMaster, BeltAddr, 0x3100, 0x06 ) )
-                                {
-                                    osDelay(2);
-                                }
-                                while( MB_ENOERR != eMBMWriteSingleRegister( xMBMMaster, BeltAddr, 0x3100, 0x0f ) )
-                                {
-                                    osDelay(2);
-                                }
-                                /*
-                                    Be careful!!!!!!!
-                                    Motor Charge to Position Mode from Speed Mode will auto run once, if 0x4000 REG not 0 !!!! ;
-
-                                */
-                                iToUShortData.iData = 0;
-                                while( MB_ENOERR != eMBMWriteMultipleRegisters( xMBMMaster, SwitchAddr, 0x4000, 2, iToUShortData.uData ) )
-                                    osDelay(2);
-                                eMBMWriteSingleRegister( xMBMMaster, SwitchAddr, 0x3500, 1 );
-                                while( MB_ENOERR != eMBMReadHoldingRegisters( xMBMMaster, SwitchAddr, 0x3600, 1, modbusReadBackRegs ) )
-                                    osDelay(2);
-                                iToUShortData.iData = 16384000 * 2;
-                                while( MB_ENOERR != eMBMWriteMultipleRegisters( xMBMMaster, SwitchAddr, 0x4a00, 2, iToUShortData.uData ) )
-                                {
-                                    osDelay(2);
-                                }
-                            } while( modbusReadBackRegs[0] != 1 );
-                        }
-                        switchMotorMode = 1;
-                    }
-                    debugOut(0, "[\t%d] Switch Mode Checked Ok\r\n", osKernelSysTick() );
-                    if( targetGoing == InOutSwitchIn )
-                    {
-                        iToUShortData.iData = 167550;
+                        switchStatus = 3;
                     }
                     else
                     {
-                        iToUShortData.iData = -167550;
+                        if( switchMotorMode != 1 )
+                        {
+                            modbusReadBackRegs[0] = 0;
+                            while( MB_ENOERR != eMBMReadHoldingRegisters( xMBMMaster, SwitchAddr, 0x3600, 1, modbusReadBackRegs ) )
+                                osDelay(2);
+                            debugOut(0, "[\t%d] Switch Mode Read\r\n", osKernelSysTick() );
+                            if( modbusReadBackRegs[0] != 1 )
+                            {
+                                debugOut(0, "[\t%d] Switch Motor Mode charge\r\n", osKernelSysTick() );
+                                do
+                                {
+                                    while( MB_ENOERR != eMBMWriteSingleRegister( xMBMMaster, BeltAddr, 0x3100, 0x80 ) )
+                                    {
+                                        osDelay(2);
+                                    }
+                                    while( MB_ENOERR != eMBMWriteSingleRegister( xMBMMaster, BeltAddr, 0x3100, 0x06 ) )
+                                    {
+                                        osDelay(2);
+                                    }
+                                    while( MB_ENOERR != eMBMWriteSingleRegister( xMBMMaster, BeltAddr, 0x3100, 0x0f ) )
+                                    {
+                                        osDelay(2);
+                                    }
+                                    /*
+                                        Be careful!!!!!!!
+                                        Motor Charge to Position Mode from Speed Mode will auto run once, if 0x4000 REG not 0 !!!! ;
+
+                                    */
+                                    iToUShortData.iData = 0;
+                                    while( MB_ENOERR != eMBMWriteMultipleRegisters( xMBMMaster, SwitchAddr, 0x4000, 2, iToUShortData.uData ) )
+                                        osDelay(2);
+                                    eMBMWriteSingleRegister( xMBMMaster, SwitchAddr, 0x3500, 1 );
+                                    while( MB_ENOERR != eMBMReadHoldingRegisters( xMBMMaster, SwitchAddr, 0x3600, 1, modbusReadBackRegs ) )
+                                        osDelay(2);
+                                    iToUShortData.iData = 16384000 * 2;
+                                    while( MB_ENOERR != eMBMWriteMultipleRegisters( xMBMMaster, SwitchAddr, 0x4a00, 2, iToUShortData.uData ) )
+                                    {
+                                        osDelay(2);
+                                    }
+                                } while( modbusReadBackRegs[0] != 1 );
+                            }
+                            switchMotorMode = 1;
+                        }
+                        debugOut(0, "[\t%d] Switch Mode Checked Ok\r\n", osKernelSysTick() );
+                        if( targetGoing == InOutSwitchIn )
+                        {
+                            iToUShortData.iData = 168250;
+                        }
+                        else
+                        {
+                            iToUShortData.iData = -168250;
+                        }
+                        while( MB_ENOERR != eMBMWriteMultipleRegisters( xMBMMaster, SwitchAddr, 0x4000, 2, iToUShortData.uData ) )
+                            osDelay(2);
+                        debugOut(0, "[\t%d] Switch Send Position Ok\r\n", osKernelSysTick() ) ;
+
+                        while( MB_ENOERR != eMBMWriteSingleRegister( xMBMMaster, SwitchAddr, 0x3100, 0x6f ) )
+                            osDelay(2);
+
+                        while( MB_ENOERR != eMBMWriteSingleRegister( xMBMMaster, SwitchAddr, 0x3100, 0x7f ) )
+                            osDelay(2);
+                        debugOut(0, "[\t%d] Switch Ctrl Word Send Ok\r\n", osKernelSysTick() );
+                        while( xSemaphoreTake( SwitchIN6Semap, 0 ) == pdPASS )
+                            osDelay(1);
+                        while( xSemaphoreTake( SwitchIN7Semap, 0 ) == pdPASS )
+                            osDelay(1);
+
+                        switchStatus = 3;
+                        osDelay( 100 );
                     }
-                    while( MB_ENOERR != eMBMWriteMultipleRegisters( xMBMMaster, SwitchAddr, 0x4000, 2, iToUShortData.uData ) )
-                        osDelay(2);
-                    debugOut(0, "[\t%d] Switch Send Position Ok\r\n", osKernelSysTick() ) ;
-
-                    while( MB_ENOERR != eMBMWriteSingleRegister( xMBMMaster, SwitchAddr, 0x3100, 0x6f ) )
-                        osDelay(2);
-
-                    while( MB_ENOERR != eMBMWriteSingleRegister( xMBMMaster, SwitchAddr, 0x3100, 0x7f ) )
-                        osDelay(2);
-                    debugOut(0, "[\t%d] Switch Ctrl Word Send Ok\r\n", osKernelSysTick() );
-                    while( xSemaphoreTake( SwitchIN6Semap, 0 ) == pdPASS )
-                        osDelay(1);
-                    while( xSemaphoreTake( SwitchIN7Semap, 0 ) == pdPASS )
-                        osDelay(1);
-                    
-                    switchStatus = 3;
-                    osDelay( 100 );
                     break;
                 case 3:
                     debugOut(0, "[\t%d] Switch Case 3\r\n", osKernelSysTick() );
@@ -347,7 +355,9 @@ void modbusTask( void const * arg )
                         switchStatus = 4;
                     }
                     else
+                    {
                         switchStatus = 5;
+                    }
                     break;
                 case 4:
                     if( targetGoing == getSwitchStatus() )
@@ -384,8 +394,9 @@ void modbusTask( void const * arg )
                             }
                         } while( modbusReadBackRegs[0] != 1 );
                         switchMotorMode = 1;
-                        switchStatus = 5;
+                        
                     }
+                    switchStatus = 5;
                     break;
 
                 case 5:
@@ -393,16 +404,11 @@ void modbusTask( void const * arg )
                     //debugOut(0, "[\t%d] Switch Case 5\r\n", osKernelSysTick() );
                     //target = target == InOutSwitchIn ? InOutSwitchOut : InOutSwitchIn;
                     /* for auto test end */
+                    targetLast = targetGoing;
                     if( target == InOutSwitchIn || target == InOutSwitchOut )
                         targetGoing = target;
                     if( target != getSwitchStatus() )
-                    {
-
                         switchStatus = 2;
-                        switchRunning = 1;
-                    }
-                    else
-                        switchRunning = 0;
                     break;
 
                 }

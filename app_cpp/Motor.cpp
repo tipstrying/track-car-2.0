@@ -136,31 +136,40 @@ void SetiEmergency(int S)
 RunTaskDef runTaskHeader;
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-    if( HAL_GPIO_ReadPin( IN_5_GPIO_Port, IN_5_Pin ) )
+    if( GPIO_Pin == IN_5_Pin )
     {
-        if( setZerpSemap )
+        if( HAL_GPIO_ReadPin( IN_5_GPIO_Port, IN_5_Pin ) )
         {
-            debugOut( 1, ( char *)"[\t%d] GPIO ISR position:%0.2f\r\n", osKernelSysTick(), agv.AGV_Pos );
-            BaseType_t nextTask;
-            xSemaphoreGiveFromISR( setZerpSemap, &nextTask );
+            if( setZerpSemap )
+            {
+                debugOut( 1, ( char *)"[\t%d] GPIO ISR position:%0.2f\r\n", osKernelSysTick(), agv.AGV_Pos );
+                BaseType_t nextTask;
+                xSemaphoreGiveFromISR( setZerpSemap, &nextTask );
+            }
         }
     }
-    if( !HAL_GPIO_ReadPin( IN_6_GPIO_Port, IN_6_Pin ) )
+    if( GPIO_Pin == IN_6_Pin )
     {
-        if( SwitchIN6Semap )
+        if( !HAL_GPIO_ReadPin( IN_6_GPIO_Port, IN_6_Pin ) )
         {
-            debugOut( 1, ( char *)"[\t%d] GPIO ISR IN6 [ok]\r\n", osKernelSysTick() );
-            BaseType_t nextTask;
-            xSemaphoreGiveFromISR( SwitchIN6Semap, &nextTask );
+            if( SwitchIN6Semap )
+            {
+                debugOut( 1, ( char *)"[\t%d] GPIO ISR IN6 [ok]\r\n", osKernelSysTick() );
+                BaseType_t nextTask;
+                xSemaphoreGiveFromISR( SwitchIN6Semap, &nextTask );
+            }
         }
     }
-    if( !HAL_GPIO_ReadPin( IN_7_GPIO_Port, IN_7_Pin ) )
+    if( GPIO_Pin == IN_7_Pin )
     {
-        if( SwitchIN7Semap )
+        if( !HAL_GPIO_ReadPin( IN_7_GPIO_Port, IN_7_Pin ) )
         {
-            debugOut( 1, ( char *)"[\t%d] GPIO ISR IN6 [ok]\r\n", osKernelSysTick() );
-            BaseType_t nextTask;
-            xSemaphoreGiveFromISR( SwitchIN7Semap, &nextTask );
+            if( SwitchIN7Semap )
+            {
+                debugOut( 1, ( char *)"[\t%d] GPIO ISR IN7 [ok]\r\n", osKernelSysTick() );
+                BaseType_t nextTask;
+                xSemaphoreGiveFromISR( SwitchIN7Semap, &nextTask );
+            }
         }
     }
 }
