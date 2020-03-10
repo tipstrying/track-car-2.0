@@ -267,7 +267,7 @@ void Rx_PDO_Commplate(int oID, char Array[8], int len )
             i32ToHex.Hex[1] = Array[5];
             MotorStatusWord_PDO = i32ToHex.Data;
             MotorModeWord_PDO = Array[6];
-            
+
         }
         break;
     case 281:
@@ -907,18 +907,21 @@ void MotionTask(void const *parment)
             if (canOpenStatus.count ++ >= 1)
             {
                 canOpenStatus.count = 0;
-                if( MotionStatus.alarm )
+                if( MotorStatusWord_PDO & 0x08 )
                 {
-                    /*
-                    if( canOpenStatus.pollStep < 11 )
+                    if( canOpenStatus.pollStep < 4 )
                     {
-                        canOpenStatus.pollStep = 11;
+                        canOpenStatus.pollStep = 4;
                     }
-                    */
                 }
 
                 switch (canOpenStatus.pollStep)
                 {
+                case -2:
+                    CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Rest_Node ) ;
+                    canOpenStatus.pollStep++;
+                    osDelay(2000);
+                    CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x6040, 0, 0x86);
                 case -1:
                     if (CANopen_Tx.initialzation(1))
                     {
@@ -932,7 +935,7 @@ void MotionTask(void const *parment)
                     if (CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Start_Remote_Node))
                     {
                         canOpenStatus.pollStep++ ;
-                        debugOut( 0, (char *)"[\t%d] Start CanOpen Node ID:1 [ok]\r\n" );
+                        debugOut( 0, (char *)"[\t%d] Start CanOpen Node ID:1 [ok]\r\n", osKernelSysTick() );
                     }
                     osDelay(10);
                     break;
@@ -941,10 +944,22 @@ void MotionTask(void const *parment)
                     CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_4Bit23, 0x60ff, 0, request_speed);
                     break;
                 case 2:
-                    CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x6040, 0, 6);
+                    if( MotorModeWord_PDO != 0 )
+                        CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x6040, 0, 6);
                     break;
                 case 3:
-                    CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x6040, 0, 0xf);
+                    if( MotorModeWord_PDO != 3 )
+                        CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x6040, 0, 0xf);
+                    else
+                        canOpenStatus.pollStep = 1;
+                    break;
+                case 4:
+                    if( (MotorStatusWord_PDO & 0x08) != 0 )
+                    {
+                        CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x6040, 0, 0x86);
+                    }
+                    else
+                        canOpenStatus.pollStep = 3;
                     break;
                 default:
                     canOpenStatus.pollStep = -1;
