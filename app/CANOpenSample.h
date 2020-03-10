@@ -23,7 +23,7 @@ namespace CANopenMaster
 		bool work();
 		bool(*Event_Rx_Work)(int *oID, int *oLength, char oArray[8]);
 		void(*Event_Rx_SDO_Complete)(int oID, int oIndex, char oSubindex, int oValue);
-        void(*Event_Rx_PDO_Complete)( int oID, char Array[8] );
+        void(*Event_Rx_PDO_Complete)( int oID, char Array[8], int );
 		// *********I am still alive*******
 		void (*Event_Rx_HeartBeat_Complete)(int oID, te_HeartBeat oStatus);
 		void(*Event_Rx_Emergency_Complete)(int oID, short oError, char oRegiter, int oError_Area);

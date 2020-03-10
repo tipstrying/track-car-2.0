@@ -103,7 +103,7 @@ bool CANopenResponse::work()
                             int  ID = 0x180;
                             if( this->Event_Rx_PDO_Complete )
                             {
-                                this->Event_Rx_PDO_Complete(oID, oArray );
+                                this->Event_Rx_PDO_Complete(oID, oArray, oLength );
                                 rValue = true;
                             }
                         }
@@ -114,7 +114,7 @@ bool CANopenResponse::work()
 
                         if( this->Event_Rx_PDO_Complete )
                         {
-                            this->Event_Rx_PDO_Complete(oID, oArray);
+                            this->Event_Rx_PDO_Complete(oID, oArray, oLength);
                         }
 
                         break;

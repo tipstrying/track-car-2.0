@@ -31,6 +31,9 @@ void listDelCallBack( RunTaskDef data );
 #endif
 
 static int Encoder_Value;
+static int MotorStatusWord_PDO;
+static int MotorModeWord_PDO;
+
 static float Speed_Value_PDO;
 
 static AGV_Parallel_Motion agv;
@@ -224,7 +227,7 @@ void Rx_SDO_Commplate(int oID, int oIndex, char oSubindex, int oValue)
     return;
 }
 
-void Rx_PDO_Commplate(int oID, char Array[8] )
+void Rx_PDO_Commplate(int oID, char Array[8], int len )
 {
     static bool alarmOuted[2] = {false, false};
     switch (oID)
@@ -260,11 +263,11 @@ void Rx_PDO_Commplate(int oID, char Array[8] )
                 else
                     SetSelfPosition( 0 );
             }
-            for( int i = 0; i < 4; i++ )
-            {
-                i32ToHex.Hex[i] = Array[ 4 + i ];
-            }
-            Speed_Value_PDO = i32ToHex.Data;
+            i32ToHex.Hex[0] = Array[4];
+            i32ToHex.Hex[1] = Array[5];
+            MotorStatusWord_PDO = i32ToHex.Data;
+            MotorModeWord_PDO = Array[6];
+            
         }
         break;
     case 281:
@@ -726,6 +729,12 @@ void MotionTask(void const *parment)
                 {
                     posBakForBKP = agv.AGV_Pos;
                     writePosToBKP( agv.AGV_Pos, milages );
+                }
+                static float posBakForLog;
+                if( fabsf( posBakForLog - agv.AGV_Pos ) > 100 )
+                {
+                    posBakForLog = agv.AGV_Pos;
+                    debugOut(0, (char *)"[\t%d] Real-Time Position: pos->%0.2f, encoder->%d\r\n", PreviousWakeTime, posBakForLog, agv.EncoderValue );
                 }
             }
 #else
