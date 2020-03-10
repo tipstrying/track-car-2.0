@@ -33,6 +33,8 @@ SemaphoreHandle_t U3_Sema_Rx = 0;
 SemaphoreHandle_t U2_Sema_Rx = 0;
 BattreyStd Battery;
 
+uint16_t voltageRealTime = 0;
+
 void UartTask( void const * par )
 {
     unsigned char U3_485_buff[100];
@@ -60,10 +62,13 @@ void UartTask( void const * par )
         HAL_GPIO_WritePin( UART7_RD_GPIO_Port, UART7_RD_Pin, GPIO_PIN_RESET );
         if( xSemaphoreTake( U3_Sema_Rx, 1000 ) == pdPASS )
         {
-            
-            Battery.Voltage = U3_485_buff[3] * 255 + U3_485_buff[4];
-            Battery.Voltage = Battery.Voltage * 10;            
-            
+            voltageRealTime = U3_485_buff[3] * 255 + U3_485_buff[4];
+            voltageRealTime = voltageRealTime * 10;
+            if( abs( voltageRealTime - Battery.Voltage ) < 10000 )
+                Battery.Voltage = voltageRealTime;
+            else if( Battery.Voltage == 0 )
+                Battery.Voltage = voltageRealTime;
+
             /*
             if( U3_485_buff[0] == 0xDD )
             {
@@ -148,7 +153,7 @@ void UartTask( void const * par )
                 taskEXIT_CRITICAL();
             }
         }
-        
+
         osDelay( 1000 );
     }
 }
