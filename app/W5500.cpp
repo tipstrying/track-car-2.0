@@ -381,6 +381,9 @@ int decodePack( uint8_t *packBuff, int buffLen, uint64_t *packIndex, uint16_t *p
 /**** ****************************************************************************************************************************************************
 调度通信线程
 * *********************************************************************************************************************************************************/
+int IsMotorAlarm();
+void ClearMotorAlarm();
+
 int createSocket(FifoClass *in, FifoClass *out, uint16_t port, fun_ptr onCreatep, fun_ptr onClosep );
 void protocolRun( void const *para )
 {
@@ -446,7 +449,7 @@ void protocolRun( void const *para )
                                 GetSpeed( &speed );
                                 i32ToHex.Data = (int) pos;
                                 u16ToHex.Data = (uint16_t)speed;
-                                status  = 0;
+                                status  = IsMotorAlarm();
                                 batVol = (uint8_t) (Battery.Voltage / 1000);
                                 for( int i = 0; i < 4; i++ )
                                 {
@@ -643,6 +646,7 @@ void protocolRun( void const *para )
                         case 2010:
                             if( 1 )
                             {
+                                ClearMotorAlarm();
                                 PackLen = makePack( buff, packIndex, 12010, 0, 0, 0 );
                                 dataOut.pushData( buff, PackLen );
                             }
@@ -896,10 +900,10 @@ void CLITask( void const * parment )
 /* *****************************************************************************************************************/
 extern "C" {
     int fputc( int c, FILE *f );
-    int debugOut( int isISR, char *fmt, ... );
+    int debugOut( int isISR, const char *fmt, ... );
 }
 
-int debugOut( int isISR, char *fmt, ... )
+int debugOut( int isISR, const char *fmt, ... )
 {
 
     if( __get_BASEPRI() )

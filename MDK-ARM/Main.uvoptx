@@ -152,9 +152,25 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
+          <LineNumber>151</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134384476</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>..\app\W5500.cpp</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\Main\../app/W5500.cpp\151</Expression>
+        </Bp>
+        <Bp>
+          <Number>1</Number>
+          <Type>0</Type>
           <LineNumber>39</LineNumber>
           <EnabledFlag>0</EnabledFlag>
-          <Address>134404120</Address>
+          <Address>134404992</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -166,11 +182,11 @@
           <Expression>\\Main\../app/modbusTask.c\39</Expression>
         </Bp>
         <Bp>
-          <Number>1</Number>
+          <Number>2</Number>
           <Type>0</Type>
           <LineNumber>327</LineNumber>
           <EnabledFlag>0</EnabledFlag>
-          <Address>134406044</Address>
+          <Address>134406916</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -182,11 +198,11 @@
           <Expression>\\Main\../app/modbusTask.c\327</Expression>
         </Bp>
         <Bp>
-          <Number>2</Number>
+          <Number>3</Number>
           <Type>0</Type>
           <LineNumber>288</LineNumber>
           <EnabledFlag>0</EnabledFlag>
-          <Address>134405808</Address>
+          <Address>134406680</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -198,11 +214,11 @@
           <Expression>\\Main\../app/modbusTask.c\288</Expression>
         </Bp>
         <Bp>
-          <Number>3</Number>
+          <Number>4</Number>
           <Type>0</Type>
           <LineNumber>304</LineNumber>
           <EnabledFlag>0</EnabledFlag>
-          <Address>134405896</Address>
+          <Address>134406768</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -214,11 +230,11 @@
           <Expression>\\Main\../app/modbusTask.c\304</Expression>
         </Bp>
         <Bp>
-          <Number>4</Number>
+          <Number>5</Number>
           <Type>0</Type>
           <LineNumber>348</LineNumber>
           <EnabledFlag>0</EnabledFlag>
-          <Address>134406194</Address>
+          <Address>134407066</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -230,11 +246,11 @@
           <Expression>\\Main\../app/modbusTask.c\348</Expression>
         </Bp>
         <Bp>
-          <Number>5</Number>
+          <Number>6</Number>
           <Type>0</Type>
           <LineNumber>119</LineNumber>
           <EnabledFlag>0</EnabledFlag>
-          <Address>134403736</Address>
+          <Address>134404608</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -244,22 +260,6 @@
           <Filename>../Src/main.c</Filename>
           <ExecCommand></ExecCommand>
           <Expression>\\Main\../Src/main.c\119</Expression>
-        </Bp>
-        <Bp>
-          <Number>6</Number>
-          <Type>0</Type>
-          <LineNumber>151</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>0</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>0</BreakIfRCount>
-          <Filename>..\app\W5500.cpp</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression></Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -322,6 +322,16 @@
           <count>11</count>
           <WinNumber>1</WinNumber>
           <ItemText>iToUShortData,0x0A</ItemText>
+        </Ww>
+        <Ww>
+          <count>12</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>MotionStatus</ItemText>
+        </Ww>
+        <Ww>
+          <count>13</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>PreviousWakeTime</ItemText>
         </Ww>
       </WatchWindow1>
       <MemoryWindow1>
