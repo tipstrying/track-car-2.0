@@ -823,7 +823,7 @@ void MotionTask(void const *parment)
                 RunTaskDef zeroTask;
                 if( listGetItemByCMD( &runTaskHeader, 6, &zeroTask ) )
                 {
-                    if( fabsf( zeroTask.position - agv.AGV_Pos ) < 20 )
+                    if( fabsf( zeroTask.position - agv.AGV_Pos ) < 100 )
                     {
                         debugOut( 0, (char *)"[\t%d] run Task at %0.2f: cmd->%d, position->%0.2f, speed->%0.2f\r\n", PreviousWakeTime, agv.AGV_Pos, runTaskHeader.next->cmd, runTaskHeader.next->position, runTaskHeader.next->data.fData );
                         float posNow = agv.AGV_Pos;
