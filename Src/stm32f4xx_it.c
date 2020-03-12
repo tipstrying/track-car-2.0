@@ -325,7 +325,7 @@ void EXTI9_5_IRQHandler(void)
 /**
   * @brief This function handles USART2 global interrupt.
   */
-__weak void USART2_IRQHandler(void)
+void USART2_IRQHandler(void)
 {
   /* USER CODE BEGIN USART2_IRQn 0 */
 
@@ -381,7 +381,7 @@ void DMA2_Stream7_IRQHandler(void)
 /**
   * @brief This function handles UART7 global interrupt.
   */
-void UART7_IRQHandler(void)
+__weak void UART7_IRQHandler(void)
 {
   /* USER CODE BEGIN UART7_IRQn 0 */
 

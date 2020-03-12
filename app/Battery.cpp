@@ -55,13 +55,14 @@ void UartTask(void const *par)
         }
         taskEXIT_CRITICAL();
     }
+    //__HAL_UART_ENABLE_IT( &huart7, UART_IT_IDLE );
     for (;;)
     {
-        HAL_UART_Receive_DMA(&huart7, U3_485_buff, 8);
-        HAL_GPIO_WritePin(UART7_RD_GPIO_Port, UART7_RD_Pin, GPIO_PIN_SET);
+        HAL_UART_Receive_DMA(&huart2, U3_485_buff, 7);
+        HAL_GPIO_WritePin(USART2_RD_GPIO_Port, USART2_RD_Pin, GPIO_PIN_SET);
         // HAL_UART_Transmit_DMA( &huart2, SendBuff, sizeof( SendBuff ) );
-        HAL_UART_Transmit(&huart7, SendBuff, sizeof(SendBuff), 1000);
-        HAL_GPIO_WritePin(UART7_RD_GPIO_Port, UART7_RD_Pin, GPIO_PIN_RESET);
+        HAL_UART_Transmit(&huart2, SendBuff, sizeof(SendBuff), 1000);
+        HAL_GPIO_WritePin(USART2_RD_GPIO_Port, USART2_RD_Pin, GPIO_PIN_RESET);
         if (xSemaphoreTake(U3_Sema_Rx, 1000) == pdPASS)
         {
 
@@ -146,7 +147,8 @@ void UartTask(void const *par)
         }
         else
         {
-            HAL_UART_AbortReceive_IT(&huart2);
+           // HAL_UART_AbortReceive_IT(&huart2);
+            HAL_UART_AbortReceive(&huart2);
             if (DebugCtrl.enableBattery)
             {
                 taskENTER_CRITICAL();
@@ -180,19 +182,11 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
     static BaseType_t pxHigherPriorityTaskWoken;
     char *c = 0;
-    if (huart == &huart7)
+    if (huart == &huart2)
     {
         if (U3_Sema_Rx)
             xSemaphoreGiveFromISR(U3_Sema_Rx, &pxHigherPriorityTaskWoken);
     }
-    if (huart == &huart1)
-    {
-        ;
-    }
-    if (huart == &huart2)
-    {
-        if (U2_Sema_Rx)
-            xSemaphoreGiveFromISR(U2_Sema_Rx, &pxHigherPriorityTaskWoken);
-    }
+
     portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
 }

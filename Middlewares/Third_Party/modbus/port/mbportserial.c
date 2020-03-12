@@ -175,7 +175,7 @@ eMBPSerialTxEnable( xMBPSerialHandle xSerialHdl, pbMBPSerialTransmitterEmptyCB p
             pxSerialIntHdl->pbMBPTransmitterEmptyFN = ( pbMBPSerialTransmitterEmptyAPIV2CB ) pbMBPTransmitterEmptyFN;
             UBYTE data[100];
             USHORT BytesToSend = 0;
-            HAL_GPIO_WritePin( USART2_RD_GPIO_Port, USART2_RD_Pin, GPIO_PIN_SET );
+            HAL_GPIO_WritePin( UART7_RD_GPIO_Port, UART7_RD_Pin, GPIO_PIN_SET );
             
             while( pxSerialIntHdl->pbMBPTransmitterEmptyFN( pxSerialIntHdl->xMBHdl, data, sizeof(data), &BytesToSend ) )
             {
@@ -187,8 +187,9 @@ eMBPSerialTxEnable( xMBPSerialHandle xSerialHdl, pbMBPSerialTransmitterEmptyCB p
                 }
                 debugOut(0, "\r\n" );
                 */
-                HAL_UART_Transmit( &huart2, data, BytesToSend, 100 );
+                HAL_UART_Transmit( &huart7, data, BytesToSend, 100 );
             }
+            HAL_GPIO_WritePin( UART7_RD_GPIO_Port, UART7_RD_Pin, GPIO_PIN_RESET );
         }
         else
         {
@@ -212,8 +213,8 @@ eMBPSerialRxEnable( xMBPSerialHandle xSerialHdl, pvMBPSerialReceiverCB pvMBPRece
         if( NULL != pvMBPReceiveFN )
         {
             MBP_ASSERT( NULL == pxSerialIntHdl->pvMBPReceiveFN );
-            HAL_GPIO_WritePin( USART2_RD_GPIO_Port, USART2_RD_Pin, GPIO_PIN_RESET );
-            __HAL_UART_ENABLE_IT( &huart2, UART_IT_RXNE );
+            HAL_GPIO_WritePin( UART7_RD_GPIO_Port, UART7_RD_Pin, GPIO_PIN_RESET );
+            __HAL_UART_ENABLE_IT( &huart7, UART_IT_RXNE );
             pxSerialIntHdl->pvMBPReceiveFN = ( pvMBPSerialReceiverAPIV2CB ) pvMBPReceiveFN;
         }
         else
@@ -231,27 +232,27 @@ void uart2RecTask( void const *arg )
     u2Seamp = xSemaphoreCreateBinary();
     UBYTE data[100];
     USHORT len = 0;
-    __HAL_UART_ENABLE_IT( &huart2, UART_IT_IDLE );
-    HAL_UART_Receive_DMA( &huart2, data, sizeof(data) );
+    __HAL_UART_ENABLE_IT( &huart7, UART_IT_IDLE );
+    HAL_UART_Receive_DMA( &huart7, data, sizeof(data) );
     for( ;; )
     {
         if( xSemaphoreTake( u2Seamp, portMAX_DELAY ) == pdPASS )
         {
-            len = sizeof(data) - huart2.hdmarx->Instance->NDTR;
+            len = sizeof(data) - huart7.hdmarx->Instance->NDTR;
             if( xSerialHdls[0].pvMBPReceiveFN )
                 xSerialHdls[0].pvMBPReceiveFN( xSerialHdls[0].xMBHdl, data, len );
-            HAL_UART_AbortReceive( &huart2 );
-            HAL_UART_Receive_DMA( &huart2, data, sizeof(data) );
+            HAL_UART_AbortReceive( &huart7 );
+            HAL_UART_Receive_DMA( &huart7, data, sizeof(data) );
             
         }
     }
 }
-void USART2_IRQHandler(void)
+void UART7_IRQHandler(void)
 {
     UBYTE data;
     BaseType_t next = 0;
-    data = huart2.Instance->SR;
-    data = huart2.Instance->DR;
+    data = huart7.Instance->SR;
+    data = huart7.Instance->DR;
     /*
     if( xSerialHdls[0].pvMBPReceiveFN )
     {
