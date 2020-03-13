@@ -274,11 +274,11 @@ int readPosFromBKP( float *position, double *mils )
 
 InOutSwitch getSwitchStatus()
 {
-    if( !HAL_GPIO_ReadPin( IN_6_GPIO_Port, IN_6_Pin ) && !HAL_GPIO_ReadPin( IN_7_GPIO_Port, IN_7_Pin ) )
+    if( HAL_GPIO_ReadPin( IN_6_GPIO_Port, IN_6_Pin ) && HAL_GPIO_ReadPin( IN_7_GPIO_Port, IN_7_Pin ) )
     {
         return InOutSwitchIn;
     }
-    if( !HAL_GPIO_ReadPin( IN_7_GPIO_Port, IN_7_Pin ) )
+    if( HAL_GPIO_ReadPin( IN_7_GPIO_Port, IN_7_Pin ) )
     {
         return InOutSwitchOut;
     }

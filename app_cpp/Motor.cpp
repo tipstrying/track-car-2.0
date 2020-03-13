@@ -74,6 +74,7 @@ static struct
     bool enable;
     bool speedMode;
     BaseType_t lastPDOTime;
+    bool startUp;
 
 } MotionStatus;
 
@@ -168,7 +169,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     }
     if( GPIO_Pin == IN_6_Pin )
     {
-        if( !HAL_GPIO_ReadPin( IN_6_GPIO_Port, IN_6_Pin ) )
+        if( HAL_GPIO_ReadPin( IN_6_GPIO_Port, IN_6_Pin ) )
         {
             if( SwitchIN6Semap )
             {
@@ -180,7 +181,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     }
     if( GPIO_Pin == IN_7_Pin )
     {
-        if( !HAL_GPIO_ReadPin( IN_7_GPIO_Port, IN_7_Pin ) )
+        if( HAL_GPIO_ReadPin( IN_7_GPIO_Port, IN_7_Pin ) )
         {
             if( SwitchIN7Semap )
             {
@@ -424,6 +425,7 @@ void MotionTask(void const *parment)
     MotionStatus.CanRestDelay = true;
     MotionStatus.alarm = false;
     MotionStatus.alarmCleanDisable = false;
+    MotionStatus.startUp = true;
 
     // defatult enable EXTI, Navigation, Switch, Operation, StartUp log
     DebugCtrl.enableNavigation = 1;
@@ -486,14 +488,10 @@ void MotionTask(void const *parment)
 
     runTaskHeader.next = 0;
 
-    InOutSwitch inOutTarget = InOutSwitchIn;
+    InOutSwitch inOutTarget = getSwitchStatus();
     InOutSwitch inOutTargetNow;
-    /*
-        = getSwitchStatus();
-
-        if( inOutTarget == InOutSwitchUnknow )
-            inOutTarget = InOutSwitchIn;
-    */
+    if( inOutTarget == InOutSwitchUnknow )
+        inOutTarget = InOutSwitchIn;
     //   prvInitHardwares();
     for (;;)
     {
@@ -993,6 +991,7 @@ void MotionTask(void const *parment)
             if (canOpenStatus.count ++ >= 1)
             {
                 canOpenStatus.count = 0;
+
                 if( MotionStatus.alarm )
                 {
                     if( !MotionStatus.alarmCleanDisable )
@@ -1003,30 +1002,33 @@ void MotionTask(void const *parment)
                         }
                     }
                 }
-                if( !MotionStatus.enable )
+                if( !MotionStatus.startUp )
                 {
-                    if( !MotionStatus.alarm )
+                    if( !MotionStatus.enable )
                     {
-                        if( canOpenStatus.pollStep == 1 )
-                            canOpenStatus.pollStep = 3;
-                    }
-                }
-                if( !MotionStatus.speedMode )
-                {
-                    if( !MotionStatus.alarm )
-                    {
-                        if( canOpenStatus.pollStep == 1 )
+                        if( !MotionStatus.alarm )
                         {
-                            canOpenStatus.pollStep = -1;
-                            CANopen_Tx.initialzation(1, true);
-                            osDelay(2);
+                            if( canOpenStatus.pollStep == 1 )
+                                canOpenStatus.pollStep = 3;
                         }
                     }
-                }
-                if( osKernelSysTick() - MotionStatus.lastPDOTime > 1000 )
-                {
-                    if( canOpenStatus.pollStep > 0 )
-                        canOpenStatus.pollStep = -1;
+                    if( !MotionStatus.speedMode )
+                    {
+                        if( !MotionStatus.alarm )
+                        {
+                            if( canOpenStatus.pollStep == 1 )
+                            {
+                                canOpenStatus.pollStep = -1;
+                                CANopen_Tx.initialzation(1, true);
+                                osDelay(2);
+                            }
+                        }
+                    }
+                    if( osKernelSysTick() - MotionStatus.lastPDOTime > 1000 )
+                    {
+                        if( canOpenStatus.pollStep > 0 )
+                            canOpenStatus.pollStep = -1;
+                    }
                 }
                 switch (canOpenStatus.pollStep)
                 {
@@ -1041,7 +1043,7 @@ void MotionTask(void const *parment)
                         canOpenStatus.pollStep++ ;
                         debugOut( 0, "[\t%d]Init CanOpen Node ID:1 [ok]\r\n", osKernelSysTick());
                     }
-                    osDelay(10);
+                  //  osDelay(10);
                     break;
 
                 case 0:
@@ -1050,11 +1052,14 @@ void MotionTask(void const *parment)
                         canOpenStatus.pollStep++ ;
                         debugOut( 0, "[\t%d] Start CanOpen Node ID:1 [ok]\r\n", osKernelSysTick() );
                     }
-                    osDelay(10);
+                   // osDelay(10);
                     break;
 
                 case 1:
                     CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_4Bit23, 0x60ff, 0, request_speed);
+                    if( MotionStatus.startUp )
+                        MotionStatus.startUp = false;
+                    
                     canOpenStatus.heartBeatDelay += 2;
                     if( canOpenStatus.heartBeatDelay > 1000 )
                         canOpenStatus.pollStep = 5;
