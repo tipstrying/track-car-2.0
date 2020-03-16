@@ -424,8 +424,8 @@ void MotionTask(void const *parment)
                     switch (navigationOperationData.cmd)
                     {
                     case Enum_SetZeroPosition:
-                        agv.AGV_Pos = 0;
-                        AGV_Pos = 0;
+                        agv.AGV_Pos = navigationOperationData.Data.posTo;
+                        AGV_Pos = agv.AGV_Pos;
                         break;
                     case Enum_SetMaxSpeed:
                         agv.sSpeed_max = navigationOperationData.Data.speedTo;

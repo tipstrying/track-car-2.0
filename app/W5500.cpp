@@ -650,10 +650,18 @@ void protocolRun( void const *para )
                         case 2011:
                             if( 1 )
                             {
-                                navData.cmd = Enum_SetZeroPosition;
-                                xQueueSend( NavigationOperationQue, &navData, 100 );
-                                PackLen = makePack( buff, packIndex, 12011, 0, 0, 0 );
-                                dataOut.pushData( buff, PackLen );
+                                if( PackLen == 4 )
+                                {
+                                    for( int i = 0; i < 4; i++ )
+                                    {
+                                        i32ToHex.Hex[i] = data[3-i];
+                                    }
+                                    navData.cmd = Enum_SetZeroPosition;
+                                    navData.Data.posTo = i32ToHex.Data;
+                                    xQueueSend( NavigationOperationQue, &navData, 100 );
+                                    PackLen = makePack( buff, packIndex, 12011, 0, 0, 0 );
+                                    dataOut.pushData( buff, PackLen );
+                                }
                             }
 
                             break;
