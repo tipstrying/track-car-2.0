@@ -22,6 +22,8 @@ QueueHandle_t chargeOperationQue = 0;
 FATFS fatfs;                                            // 文件系统
 FIL file;                                               // 文件句柄
 int fatfsstatus = 0;                                    // 上电默认文件系统未挂�
+void modbusTask( void const * arg );
+void uart2RecTask( void const *arg );
 
 void InitTask( void const * parment )
 {
@@ -29,23 +31,30 @@ void InitTask( void const * parment )
 
     if( NavigationOperationQue == 0 )
         NavigationOperationQue = xQueueCreate( 5, sizeof( NavigationOperationStd ) );
-    
+
     taskENTER_CRITICAL();
     {
         printf( "Boot Up Ok\r\n" );
     }
     taskEXIT_CRITICAL();
 
-    
+    osThreadDef( u2RecService, uart2RecTask, osPriorityHigh, 0, 256 );
+    osThreadCreate( osThread( u2RecService ), NULL);
+
+    osThreadDef( BatteryTask, UartTask, osPriorityHigh, 0, 256 );
+    osThreadCreate( osThread( BatteryTask ), NULL);
+
     osThreadDef(MotionTask, MotionTask, osPriorityRealtime, 0, 4096 );
     osThreadCreate(osThread(MotionTask), NULL);
 
     osThreadDef( EthernetTask, W5500Task, osPriorityHigh, 0, 2000  );
-    osThreadCreate( osThread( EthernetTask ), NULL);    
+    osThreadCreate( osThread( EthernetTask ), NULL);
 
-    osThreadDef( BatteryTask, UartTask, osPriorityHigh, 0, 1024 );
-    osThreadCreate( osThread( BatteryTask ), NULL);
-    
+    osThreadDef( modbus, modbusTask, osPriorityHigh, 0, 1280 );
+    osThreadCreate( osThread( modbus ), NULL);
+
+
+
     uint32_t tick = osKernelSysTick();
 
     vTaskDelete( NULL );

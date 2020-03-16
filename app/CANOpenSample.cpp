@@ -539,9 +539,12 @@ bool CANopenRequest::initialzationPDO( int iNode_ID )
     }
     return (this->polling_step > 18 );
 }
-bool CANopenRequest::initialzation( int iNode_ID )
+bool CANopenRequest::initialzation( int iNode_ID, bool isNew )
 {
     static int last_Node_ID = 0;
+    if( isNew )
+        polling_step = 0;
+    
     if( iNode_ID == 0 && iNode_ID > 127)
         return false;
     if( iNode_ID != last_Node_ID )

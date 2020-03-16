@@ -14,14 +14,14 @@
 #define DISCHARGE_SHORT_CI          0x20            //放电短路
 */
 /* BITs */
-#define BIT1                        0x01
-#define BIT2                        0x02
-#define BIT3                        0x04
-#define BIT4                        0x08
-#define BIT5                        0x10
-#define BIT6                        0x20
-#define BIT7                        0x40
-#define BIT8                        0x80
+#define BIT1 0x01
+#define BIT2 0x02
+#define BIT3 0x04
+#define BIT4 0x08
+#define BIT5 0x10
+#define BIT6 0x20
+#define BIT7 0x40
+#define BIT8 0x80
 
 union {
     int data;
@@ -35,38 +35,42 @@ BattreyStd Battery;
 
 uint16_t voltageRealTime = 0;
 
-void UartTask( void const * par )
+void UartTask(void const *par)
 {
     unsigned char U3_485_buff[100];
     //  int i = 0;
     //uint8_t checksum;
     char rambuff[20];
     //uint8_t SendBuff[] = { 0x7f, 0x10, 0x02, 0x06, 0x10, 0x59 };
-    uint8_t SendBuff[] = {0x01,0x03,0x00, 0x56, 0x00, 0x01, 0x64, 0x1a};
+    uint8_t SendBuff[] = {0x01, 0x03, 0x00, 0x56, 0x00, 0x01, 0x64, 0x1a};
     U3_Sema_Rx = xSemaphoreCreateBinary();
     uint8_t Status;
-    if( DebugCtrl.enableStartUp )
+    uint16_t voltageRealTime = 0;
+
+    if (DebugCtrl.enableStartUp)
     {
         taskENTER_CRITICAL();
         {
-            printf( "[\t%d] Info: Battery Task Start Ok\r\n", osKernelSysTick() );
+            printf("[\t%d] Info: Battery Task Start Ok\r\n", osKernelSysTick());
         }
         taskEXIT_CRITICAL();
     }
-    for(;;)
+    //__HAL_UART_ENABLE_IT( &huart7, UART_IT_IDLE );
+    for (;;)
     {
-        HAL_UART_Receive_DMA( &huart7, U3_485_buff, 8);
-        HAL_GPIO_WritePin( UART7_RD_GPIO_Port, UART7_RD_Pin, GPIO_PIN_SET );
+        HAL_UART_Receive_DMA(&huart2, U3_485_buff, 7);
+        HAL_GPIO_WritePin(USART2_RD_GPIO_Port, USART2_RD_Pin, GPIO_PIN_SET);
         // HAL_UART_Transmit_DMA( &huart2, SendBuff, sizeof( SendBuff ) );
-        HAL_UART_Transmit( &huart7, SendBuff, sizeof( SendBuff ), 1000 );
-        HAL_GPIO_WritePin( UART7_RD_GPIO_Port, UART7_RD_Pin, GPIO_PIN_RESET );
-        if( xSemaphoreTake( U3_Sema_Rx, 1000 ) == pdPASS )
+        HAL_UART_Transmit(&huart2, SendBuff, sizeof(SendBuff), 1000);
+        HAL_GPIO_WritePin(USART2_RD_GPIO_Port, USART2_RD_Pin, GPIO_PIN_RESET);
+        if (xSemaphoreTake(U3_Sema_Rx, 1000) == pdPASS)
         {
+
             voltageRealTime = U3_485_buff[3] * 255 + U3_485_buff[4];
             voltageRealTime = voltageRealTime * 10;
-            if( abs( voltageRealTime - Battery.Voltage ) < 10000 )
+            if (abs(voltageRealTime - Battery.Voltage) < 10000)
                 Battery.Voltage = voltageRealTime;
-            else if( Battery.Voltage == 0 )
+            else if (Battery.Voltage == 0)
                 Battery.Voltage = voltageRealTime;
 
             /*
@@ -143,25 +147,27 @@ void UartTask( void const * par )
         }
         else
         {
-            HAL_UART_AbortReceive_IT( &huart2 );
-            if( DebugCtrl.enableBattery )
+           // HAL_UART_AbortReceive_IT(&huart2);
+            HAL_UART_AbortReceive(&huart2);
+            if (DebugCtrl.enableBattery)
             {
                 taskENTER_CRITICAL();
                 {
-                    printf( "[\t%d] Rec TimeOut\r\n", osKernelSysTick() );
+                    printf("[\t%d] Rec TimeOut\r\n", osKernelSysTick());
                 }
                 taskEXIT_CRITICAL();
             }
         }
 
-        osDelay( 1000 );
+        osDelay(1000);
     }
 }
 
 QueueHandle_t U1_Sema_Rx = 0;
 static uint8_t u1Buff[100];
 
-extern "C" {
+extern "C"
+{
     void USART1_IRQHandler(void);
 }
 void USART1_IRQHandler(void)
@@ -169,26 +175,18 @@ void USART1_IRQHandler(void)
     uint8_t data;
     data = huart1.Instance->SR;
     data = huart1.Instance->DR;
-    __HAL_DMA_DISABLE( huart1.hdmarx );
-    __HAL_DMA_ENABLE( huart1.hdmarx );
+    __HAL_DMA_DISABLE(huart1.hdmarx);
+    __HAL_DMA_ENABLE(huart1.hdmarx);
 }
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
     static BaseType_t pxHigherPriorityTaskWoken;
     char *c = 0;
-    if( huart == &huart7 )
+    if (huart == &huart2)
     {
-        if( U3_Sema_Rx )
-            xSemaphoreGiveFromISR( U3_Sema_Rx, &pxHigherPriorityTaskWoken );
+        if (U3_Sema_Rx)
+            xSemaphoreGiveFromISR(U3_Sema_Rx, &pxHigherPriorityTaskWoken);
     }
-    if( huart == &huart1 )
-    {
-        ;
-    }
-    if(huart == &huart2 )
-    {
-        if(U2_Sema_Rx)
-            xSemaphoreGiveFromISR(U2_Sema_Rx,&pxHigherPriorityTaskWoken);
-    }
-    portYIELD_FROM_ISR( pxHigherPriorityTaskWoken );
+
+    portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
 }

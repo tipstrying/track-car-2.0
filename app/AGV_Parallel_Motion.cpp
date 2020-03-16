@@ -14,15 +14,7 @@ AGV_Parallel_Motion::AGV_Parallel_Motion()
     this->Request_Speed = 0;
     this->Stop_Accuracy = 1;
     this->sArriveCtrlTime = 300; // 20 * sample_Time  ms
-    this->ts_curve_k = 400;
-    this->ts_curve_j_max = 1200;
-    this->ts_curve_a_max = 1500;
-    this->ts_curve_v_max = 1000;
-
     this->sAcceleration = 1500;
-    this->sAccelerationLow = 1500;
-    this->sSpeed_max = 500;
-    this->sSpeed_mid = 150;
     this->sDeceleration_distance = 5;
 
     this->EncoderValue = 0;
@@ -126,216 +118,22 @@ AGV_Parallel_Motion::Motion_Status AGV_Parallel_Motion::Move_to(float iTarget)
     this->Request_RPM = this->Request_Speed * mm2RPM;
     return rValue;
 }
-void AGV_Parallel_Motion::set_ts_curve(float k, float j_max, float a_max, float v_max)
-{
-    this->ts_curve_k = k;
-    this->ts_curve_j_max = j_max;
-    this->ts_curve_a_max = a_max;
-    this->ts_curve_v_max = v_max;
-}
-void AGV_Parallel_Motion::get_ts_curve(float *k, float *j_max, float *a_max, float *v_max)
-{
-    *k = this->ts_curve_k;
-    *j_max = this->ts_curve_j_max;
-    *a_max = this->ts_curve_a_max;
-    *v_max = this->ts_curve_v_max;
-}
-float AGV_Parallel_Motion::ts_curve(unsigned char replan, unsigned int pMs, float Vstart, float k, float j_max, float a_max, float v_max, float s)
-{
-    static double lenS1;
-    static double lenS2;
-    static double stopS;
-    static double Vend;
-    static double v_sub;
-    unsigned int t;
-    static double Tstart;
-    static double tempVstart;
-    static unsigned int t1;
-    static unsigned int t2;
-    static unsigned int t3;
-    float y;
-    float a;
-    float tt, tt1, tt2;
-    float a_sub = a_max;
-    if (replan == 1)
-    {
-        y = Vstart;
-        a = 0;
-        v_sub = 0;
-        Tstart = pMs;
-        tempVstart = Vstart;
-        tt1 = j_max / k;
-        tt2 = sqrt(2 * a_max / k);
-        if (tt1 > tt2)
-            tt = tt2;
-        else
-            tt = tt1;
-        stopS = k * (tt * tt * tt * tt) / 24;
-        Vend = k * (tt * tt * tt) / 6;
-        lenS1 = (v_max + Vstart) * (v_max - Vstart) / 2 / a_max;
-        lenS2 = (Vend + v_max) * (v_max - Vend) / 2 / a_max;
-        if (stopS >= s)
-        {
-            stopS = s;
-            tt = sqrt(24.0 * stopS / k);
-            tt = sqrt(tt);
-            Vend = k * (tt * tt * tt) / 6;
-            t1 = 0;
-            t2 = 0;
-            t3 = 0;
-            //            taskENTER_CRITICAL();
-            //            {
-            //                printf( "[\t%d] Speed:%f\r\n", pMs, Vend );
-            //            }
-            //            taskEXIT_CRITICAL();
-        }
-        if (s >= lenS1 + lenS2 + stopS)
-        {
-            t1 = 1000 * (v_max - Vstart) / a_max;
-            t2 = 1000 * (s - lenS1 - lenS2 - stopS) / v_max;
-            t3 = 1000 * (v_max - Vend) / a_max;
-        }
-        else if (s > stopS)
-        {
-            v_sub = sqrt(0.5 * (Vstart * Vstart + Vend * Vend + 2 * a_max * (s - stopS)));
-            lenS1 = (v_sub + Vstart) * (v_sub - Vstart) / 2 / a_max;
-            lenS2 = (Vend + v_sub) * (v_sub - Vend) / 2 / a_max;
-            if (lenS1 <= 0)
-            {
-                t1 = 0;
-                t2 = 0;
-                t3 = 0;
-            }
-            else if (v_sub < Vend)
-            {
-                a_sub = 0.5 * sqrt(Vend * Vend - Vstart * Vstart) / (s - stopS);
-                t1 = (Vend - v_sub) / a_sub;
-                t2 = 0;
-                t3 = 0;
-            }
-            else
-            {
-                t1 = 1000 * (v_sub - Vstart) / a_max;
-                t2 = 0;
-                t3 = 1000 * (v_sub - Vend) / a_max;
-            }
-        }
-        else
-        {
-            t1 = 0;
-            t2 = 0;
-            t3 = 0;
-        }
-        //        taskENTER_CRITICAL();
-        //        {
-        //         printf("\r\n replan s=%f,t1=%d,t2=%d,t3=%d",stopS,t1,t2,t3);
-        //         printf("replan t1=%d,t2=%d,t3=%d,stops=%f,vsub=%f,Vend=%f,v=%f,Vstart=%f",replan,t1,t2,t3,stopS,v_sub,Vend,y,Vstart);
-        //        }
-        //        taskEXIT_CRITICAL();
-    }
-    t = pMs - Tstart;
-    if (t <= t1)
-    {
-        y = tempVstart + t * a_max * 0.001;
-        // printf("\nseg1:replan=%uud,t=%u,t1=%d,t2=%d,t3=%d,stops=%f,vsub=%f,Vend=%f,v=%f,Vstart=%f",replan,t,t1,t2,t3,stopS,v_sub,Vend,y,Vstart);
-    }
-    else if (t <= (t1 + t2))
-    {
-        y = v_max;
-        //printf("\nseg2:replan=%uud,t=%u,t1=%d,t2=%d,t3=%d,stops=%f,vsub=%f,Vend=%f,v=%f,Vstart=%f",replan,t,t1,t2,t3,stopS,v_sub,Vend,y,Vstart);
-    }
-    else if (t <= t1 + t2 + t3)
-    {
-        y = Vend + (t1 + t2 + t3 - t) * a_max * 0.001;
-        //printf("\nseg3:replan=%uud,t=%u,t1=%d,t2=%d,t3=%d,stops=%f,vsub=%f,Vend=%f,v=%f,Vstart=%f",replan,t,t1,t2,t3,stopS,v_sub,Vend,y,Vstart);
-    }
-    else
-    {
-        float data = 24 * s / k;
-        float x = sqrt(data);
-        x = sqrt(x);
-        y = k * x * x * x / 6;
-        if (y > v_max)
-            y = v_max;
-        //printf("\nseg4:replan=%d,t=%d,t1=%d,t2=%d,t3=%d,stops=%f,vsub=%f,Vend=%f,v=%f,Vstart=%f",replan,t,t1,t2,t3,stopS,v_sub,Vend,y,Vstart);
-    }
-    if (y > v_max)
-        y = v_max;
-    return y;
-}
+
 float AGV_Parallel_Motion::Move(float iDistance)
 {
-#if 0
-    static float speedNow,speedNowBak;
-    static float distanceBak = iDistance;
-    if( abs( iDistance ) > this->Stop_Accuracy * 0.5 )
-    {
-        speedNow = ts_curve( (unsigned char ) (this->isNewPosition == true ? 1 : 0 ),this->clock, abs(speedNowBak), this->ts_curve_k/* 1000 */, ts_curve_j_max /* 2000 */, this->ts_curve_a_max /* 1500 */, this->ts_curve_v_max /* 2500 */, abs(iDistance));
-        if( speedNow < sSpeed_min )
-            speedNow = sSpeed_min;
-        if( distanceBak < iDistance )
-        {
-            if( DebugCtrl.enableMotionDebug )
-            {
-                taskENTER_CRITICAL();
-                {
-                    printf( "[\t%d] New Position Move To Get: iDistanceNew->%fmm iDistanceOld->%fmm replan->%s speedNw->%fmm/s speedOld->%fmm/s Position Now:%0.2fmm \r\n", clock, iDistance, distanceBak, isNewPosition == true ? "true" : "false", speedNow, speedNowBak, AGV_Pos );
-                }
-                taskEXIT_CRITICAL();
-            }
-        }
-        if( this ->isNewPosition )
-        {
-            if( DebugCtrl.enableMotionDebug )
-            {
-                taskENTER_CRITICAL();
-                {
-                    printf( "[\t%d] New Position Move To Get: iDistanceNew->%fmm iDistanceOld->%fmm replan->%s speedNw->%fmm/s speedOld->%fmm/s Position Now:%0.2fmm \r\n", clock, iDistance, distanceBak, isNewPosition == true ? "true" : "false", speedNow, speedNowBak, AGV_Pos );
-                }
-                taskEXIT_CRITICAL();
-            }
-            this->isNewPosition = false;
-        }
-        distanceBak = iDistance;
-        speedNowBak = speedNow;
-    }
-    else
-    {
-        speedNow = 0;
-    }
-    if (iDistance < 0)
-        return -speedNow;
-    return speedNow;
-#endif
-#if 1
     float SetSpeed = 0.000;
     static float speedNow = 0;
     static float speedOld = 0;
     float stopDistance;
 
-    if (/* speedNow > sSpeed_mid */ 1 )
+    stopDistance = (speedNow * speedNow) / (2.0 * sAcceleration) + sDeceleration_distance;
+    if (abs(iDistance) > stopDistance)
     {
-        stopDistance = (speedNow * speedNow) / (2.0 * sAcceleration) + sDeceleration_distance;
-        if (abs(iDistance) > stopDistance)
-        {
-            SetSpeed = sSpeed_max;
-        }
-        else
-        {
-            SetSpeed = sSpeed_min;
-        }
+        SetSpeed = sSpeed_max;
     }
     else
     {
-        stopDistance = speedNow * speedNow / (2.0 * sAccelerationLow) + sDeceleration_distance;
-        if (abs(iDistance) > stopDistance)
-        {
-            SetSpeed = sSpeed_max;
-        }
-        else
-        {
-            SetSpeed = sSpeed_min;
-        }
+        SetSpeed = sSpeed_min;
     }
     if (abs(iDistance) <= Stop_Accuracy /* * 0.5 */)
     {
@@ -344,51 +142,15 @@ float AGV_Parallel_Motion::Move(float iDistance)
     if (iDistance < 0)
         SetSpeed = -SetSpeed;
 
-    if( this->iEmergencyByCancel )
-        SetSpeed = 0;
-
     float securityDelta_straight;
-
     if (speedNow > SetSpeed)
     {
-        if (1)
-        {
-            securityDelta_straight = sAcceleration * sample_Time / 1000.0;
-        }
-        else
-        {
-            securityDelta_straight = sAccelerationLow * sample_Time / 1000.0;
-        }
+        securityDelta_straight = sAcceleration * sample_Time / 1000.0;
     }
     else
     {
-#if 0
-        if( abs(iDistance) > (sSpeed_mid2 * sSpeed_mid2 / ( 2 * sAccelerationLow2 ) ))
-        {
-            securityDelta_straight = sAcceleration * sample_Time / 1000.0;
-        }
-        else
-        {
-            if( speedNow > sSpeed_mid2 )
-            {
-                securityDelta_straight = sAcceleration * sample_Time / 1000.0;
-            }
-            else
-            {
-                securityDelta_straight = sAccelerationLow2 * sample_Time / 1000.0;
-            }
-        }
-#else
         securityDelta_straight = sAcceleration * sample_Time / 1000.0;
-#endif
     }
-
-#if 0
-    if (speedNow > SetSpeed)
-        speedNow -= securityDelta_straight;
-    else if (speedNow < SetSpeed)
-        speedNow += securityDelta_straight;
-#else
     if (speedNow > SetSpeed)
     {
         if( stopDistance > iDistance )
@@ -408,82 +170,7 @@ float AGV_Parallel_Motion::Move(float iDistance)
     }
     else if (speedNow < SetSpeed)
         speedNow += securityDelta_straight;
-#endif
-
-    /*
-       if( speedNow * speedNow / ( 2 * sAcceleration ) - iDistance - this->sDeceleration_distance > 10 )
-       {
-           float dis = abs(2 * sAcceleration * (iDistance - sDeceleration_distance));
-           speedOld = sqrtf( dis );
-           debugOut( 0, (char *)"[\t%d] Real-Time speed slower then request real->%0.2f, next->%0.2f\r\n", clock, speedNow, speedOld );
-           speedNow = speedOld;
-       }
-       */
-
-    /*
-    if( speedNow > sSpeed_max )
-        speedNow = sSpeed_max;
-    */
     return speedNow;
-
-#endif
-#if 0
-    //	static int lastTimeCtrl = this->clock;
-
-    //	this->sample_Time = this->clock - lastTimeCtrl;
-
-    //	lastTimeCtrl = this->clock;
-
-    double SetSpeed = 0.000;
-    static double speedNow = 0;
-    static double xData = 0;
-    double stopDistance;
-    //double x = speedNow / 0.001;
-    //x = sqrt(x);
-    // xData += sample_Time;
-    stopDistance = 0;
-    // stopDistance = (1/3) * x * x * x * 0.002;
-    /*
-        for (float x = xData; x > 0;)
-        {
-            stopDistance += x * x * sA / 1000;
-            x -= 1;
-        }
-    */
-    stopDistance = 0.333333 * sA * xData * xData * xData;
-
-    if (stopDistance - iDistance > 1)
-        SetSpeed = sSpeed_min;
-    else
-    {
-        SetSpeed = sSpeed_max;
-    }
-
-    if( abs( iDistance ) <= Stop_Accuracy /* * 0.5 */ )
-    {
-        SetSpeed = sSpeed_min;
-    }
-    if( iDistance < 0 )
-        SetSpeed = -SetSpeed;
-    float securityDelta_straight;
-    if (speedNow > SetSpeed)
-    {
-//        double x = speedNow / 0.001;
-//        x = sqrt(x);
-//        x -= 1;
-        xData -= sample_Time;
-        speedNow = xData * xData * sA;
-    }
-    else
-    {
-//        float x = speedNow / 0.001;
-//        x = sqrt(x);
-//        x += 1;
-        xData += sample_Time;
-        speedNow = xData * xData * sA;
-    }
-    return (float)speedNow ;// > sSpeed_min ? speedNow : sSpeed_min;
-#endif
 }
 
 void AGV_Parallel_Motion::DetectDynamics(void)

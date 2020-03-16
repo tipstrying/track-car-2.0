@@ -116,8 +116,10 @@ void Error_Handler(void);
 #define SWCLK_GPIO_Port GPIOA
 #define IN_6_Pin GPIO_PIN_15
 #define IN_6_GPIO_Port GPIOA
+#define IN_6_EXTI_IRQn EXTI15_10_IRQn
 #define IN_7_Pin GPIO_PIN_3
 #define IN_7_GPIO_Port GPIOD
+#define IN_7_EXTI_IRQn EXTI3_IRQn
 #define IN_8_Pin GPIO_PIN_4
 #define IN_8_GPIO_Port GPIOD
 #define IN_9_Pin GPIO_PIN_5

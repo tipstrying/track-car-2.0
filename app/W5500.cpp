@@ -129,6 +129,7 @@ typedef struct {
 } networkDef;
 
 networkDef socketServer[4];
+static CONFIG_MSG networkconfig = SetNetWorkParment();
 void socketServer_run(int i, FifoClass *in, FifoClass *out, uint16_t port, fun_ptr func1, fun_ptr func2);
 
 void W5500Task( void const * par )
@@ -148,7 +149,7 @@ void W5500Task( void const * par )
         socketServer[i].use = false;
     }
 
-    CONFIG_MSG networkconfig = SetNetWorkParment();
+
     union
     {
         uint8_t Hex[4];
@@ -381,6 +382,9 @@ int decodePack( uint8_t *packBuff, int buffLen, uint64_t *packIndex, uint16_t *p
 /**** ****************************************************************************************************************************************************
 调度通信线程
 * *********************************************************************************************************************************************************/
+int IsMotorAlarm();
+void ClearMotorAlarm();
+
 int createSocket(FifoClass *in, FifoClass *out, uint16_t port, fun_ptr onCreatep, fun_ptr onClosep );
 void protocolRun( void const *para )
 {
@@ -413,7 +417,7 @@ void protocolRun( void const *para )
                         /*
                         解包成功
                         */
-                        debugOut( 0, (char *)"Decode pack ok: index->%lld,cmd->%d,packLen->%d,date:", packIndex, packCMD, PackLen );
+                        debugOut( 0, (char *)"[\t%d] Decode pack ok: index->%lld,cmd->%d,packLen->%d,date:", osKernelSysTick(), packIndex, packCMD, PackLen );
                         for( int i = 0; i < PackLen; i++ )
                         {
                             debugOut( 0, (char *)"0X%02X ", data[i] );
@@ -446,7 +450,7 @@ void protocolRun( void const *para )
                                 GetSpeed( &speed );
                                 i32ToHex.Data = (int) pos;
                                 u16ToHex.Data = (uint16_t)speed;
-                                status  = 0;
+                                status  = IsMotorAlarm();
                                 batVol = (uint8_t) (Battery.Voltage / 1000);
                                 for( int i = 0; i < 4; i++ )
                                 {
@@ -609,7 +613,7 @@ void protocolRun( void const *para )
                                         navData.Data.op = 0;
                                     else
                                         navData.Data.op = 1;
-                                    
+
                                     navData.cmd = Enum_PushThing;
                                     if( xQueueSend( NavigationOperationQue, &navData, 100 ) == pdPASS )
                                         rValue = 0;
@@ -643,6 +647,7 @@ void protocolRun( void const *para )
                         case 2010:
                             if( 1 )
                             {
+                                ClearMotorAlarm();
                                 PackLen = makePack( buff, packIndex, 12010, 0, 0, 0 );
                                 dataOut.pushData( buff, PackLen );
                             }
@@ -726,7 +731,6 @@ void protocolRun( void const *para )
                         case 2019:
                             navData.cmd = Enum_SetInOutSwitch;
                             if( data[0] == 1 )
-
                                 navData.Data.op = 1;
                             else if( data[0] == 2 )
                                 navData.Data.op = 0;
@@ -846,7 +850,9 @@ static bool showBanner = true;
 static int cliNetworkID = 0;
 int cliSOcketConnect( int i )
 {
-    socketServer[cliNetworkID].streamOut->pushData( ( uint8_t * ) "Welcome to LS-RGV Command Line Interface\t", sizeof( "Welcome to LS-RGV Command Line Interface\t" ) );
+    char buff[100];
+    sprintf( buff, "Welcome to LS-RGV Command Line Interface IP:%d.%d.%d.%d\t", networkconfig.lip[0], networkconfig.lip[1], networkconfig.lip[2], networkconfig.lip[3] );
+    socketServer[cliNetworkID].streamOut->pushData( ( uint8_t * ) buff, strlen(buff) );
     socketServer[cliNetworkID].streamOut->pushData( ( uint8_t * )"\r\nLS-RGV $ ", sizeof( "\r\nLS-RGV $ " ) );
 }
 
@@ -905,10 +911,10 @@ void CLITask( void const * parment )
 /* *****************************************************************************************************************/
 extern "C" {
     int fputc( int c, FILE *f );
-    int debugOut( int isISR, char *fmt, ... );
+    int debugOut( int isISR, const char *fmt, ... );
 }
 
-int debugOut( int isISR, char *fmt, ... )
+int debugOut( int isISR, const char *fmt, ... )
 {
 
     if( __get_BASEPRI() )
