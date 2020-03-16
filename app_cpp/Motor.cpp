@@ -175,7 +175,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
             {
                 debugOut( 1, "[\t%d] GPIO ISR IN6 [ok]\r\n", osKernelSysTick() );
                 BaseType_t nextTask;
-            //    xSemaphoreGiveFromISR( SwitchIN6Semap, &nextTask );
+                //    xSemaphoreGiveFromISR( SwitchIN6Semap, &nextTask );
             }
         }
     }
@@ -187,7 +187,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
             {
                 debugOut( 1, "[\t%d] GPIO ISR IN7 [ok]\r\n", osKernelSysTick() );
                 BaseType_t nextTask;
-             //   xSemaphoreGiveFromISR( SwitchIN7Semap, &nextTask );
+                //   xSemaphoreGiveFromISR( SwitchIN7Semap, &nextTask );
             }
         }
     }
@@ -1053,6 +1053,7 @@ void MotionTask(void const *parment)
                     canOpenStatus.pollStep++;
                     osDelay(2);
                     CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x6040, 0, 0x86);
+                    break;
                 case -1:
                     if (CANopen_Tx.initialzation(1, false))
                     {
@@ -1075,11 +1076,11 @@ void MotionTask(void const *parment)
                     CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_4Bit23, 0x60ff, 0, request_speed);
                     if( MotionStatus.startUp )
                         MotionStatus.startUp = false;
-
+/*
                     canOpenStatus.heartBeatDelay += 2;
                     if( canOpenStatus.heartBeatDelay > 1000 )
                         canOpenStatus.pollStep = 5;
-
+*/
                     break;
                 case 2:
                     if( MotorModeWord_PDO != 0 )
