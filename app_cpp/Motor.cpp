@@ -252,6 +252,9 @@ void Rx_PDO_Commplate(int oID, char Array[8], int len )
     case 0x181:
         if( 1 )
         {
+            if( MotionStatus.startUp )
+                MotionStatus.startUp = false;
+
             union {
                 char Hex[4];
                 int Data;
@@ -1018,51 +1021,17 @@ void MotionTask(void const *parment)
                         }
                     }
                 }
-                if( !MotionStatus.startUp )
+                if( MotionStatus.startUp )
                 {
-                    if( !MotionStatus.enable )
-                    {
-                        if( !MotionStatus.alarm )
-                        {
-                            if( canOpenStatus.pollStep == 1 )
-                                canOpenStatus.pollStep = 3;
-                        }
-                    }
-                    if( !MotionStatus.speedMode )
-                    {
-                        if( !MotionStatus.alarm )
-                        {
-                            if( canOpenStatus.pollStep == 1 )
-                            {
-                                canOpenStatus.pollStep = -1;
-                                CANopen_Tx.initialzation(1, true);
-                                osDelay(2);
-                            }
-                        }
-                    }
-                    if( osKernelSysTick() - MotionStatus.lastPDOTime > 1000 )
-                    {
-                        if( canOpenStatus.pollStep > 0 )
-                            canOpenStatus.pollStep = -1;
-                    }
+                    canOpenStatus.pollStep = 0;
+                }
+                else
+                {
+                    if( canOpenStatus.pollStep == 0 )
+                        canOpenStatus.pollStep = 1;
                 }
                 switch (canOpenStatus.pollStep)
                 {
-                case -2:
-                    CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Rest_Node ) ;
-                    canOpenStatus.pollStep++;
-                    osDelay(2);
-                    CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x6040, 0, 0x86);
-                    break;
-                case -1:
-                    if (CANopen_Tx.initialzation(1, false))
-                    {
-                        canOpenStatus.pollStep++ ;
-                        debugOut( 0, "[\t%d]Init CanOpen Node ID:1 [ok]\r\n", osKernelSysTick());
-                    }
-                    //  osDelay(10);
-                    break;
-
                 case 0:
                     if (CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Start_Remote_Node))
                     {
@@ -1073,14 +1042,33 @@ void MotionTask(void const *parment)
                     break;
 
                 case 1:
+                    /*
                     CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_4Bit23, 0x60ff, 0, request_speed);
                     if( MotionStatus.startUp )
                         MotionStatus.startUp = false;
-/*
-                    canOpenStatus.heartBeatDelay += 2;
-                    if( canOpenStatus.heartBeatDelay > 1000 )
-                        canOpenStatus.pollStep = 5;
-*/
+                    */
+                    if( 1 )
+                    {
+                        char rpdoData[8];
+                        union
+                        {
+                            int Data;
+                            char Hex[4];
+                        } i32ToHex;
+                        union
+                        {
+                            short Data;
+                            char Hex[2];
+                        } i16ToHex;
+                        i32ToHex.Data = request_speed;
+                        for( int i = 0; i < 4; i++ )
+                            rpdoData[i] = i32ToHex.Hex[i];
+                        i16ToHex.Data = 0x0f;
+                        rpdoData[4] = i16ToHex.Hex[0];
+                        rpdoData[5] = i16ToHex.Hex[1];
+                        rpdoData[6] = 3;
+                        CanTx( 0x141, 7, rpdoData );
+                    }
                     break;
                 case 2:
                     if( MotorModeWord_PDO != 0 )
@@ -1089,8 +1077,6 @@ void MotionTask(void const *parment)
                 case 3:
                     if( !MotionStatus.enable )
                     {
-                        CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x6040, 0, 0x86);
-                        osDelay(2);
                         CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x6040, 0, 0xf);
                     }
                     else
