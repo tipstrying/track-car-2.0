@@ -103,7 +103,7 @@ void modbusTask( void const * arg )
                 int iData;
                 USHORT uData[2];
             } iToUShortData;
-            iToUShortData.iData = 16384000 * 2;
+            iToUShortData.iData = 16384000;
             while( MB_ENOERR != eMBMWriteMultipleRegisters( xMBMMaster, SwitchAddr, 0x4a00, 2, iToUShortData.uData ) )
             {
                 osDelay(2);
@@ -130,7 +130,7 @@ void modbusTask( void const * arg )
                 {
                     osDelay(2);
                 }
-                iToUShortData.iData = 16384000 * 2;
+                iToUShortData.iData = 16384000;
                 while( MB_ENOERR != eMBMWriteMultipleRegisters( xMBMMaster, SwitchAddr, 0x4a00, 2, iToUShortData.uData ) )
                 {
                     osDelay(2);
@@ -185,7 +185,7 @@ void modbusTask( void const * arg )
         int switchMotorMode = 0;
         InOutSwitch targetGoing = target;
         InOutSwitch targetLast;
-
+        BaseType_t timeBak = osKernelSysTick();
         for( ;; )
         {
             if( xQueueReceive( SwitchBeltTaskQue, &switchBeltTaskData, 5 ) == pdPASS )
@@ -238,6 +238,10 @@ void modbusTask( void const * arg )
                     if( targetLast == targetGoing )
                     {
                         switchStatus = 3;
+                        while( xSemaphoreTake( SwitchIN6Semap, 0 ) == pdPASS )
+                            osDelay(1);
+                        while( xSemaphoreTake( SwitchIN7Semap, 0 ) == pdPASS )
+                            osDelay(1);
                     }
                     else
                     {
@@ -275,7 +279,7 @@ void modbusTask( void const * arg )
                                     eMBMWriteSingleRegister( xMBMMaster, SwitchAddr, 0x3500, 1 );
                                     while( MB_ENOERR != eMBMReadHoldingRegisters( xMBMMaster, SwitchAddr, 0x3600, 1, modbusReadBackRegs ) )
                                         osDelay(2);
-                                    iToUShortData.iData = 16384000 * 2;
+                                    iToUShortData.iData = 16384000;
                                     while( MB_ENOERR != eMBMWriteMultipleRegisters( xMBMMaster, SwitchAddr, 0x4a00, 2, iToUShortData.uData ) )
                                     {
                                         osDelay(2);
@@ -309,11 +313,30 @@ void modbusTask( void const * arg )
                             osDelay(1);
 
                         switchStatus = 3;
-                        osDelay( 100 );
+                        // osDelay( 100 );
                     }
                     break;
                 case 3:
                     debugOut(0, "[\t%d] Switch Case 3\r\n", osKernelSysTick() );
+                    timeBak = osKernelSysTick();
+                    do
+                    {
+                        while( MB_ENOERR != eMBMReadHoldingRegisters( xMBMMaster, SwitchAddr, 0x3200, 1, modbusReadBackRegs ) )
+                        {
+                            osDelay(3);
+                            if( osKernelSysTick() > timeBak )
+                            {
+                                if( osKernelSysTick() - timeBak > 1000 )
+                                {
+                                    break;
+                                }
+                            }
+                            else
+                                timeBak = osKernelSysTick();
+                        }
+                        
+                    } while(!(modbusReadBackRegs[0] & 0x400));
+                    debugOut(0, "[\t%d] switch motor step ok\r\n", osKernelSysTick() );
                     if( targetGoing != getSwitchStatus() )
                     {
                         do
@@ -356,6 +379,7 @@ void modbusTask( void const * arg )
                     }
                     else
                     {
+                        debugOut(0, "[\t%d] Switch end with position mode\r\n", osKernelSysTick() );
                         switchStatus = 5;
                     }
                     break;
@@ -387,18 +411,17 @@ void modbusTask( void const * arg )
                                 osDelay(2);
                             while( MB_ENOERR != eMBMReadHoldingRegisters( xMBMMaster, SwitchAddr, 0x3600, 1, modbusReadBackRegs ) )
                                 osDelay(2);
-                            iToUShortData.iData = 16384000 * 2;
+                            iToUShortData.iData = 16384000;
                             while( MB_ENOERR != eMBMWriteMultipleRegisters( xMBMMaster, SwitchAddr, 0x4a00, 2, iToUShortData.uData ) )
                             {
                                 osDelay(2);
                             }
                         } while( modbusReadBackRegs[0] != 1 );
                         switchMotorMode = 1;
-                        
+                        switchStatus = 5;
+                        debugOut(0, "[\t%d] Switch end witch speed mode\r\n", osKernelSysTick() );
                     }
-                    switchStatus = 5;
                     break;
-
                 case 5:
                     /* for auto test */
                     //debugOut(0, "[\t%d] Switch Case 5\r\n", osKernelSysTick() );
@@ -408,7 +431,10 @@ void modbusTask( void const * arg )
                     if( target == InOutSwitchIn || target == InOutSwitchOut )
                         targetGoing = target;
                     if( target != getSwitchStatus() )
+                    {
+                        debugOut(0, "[\t%d] Start Switch to %s\r\n", osKernelSysTick(), target == InOutSwitchIn ? "[IN]" : "[OUT]" );
                         switchStatus = 2;
+                    }
                     break;
 
                 }

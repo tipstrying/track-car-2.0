@@ -175,7 +175,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
             {
                 debugOut( 1, "[\t%d] GPIO ISR IN6 [ok]\r\n", osKernelSysTick() );
                 BaseType_t nextTask;
-                xSemaphoreGiveFromISR( SwitchIN6Semap, &nextTask );
+            //    xSemaphoreGiveFromISR( SwitchIN6Semap, &nextTask );
             }
         }
     }
@@ -187,7 +187,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
             {
                 debugOut( 1, "[\t%d] GPIO ISR IN7 [ok]\r\n", osKernelSysTick() );
                 BaseType_t nextTask;
-                xSemaphoreGiveFromISR( SwitchIN7Semap, &nextTask );
+             //   xSemaphoreGiveFromISR( SwitchIN7Semap, &nextTask );
             }
         }
     }
@@ -507,8 +507,8 @@ void MotionTask(void const *parment)
                     switch (navigationOperationData.cmd)
                     {
                     case Enum_SetZeroPosition:
-                        agv.AGV_Pos = 0;
-                        AGV_Pos = 0;
+                        agv.AGV_Pos = navigationOperationData.Data.posTo;
+                        AGV_Pos = agv.AGV_Pos;
                         break;
                     case Enum_SetMaxSpeed:
                         agv.sSpeed_max = navigationOperationData.Data.speedTo;
@@ -852,15 +852,27 @@ void MotionTask(void const *parment)
                             break;
                         case 4:
                             if( getSwitchStatus() != InOutSwitchOut )
+                            {
+                                if( !agv.iEmergencyBySoftware )
+                                    debugOut(0, "[\t%d] target not reach [OUT] !!!!!!\r\n", PreviousWakeTime );
                                 agv.iEmergencyBySoftware = true;
+                            }
+                            else
+                            {
+                                listDeleteItemByIndex( &runTaskHeader, 1 );
+                            }
                             inOutTargetNow = InOutSwitchOut;
-                            listDeleteItemByIndex( &runTaskHeader, 1 );
                             break;
                         case 5:
                             if( getSwitchStatus() != InOutSwitchIn )
+                            {
+                                if( !agv.iEmergencyBySoftware )
+                                    debugOut(0, "[\t%d] target not reach [IN] !!!!!!\r\n", PreviousWakeTime );
                                 agv.iEmergencyBySoftware = true;
+                            }
+                            else
+                                listDeleteItemByIndex( &runTaskHeader, 1 );
                             inOutTargetNow = InOutSwitchIn;
-                            listDeleteItemByIndex( &runTaskHeader, 1 );
                             break;
                         case 6:
                             if( 0 )
@@ -882,10 +894,14 @@ void MotionTask(void const *parment)
                     else
                     {
                         debugOut( 0, "[\t%d] miss operation at %0.2f : cmd->%d, position->%0.2f, speed->%0.2f\r\n", PreviousWakeTime, agv.AGV_Pos, runTaskHeader.next->cmd, runTaskHeader.next->position, runTaskHeader.next->data.fData );
+
                         listDeleteItemByIndex( &runTaskHeader, 1 );
                     }
                     if( runTaskHeader.next->cmd == 6 )
                         break;
+                    if( (runTaskHeader.next->cmd == 4) || (runTaskHeader.next->cmd == 5) )
+                        if( agv.iEmergencyBySoftware )
+                            break;
                 }
                 else
                 {
@@ -1043,7 +1059,7 @@ void MotionTask(void const *parment)
                         canOpenStatus.pollStep++ ;
                         debugOut( 0, "[\t%d]Init CanOpen Node ID:1 [ok]\r\n", osKernelSysTick());
                     }
-                  //  osDelay(10);
+                    //  osDelay(10);
                     break;
 
                 case 0:
@@ -1052,14 +1068,14 @@ void MotionTask(void const *parment)
                         canOpenStatus.pollStep++ ;
                         debugOut( 0, "[\t%d] Start CanOpen Node ID:1 [ok]\r\n", osKernelSysTick() );
                     }
-                   // osDelay(10);
+                    // osDelay(10);
                     break;
 
                 case 1:
                     CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_4Bit23, 0x60ff, 0, request_speed);
                     if( MotionStatus.startUp )
                         MotionStatus.startUp = false;
-                    
+
                     canOpenStatus.heartBeatDelay += 2;
                     if( canOpenStatus.heartBeatDelay > 1000 )
                         canOpenStatus.pollStep = 5;

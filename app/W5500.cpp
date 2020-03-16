@@ -129,6 +129,7 @@ typedef struct {
 } networkDef;
 
 networkDef socketServer[4];
+static CONFIG_MSG networkconfig = SetNetWorkParment();
 void socketServer_run(int i, FifoClass *in, FifoClass *out, uint16_t port, fun_ptr func1, fun_ptr func2);
 
 void W5500Task( void const * par )
@@ -148,7 +149,7 @@ void W5500Task( void const * par )
         socketServer[i].use = false;
     }
 
-    CONFIG_MSG networkconfig = SetNetWorkParment();
+
     union
     {
         uint8_t Hex[4];
@@ -612,7 +613,7 @@ void protocolRun( void const *para )
                                         navData.Data.op = 0;
                                     else
                                         navData.Data.op = 1;
-                                    
+
                                     navData.cmd = Enum_PushThing;
                                     if( xQueueSend( NavigationOperationQue, &navData, 100 ) == pdPASS )
                                         rValue = 0;
@@ -654,10 +655,18 @@ void protocolRun( void const *para )
                         case 2011:
                             if( 1 )
                             {
-                                navData.cmd = Enum_SetZeroPosition;
-                                xQueueSend( NavigationOperationQue, &navData, 100 );
-                                PackLen = makePack( buff, packIndex, 12011, 0, 0, 0 );
-                                dataOut.pushData( buff, PackLen );
+                                if( PackLen == 4 )
+                                {
+                                    for( int i = 0; i < 4; i++ )
+                                    {
+                                        i32ToHex.Hex[i] = data[3-i];
+                                    }
+                                    navData.cmd = Enum_SetZeroPosition;
+                                    navData.Data.posTo = i32ToHex.Data;
+                                    xQueueSend( NavigationOperationQue, &navData, 100 );
+                                    PackLen = makePack( buff, packIndex, 12011, 0, 0, 0 );
+                                    dataOut.pushData( buff, PackLen );
+                                }
                             }
 
                             break;
@@ -841,7 +850,9 @@ static bool showBanner = true;
 static int cliNetworkID = 0;
 int cliSOcketConnect( int i )
 {
-    socketServer[cliNetworkID].streamOut->pushData( ( uint8_t * ) "Welcome to LS-RGV Command Line Interface\t", sizeof( "Welcome to LS-RGV Command Line Interface\t" ) );
+    char buff[100];
+    sprintf( buff, "Welcome to LS-RGV Command Line Interface IP:%d.%d.%d.%d\t", networkconfig.lip[0], networkconfig.lip[1], networkconfig.lip[2], networkconfig.lip[3] );
+    socketServer[cliNetworkID].streamOut->pushData( ( uint8_t * ) buff, strlen(buff) );
     socketServer[cliNetworkID].streamOut->pushData( ( uint8_t * )"\r\nLS-RGV $ ", sizeof( "\r\nLS-RGV $ " ) );
 }
 
