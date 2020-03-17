@@ -910,8 +910,19 @@ void MotionTask(void const *parment)
                 {
                     if( agv.AGV_Pos > runTaskHeader.next->position )
                     {
-                        debugOut( 0, "[\t%d] miss operation at %0.2f : cmd->%d, position->%0.2f, speed->%0.2f\r\n", PreviousWakeTime, agv.AGV_Pos, runTaskHeader.next->cmd, runTaskHeader.next->position, runTaskHeader.next->data.fData );
-                        listDeleteItemByIndex( &runTaskHeader, 1 );
+                        if( runTaskHeader.next->cmd == 6 )
+                        {
+                            if( agv.AGV_Pos - runTaskHeader.next->position > 100 )
+                            {
+                                debugOut( 0, "[\t%d] miss operation at %0.2f : cmd->%d, position->%0.2f, speed->%0.2f\r\n", PreviousWakeTime, agv.AGV_Pos, runTaskHeader.next->cmd, runTaskHeader.next->position, runTaskHeader.next->data.fData );
+                                listDeleteItemByIndex( &runTaskHeader, 1 );
+                            }
+                        }
+                        else
+                        {
+                            debugOut( 0, "[\t%d] miss operation at %0.2f : cmd->%d, position->%0.2f, speed->%0.2f\r\n", PreviousWakeTime, agv.AGV_Pos, runTaskHeader.next->cmd, runTaskHeader.next->position, runTaskHeader.next->data.fData );
+                            listDeleteItemByIndex( &runTaskHeader, 1 );
+                        }
                     }
                     break;
                 }
@@ -935,7 +946,7 @@ void MotionTask(void const *parment)
                         //   AGV_Pos = AGV_Pos + dis;
                         listDeleteItemByCMD( &runTaskHeader, 6 );
                         BaseType_t timeBak = osKernelSysTick();
-                        while( listGetItemByCMD( &runTaskHeader, 6, &zeroTask ) )
+                        while( listGetItemByCMD( &runTaskHeader, 6, NULL ) )
                         {
                             listDeleteItemByCMD( &runTaskHeader, 6 );
                             if( osKernelSysTick() >= timeBak )

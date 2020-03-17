@@ -152,9 +152,25 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
+          <LineNumber>1083</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134379196</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>..\app_cpp\Motor.cpp</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\Main\../app_cpp/Motor.cpp\1083</Expression>
+        </Bp>
+        <Bp>
+          <Number>1</Number>
+          <Type>0</Type>
           <LineNumber>39</LineNumber>
           <EnabledFlag>0</EnabledFlag>
-          <Address>134404712</Address>
+          <Address>134404372</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -166,11 +182,11 @@
           <Expression>\\Main\../app/modbusTask.c\39</Expression>
         </Bp>
         <Bp>
-          <Number>1</Number>
+          <Number>2</Number>
           <Type>0</Type>
           <LineNumber>304</LineNumber>
           <EnabledFlag>0</EnabledFlag>
-          <Address>134406510</Address>
+          <Address>134406170</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -182,11 +198,11 @@
           <Expression>\\Main\../app/modbusTask.c\304</Expression>
         </Bp>
         <Bp>
-          <Number>2</Number>
+          <Number>3</Number>
           <Type>0</Type>
           <LineNumber>348</LineNumber>
           <EnabledFlag>0</EnabledFlag>
-          <Address>134406774</Address>
+          <Address>134406434</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -198,11 +214,11 @@
           <Expression>\\Main\../app/modbusTask.c\348</Expression>
         </Bp>
         <Bp>
-          <Number>3</Number>
+          <Number>4</Number>
           <Type>0</Type>
           <LineNumber>119</LineNumber>
           <EnabledFlag>0</EnabledFlag>
-          <Address>134404328</Address>
+          <Address>134403990</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -214,11 +230,11 @@
           <Expression>\\Main\../Src/main.c\119</Expression>
         </Bp>
         <Bp>
-          <Number>4</Number>
+          <Number>5</Number>
           <Type>0</Type>
           <LineNumber>359</LineNumber>
           <EnabledFlag>0</EnabledFlag>
-          <Address>134406856</Address>
+          <Address>134406516</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -228,54 +244,6 @@
           <Filename>..\app\modbusTask.c</Filename>
           <ExecCommand></ExecCommand>
           <Expression>\\Main\../app/modbusTask.c\359</Expression>
-        </Bp>
-        <Bp>
-          <Number>5</Number>
-          <Type>0</Type>
-          <LineNumber>1071</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134379196</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\app_cpp\Motor.cpp</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\Main\../app_cpp/Motor.cpp\1071</Expression>
-        </Bp>
-        <Bp>
-          <Number>6</Number>
-          <Type>0</Type>
-          <LineNumber>1075</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134379226</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\app_cpp\Motor.cpp</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\Main\../app_cpp/Motor.cpp\1075</Expression>
-        </Bp>
-        <Bp>
-          <Number>7</Number>
-          <Type>0</Type>
-          <LineNumber>1060</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134379122</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\app_cpp\Motor.cpp</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\Main\../app_cpp/Motor.cpp\1060</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
