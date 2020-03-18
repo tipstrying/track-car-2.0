@@ -15,7 +15,7 @@
 #define MaxSpeed 2000
 
 extern QueueHandle_t SwitchBeltTaskQue;
-extern int switchRunning;
+extern int switchReach;
 extern InOutSwitch target;
 
 static float lastPosition;
@@ -854,7 +854,7 @@ void MotionTask(void const *parment)
                             listDeleteItemByIndex( &runTaskHeader, 1 );
                             break;
                         case 4:
-                            if( getSwitchStatus() != InOutSwitchOut )
+                            if( (getSwitchStatus() != InOutSwitchOut) && switchReach )
                             {
                                 if( !agv.iEmergencyBySoftware )
                                     debugOut(0, "[\t%d] target not reach [OUT] !!!!!!\r\n", PreviousWakeTime );
@@ -862,12 +862,12 @@ void MotionTask(void const *parment)
                             }
                             else
                             {
-                                listDeleteItemByIndex( &runTaskHeader, 1 );
+                                    listDeleteItemByIndex( &runTaskHeader, 1 );
                             }
                             inOutTargetNow = InOutSwitchOut;
                             break;
                         case 5:
-                            if( getSwitchStatus() != InOutSwitchIn )
+                            if( (getSwitchStatus() != InOutSwitchIn) && switchReach )
                             {
                                 if( !agv.iEmergencyBySoftware )
                                     debugOut(0, "[\t%d] target not reach [IN] !!!!!!\r\n", PreviousWakeTime );

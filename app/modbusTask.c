@@ -32,7 +32,7 @@ extern QueueHandle_t SwitchIN6Semap;
 extern QueueHandle_t SwitchIN7Semap;
 
 QueueHandle_t SwitchBeltTaskQue = 0;
-int switchRunning = 0;
+int switchReach = 0;
 InOutSwitch target;
 
 void modbusTask( void const * arg )
@@ -434,7 +434,10 @@ void modbusTask( void const * arg )
                     {
                         debugOut(0, "[\t%d] Start Switch to %s\r\n", osKernelSysTick(), target == InOutSwitchIn ? "[IN]" : "[OUT]" );
                         switchStatus = 2;
+                        switchReach = 0;
                     }
+                    else
+                        switchReach = 1;
                     break;
 
                 }
