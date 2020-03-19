@@ -68,7 +68,9 @@ typedef enum {
     Enum_QueryRelayStatus = 12,
     Enum_SetInOutSwitch = 13,
     Enum_sendOperation = 14,
-    Enum_disableMotor = 15
+    Enum_disableMotor = 15,
+    Enum_setHandSpeedMode = 16,
+    Enum_SetHandSpeed = 17
 }ServerMessageEnumDef;
     
 //extern QueueHandle_t BatterQueRx;

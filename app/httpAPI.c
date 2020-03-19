@@ -84,28 +84,56 @@ int SetOpHttpApi( float position, int cmd, float data )
         return pdFALSE;
     }
 }
+int SetHandSpeedModeHttoApi( int isHandMode )
+{
+    NavigationOperationStd navigationOperationData;
+    navigationOperationData.cmd = Enum_setHandSpeedMode;
+    navigationOperationData.Data.op = isHandMode;
+    if( xQueueSend( NavigationOperationQue, &navigationOperationData, 100 ) == pdPASS )
+    {
+        return pdTRUE;
+    }
+    else
+    {
+        return pdFALSE;
+    }
+}
+int SetHandSpeedModeSpeedHttpApi( int speed )
+{
+    NavigationOperationStd navigationOperationData;
+    navigationOperationData.cmd = Enum_SetHandSpeed;
+    navigationOperationData.Data.speedTo = speed;
+    if( xQueueSend( NavigationOperationQue, &navigationOperationData, 100 ) == pdPASS )
+    {
+        return pdTRUE;
+    }
+    else
+    {
+        return pdFALSE;
+    }
+}
 void beltOpHttpApi( int cmd )
 {
     switch( cmd )
     {
-        case 0:
-            HAL_GPIO_WritePin( OUT_5_GPIO_Port, OUT_5_Pin, GPIO_PIN_RESET );
-            HAL_GPIO_WritePin( OUT_6_GPIO_Port, OUT_6_Pin, GPIO_PIN_RESET );
+    case 0:
+        HAL_GPIO_WritePin( OUT_5_GPIO_Port, OUT_5_Pin, GPIO_PIN_RESET );
+        HAL_GPIO_WritePin( OUT_6_GPIO_Port, OUT_6_Pin, GPIO_PIN_RESET );
         break;
-        case 1:
-            HAL_GPIO_WritePin( OUT_5_GPIO_Port, OUT_5_Pin, GPIO_PIN_SET );
-            HAL_GPIO_WritePin( OUT_6_GPIO_Port, OUT_6_Pin, GPIO_PIN_SET );
+    case 1:
+        HAL_GPIO_WritePin( OUT_5_GPIO_Port, OUT_5_Pin, GPIO_PIN_SET );
+        HAL_GPIO_WritePin( OUT_6_GPIO_Port, OUT_6_Pin, GPIO_PIN_SET );
         break;
-        case 2:
-            HAL_GPIO_WritePin( OUT_5_GPIO_Port, OUT_5_Pin, GPIO_PIN_RESET );
-            HAL_GPIO_WritePin( OUT_6_GPIO_Port, OUT_6_Pin, GPIO_PIN_SET );
+    case 2:
+        HAL_GPIO_WritePin( OUT_5_GPIO_Port, OUT_5_Pin, GPIO_PIN_RESET );
+        HAL_GPIO_WritePin( OUT_6_GPIO_Port, OUT_6_Pin, GPIO_PIN_SET );
         break;
-        case 3:
-            HAL_GPIO_WritePin( OUT_5_GPIO_Port, OUT_5_Pin, GPIO_PIN_SET );
-            HAL_GPIO_WritePin( OUT_6_GPIO_Port, OUT_6_Pin, GPIO_PIN_RESET );
+    case 3:
+        HAL_GPIO_WritePin( OUT_5_GPIO_Port, OUT_5_Pin, GPIO_PIN_SET );
+        HAL_GPIO_WritePin( OUT_6_GPIO_Port, OUT_6_Pin, GPIO_PIN_RESET );
         break;
-        default:
-            break;
+    default:
+        break;
     }
 }
 int InOutStatus()

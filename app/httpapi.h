@@ -20,6 +20,8 @@ int GetBatteryVoltageHttpApi( float *Voltage );
 int setMotorDisable(int status );
 int GetMaxSpeedHttpApi( float *sp );
 int getMilagesHttpApi ( double * mils );
+int SetHandSpeedModeHttoApi( int isHandMode );
+int SetHandSpeedModeSpeedHttpApi( int speed );
     
 #ifdef __cplusplus
 }

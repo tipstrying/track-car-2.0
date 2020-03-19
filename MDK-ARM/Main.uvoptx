@@ -248,8 +248,8 @@
         <Bp>
           <Number>6</Number>
           <Type>0</Type>
-          <LineNumber>288</LineNumber>
-          <EnabledFlag>0</EnabledFlag>
+          <LineNumber>1088</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
           <Address>0</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
@@ -257,7 +257,7 @@
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>0</BreakIfRCount>
-          <Filename>..\app\modbusTask.c</Filename>
+          <Filename>..\app_cpp\Motor.cpp</Filename>
           <ExecCommand></ExecCommand>
           <Expression></Expression>
         </Bp>

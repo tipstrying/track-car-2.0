@@ -746,6 +746,28 @@ void protocolRun( void const *para )
                             PackLen = makePack( buff, packIndex, 12019, 0, 0, 0 );
                             dataOut.pushData( buff, PackLen );
                             break;
+                        case 2020:
+                            navData.cmd = Enum_setHandSpeedMode;
+                            navData.Data.op = data[0];
+                            xQueueSend( NavigationOperationQue, &navData, 100 );
+                            PackLen = makePack( buff, packIndex, 12020, 0, 0, 0 );
+                            dataOut.pushData( buff, PackLen );
+                            break;
+                        case 2021:
+                            if( PackLen == 4 )
+                            {
+                                for( int i = 0; i < 4; i++ )
+                                {
+                                    i32ToHex.Hex[i] = data[3-i];
+                                }
+                                navData.cmd = Enum_SetHandSpeed;
+                                navData.Data.speedTo = i32ToHex.Data;
+                                PackLen = makePack( buff, packIndex, 12021, 0, 0, 0 );
+                                dataOut.pushData( buff, PackLen );
+                            }
+                            break;
+                        default:
+                            break;
                         }
                     }
                 }

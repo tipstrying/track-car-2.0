@@ -75,6 +75,9 @@ static struct
     bool speedMode;
     BaseType_t lastPDOTime;
     bool startUp;
+    bool handSpeedMode;
+    int handSpeed;
+    BaseType_t handSpeedTime;
 
 } MotionStatus;
 
@@ -638,6 +641,34 @@ void MotionTask(void const *parment)
                         else
                             BeltOperating = 1;
                         break;
+                    case Enum_setHandSpeedMode:
+                        if( navigationOperationData.Data.op )
+                        {
+                            if( !MotionStatus.handSpeedMode )
+                            {
+                                MotionStatus.handSpeedMode = true;
+                                MotionStatus.handSpeed = 0;
+                            }
+                            debugOut(0, "[\t%d] Switch to Hand Speed Mode OK\r\n", PreviousWakeTime );
+                        }
+                        else
+                        {
+                            if( MotionStatus.handSpeedMode )
+                            {
+                                MotionStatus.handSpeedMode = false;
+                                AGV_Pos = agv.AGV_Pos;
+                            }
+                            debugOut(0, "[\t%d] Switch Auto Position Mode OK\r\n", PreviousWakeTime );
+                        }
+                        break;
+                    case Enum_SetHandSpeed:
+                        if( abs( MotionStatus.handSpeed - navigationOperationData.Data.speedTo ) > 1 )
+                        {
+                            MotionStatus.handSpeed = navigationOperationData.Data.speedTo;
+                            debugOut(0, "[\t%d] Set Hand Speed Mode speed:%d\r\n", PreviousWakeTime, MotionStatus.handSpeed );
+                        }
+                        MotionStatus.handSpeedTime = PreviousWakeTime;
+                        break;
                     default:
                         break;
                     }
@@ -862,7 +893,7 @@ void MotionTask(void const *parment)
                             }
                             else
                             {
-                                    listDeleteItemByIndex( &runTaskHeader, 1 );
+                                listDeleteItemByIndex( &runTaskHeader, 1 );
                             }
                             inOutTargetNow = InOutSwitchOut;
                             break;
@@ -995,7 +1026,29 @@ void MotionTask(void const *parment)
         }
         else
         {
-            request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.3333333 ) / 1875);
+            if( MotionStatus.handSpeedMode )
+            {
+                if( PreviousWakeTime > MotionStatus.handSpeedTime )
+                {
+                    if( PreviousWakeTime - MotionStatus.handSpeedTime > 500 )
+                    {
+                        request_speed = 0;
+                    }
+                    else
+                    {
+                        static float mm2RPM = 1.0 / (AGV_WheelDiameter * PI) * 60.0;
+                        request_speed = (int)(((double)(MotionStatus.handSpeed * mm2RPM) * 512 * 10000 * 9.3333333 ) / 1875);
+                        
+                    }
+                }
+                else
+                {
+                    MotionStatus.handSpeedTime = PreviousWakeTime;
+                    request_speed = 0;
+                }
+            }
+            else
+                request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.3333333 ) / 1875);
         }
 
         if (DebugCtrl.enableRealTimeSpeed)
