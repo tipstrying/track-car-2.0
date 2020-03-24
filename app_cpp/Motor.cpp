@@ -17,7 +17,7 @@
 extern QueueHandle_t SwitchBeltTaskQue;
 extern int switchReach;
 extern InOutSwitch target;
-
+extern InOutSwitch targetLast;
 static float lastPosition;
 
 #ifdef __cplusplus
@@ -172,25 +172,33 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     }
     if( GPIO_Pin == IN_6_Pin )
     {
-        if( HAL_GPIO_ReadPin( IN_6_GPIO_Port, IN_6_Pin ) )
+        if( SwitchIN6Semap )
         {
-            if( SwitchIN6Semap )
+            if( HAL_GPIO_ReadPin( IN_6_GPIO_Port, IN_6_Pin ) )
             {
-                debugOut( 1, "[\t%d] GPIO ISR IN6 [ok]\r\n", osKernelSysTick() );
+                debugOut( 1, "[\t%d] GPIO ISR IN6 [UP] [ok]\r\n", osKernelSysTick() );
                 BaseType_t nextTask;
                 //    xSemaphoreGiveFromISR( SwitchIN6Semap, &nextTask );
+            }
+            else
+            {
+                debugOut( 1, "[\t%d] GPIO ISR IN6 [DOWN] [ok]\r\n", osKernelSysTick() );
             }
         }
     }
     if( GPIO_Pin == IN_7_Pin )
     {
-        if( HAL_GPIO_ReadPin( IN_7_GPIO_Port, IN_7_Pin ) )
+        if( SwitchIN7Semap )
         {
-            if( SwitchIN7Semap )
+            if( HAL_GPIO_ReadPin( IN_7_GPIO_Port, IN_7_Pin ) )
             {
-                debugOut( 1, "[\t%d] GPIO ISR IN7 [ok]\r\n", osKernelSysTick() );
+                debugOut( 1, "[\t%d] GPIO ISR IN7 [UP] [ok]\r\n", osKernelSysTick() );
                 BaseType_t nextTask;
                 //   xSemaphoreGiveFromISR( SwitchIN7Semap, &nextTask );
+            }
+            else
+            {
+                debugOut( 1, "[\t%d] GPIO ISR IN7 [DOWN] [ok]\r\n", osKernelSysTick() );
             }
         }
     }
@@ -403,7 +411,10 @@ double GetMilage(void)
 
 static CANopenMaster::CANopenRequest CANopen_Tx;
 static CANopenMaster::CANopenResponse CANopen_Rx;
-
+extern "C" {
+    void modbusTask( void const * arg );
+    void StartSwitchTask();
+}
 void MotionTask(void const *parment)
 {
     double milagesXBack = 0;
@@ -624,9 +635,19 @@ void MotionTask(void const *parment)
                         break;
                     case Enum_PauseNavigation:
                         if( navigationOperationData.Data.op )
+                        {
+                            canOpenStatus.pollStep = 2;
+                            navigationOperationData.cmd = 4;
+                            xQueueSend( SwitchBeltTaskQue, &navigationOperationData, 100 );
                             agv.iEmergencyByPause = true;
+                        }
                         else
+                        {
+                            canOpenStatus.pollStep = 3;
+                            navigationOperationData.cmd = 5;
+                            xQueueSend( SwitchBeltTaskQue, &navigationOperationData, 100 );
                             agv.iEmergencyByPause = false;
+                        }
                         break;
                     case Enum_PullThing:
                         if( navigationOperationData.Data.op )
@@ -668,6 +689,20 @@ void MotionTask(void const *parment)
                             debugOut(0, "[\t%d] Set Hand Speed Mode speed:%d\r\n", PreviousWakeTime, MotionStatus.handSpeed );
                         }
                         MotionStatus.handSpeedTime = PreviousWakeTime;
+                        break;
+                    case Enum_SetSleep:
+                        if( navigationOperationData.Data.op )
+                        {
+                            canOpenStatus.pollStep = 2;
+                            navigationOperationData.cmd = 4;
+                            xQueueSend( SwitchBeltTaskQue, &navigationOperationData, 100 );
+                        }
+                        else
+                        {
+                            canOpenStatus.pollStep = 3;
+                            navigationOperationData.cmd = 5;
+                            xQueueSend( SwitchBeltTaskQue, &navigationOperationData, 100 );
+                        }
                         break;
                     default:
                         break;
@@ -885,7 +920,7 @@ void MotionTask(void const *parment)
                             listDeleteItemByIndex( &runTaskHeader, 1 );
                             break;
                         case 4:
-                            if( (getSwitchStatus() != InOutSwitchOut) && switchReach )
+                            if( (getSwitchStatus() != InOutSwitchOut) || (switchReach != 1) || (targetLast != InOutSwitchOut) )
                             {
                                 if( !agv.iEmergencyBySoftware )
                                     debugOut(0, "[\t%d] target not reach [OUT] !!!!!!\r\n", PreviousWakeTime );
@@ -898,7 +933,7 @@ void MotionTask(void const *parment)
                             inOutTargetNow = InOutSwitchOut;
                             break;
                         case 5:
-                            if( (getSwitchStatus() != InOutSwitchIn) && switchReach )
+                            if( (getSwitchStatus() != InOutSwitchIn) || (switchReach != 1) || (targetLast != InOutSwitchIn) )
                             {
                                 if( !agv.iEmergencyBySoftware )
                                     debugOut(0, "[\t%d] target not reach [IN] !!!!!!\r\n", PreviousWakeTime );
@@ -927,9 +962,12 @@ void MotionTask(void const *parment)
                     }
                     else
                     {
+                        if( (runTaskHeader.next->cmd == 4) || (runTaskHeader.next->cmd == 5) )
+                            if( agv.iEmergencyBySoftware )
+                                break;
                         debugOut( 0, "[\t%d] miss operation at %0.2f : cmd->%d, position->%0.2f, speed->%0.2f\r\n", PreviousWakeTime, agv.AGV_Pos, runTaskHeader.next->cmd, runTaskHeader.next->position, runTaskHeader.next->data.fData );
-
                         listDeleteItemByIndex( &runTaskHeader, 1 );
+
                     }
                     if( runTaskHeader.next->cmd == 6 )
                         break;
@@ -951,8 +989,13 @@ void MotionTask(void const *parment)
                         }
                         else
                         {
-                            debugOut( 0, "[\t%d] miss operation at %0.2f : cmd->%d, position->%0.2f, speed->%0.2f\r\n", PreviousWakeTime, agv.AGV_Pos, runTaskHeader.next->cmd, runTaskHeader.next->position, runTaskHeader.next->data.fData );
-                            listDeleteItemByIndex( &runTaskHeader, 1 );
+                            if( /* runTaskHeader.next->cmd == 4 || runTaskHeader.next->cmd == 5 */ 0 )
+                                ;
+                            else
+                            {
+                                debugOut( 0, "[\t%d] miss operation at %0.2f : cmd->%d, position->%0.2f, speed->%0.2f\r\n", PreviousWakeTime, agv.AGV_Pos, runTaskHeader.next->cmd, runTaskHeader.next->position, runTaskHeader.next->data.fData );
+                                listDeleteItemByIndex( &runTaskHeader, 1 );
+                            }
                         }
                     }
                     break;
@@ -1038,7 +1081,7 @@ void MotionTask(void const *parment)
                     {
                         static float mm2RPM = 1.0 / (AGV_WheelDiameter * PI) * 60.0;
                         request_speed = (int)(((double)(MotionStatus.handSpeed * mm2RPM) * 512 * 10000 * 9.3333333 ) / 1875);
-                        
+
                     }
                 }
                 else

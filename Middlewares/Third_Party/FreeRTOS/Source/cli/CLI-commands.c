@@ -47,9 +47,9 @@ void startCLITask()
 {
     void CLITask( void const * parment );
     void protocolRun( void const *para );
-    osThreadDef( CLITask, CLITask, osPriorityHigh, 0, 1024 );
+    osThreadDef( CLITask, CLITask, osPriorityAboveNormal, 0, 1024 );
     osThreadCreate( osThread( CLITask ), NULL);
-    osThreadDef( protocolRun, protocolRun, osPriorityHigh, 0, 1024 );
+    osThreadDef( protocolRun, protocolRun, osPriorityAboveNormal, 0, 1024 );
     osThreadCreate( osThread( protocolRun ), NULL);
 }
 static void prvSaveTraceFile( void );

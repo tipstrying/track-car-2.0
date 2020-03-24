@@ -25,6 +25,32 @@ int fatfsstatus = 0;                                    // 上电默认文件系
 void modbusTask( void const * arg );
 void uart2RecTask( void const *arg );
 
+void StartSwitchTask()
+{
+    TaskStatus_t *pxTaskStatusArray;
+    BaseType_t taskLen = uxTaskGetNumberOfTasks();
+    BaseType_t x;
+
+    pxTaskStatusArray = pvPortMalloc( taskLen * sizeof( TaskStatus_t ) );
+    if( pxTaskStatusArray != NULL )
+    {
+        taskLen = uxTaskGetSystemState( pxTaskStatusArray, taskLen, NULL );
+        for( x = 0; x < taskLen; x++ )
+        {
+            if( strcmp( pxTaskStatusArray[x].pcTaskName, "modbus" ) == 0 )
+            {
+                debugOut(0, "[\t%d] modbusTask is running now, can't create [error] \r\n", osKernelSysTick() );
+                vPortFree( pxTaskStatusArray );
+                return;
+            }
+        }
+    }
+    vPortFree( pxTaskStatusArray );
+    osThreadDef( modbus, modbusTask, osPriorityHigh, 0, 1280 );
+    osThreadCreate( osThread( modbus ), NULL);
+    return;
+}
+
 void InitTask( void const * parment )
 {
     HAL_GPIO_WritePin( OUT_2_GPIO_Port, OUT_2_Pin, GPIO_PIN_SET );
@@ -41,19 +67,17 @@ void InitTask( void const * parment )
     osThreadDef( u2RecService, uart2RecTask, osPriorityHigh, 0, 256 );
     osThreadCreate( osThread( u2RecService ), NULL);
 
-    osThreadDef( BatteryTask, UartTask, osPriorityHigh, 0, 256 );
+    osThreadDef( BatteryTask, UartTask, osPriorityAboveNormal, 0, 256 );
     osThreadCreate( osThread( BatteryTask ), NULL);
 
     osThreadDef(MotionTask, MotionTask, osPriorityRealtime, 0, 4096 );
     osThreadCreate(osThread(MotionTask), NULL);
 
-    osThreadDef( EthernetTask, W5500Task, osPriorityHigh, 0, 2000  );
+    osThreadDef( EthernetTask, W5500Task, osPriorityAboveNormal, 0, 2000  );
     osThreadCreate( osThread( EthernetTask ), NULL);
 
     osThreadDef( modbus, modbusTask, osPriorityHigh, 0, 1280 );
     osThreadCreate( osThread( modbus ), NULL);
-
-
 
     uint32_t tick = osKernelSysTick();
 

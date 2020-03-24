@@ -112,6 +112,30 @@ int SetHandSpeedModeSpeedHttpApi( int speed )
         return pdFALSE;
     }
 }
+int SetSleepModeHttpApi( int isSleep )
+{
+    NavigationOperationStd navigationOperationData;
+    if( isSleep )
+    {
+        navigationOperationData.cmd = Enum_SetSleep;
+        navigationOperationData.Data.op = 1;
+
+    }
+    else
+    {
+        navigationOperationData.cmd = Enum_SetSleep;
+        navigationOperationData.Data.op = 0;
+
+    }
+    if( xQueueSend( NavigationOperationQue, &navigationOperationData, 100 ) == pdPASS )
+    {
+        return pdTRUE;
+    }
+    else
+    {
+        return pdFALSE;
+    }
+}
 void beltOpHttpApi( int cmd )
 {
     switch( cmd )

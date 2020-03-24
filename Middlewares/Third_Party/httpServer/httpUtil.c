@@ -214,6 +214,35 @@ uint8_t http_post_cgi_handler(uint8_t *uri_name, st_http_request *p_http_request
             len = strlen( (char *)buf );
         }
     }
+    else if( strcmp( (const char *)uri_name, "setSleep.cgi" ) == 0 )
+    {
+        uint8_t *cmdString = get_http_param_value( (char *)p_http_request->URI, "mode" );
+        if( cmdString )
+        {
+            if( strcmp( (const char *)cmdString, "true" ) == 0 )
+            {
+                SetSleepModeHttpApi(1);
+                sprintf( (char *)buf, "set sleep ok\r\n" );
+                len = strlen( (char *)buf );
+            }
+            else if( strcmp( (const char *)cmdString, "false" ) == 0 )
+            {
+                SetSleepModeHttpApi( 0 );
+                sprintf( (char *)buf, "set sleep ok\r\n" );
+                len = strlen( (char *)buf );
+            }
+            else
+            {
+                sprintf( (char *)buf, "param value error\r\n" );
+                len = strlen( (char *)buf );
+            }
+        }
+        else
+        {
+            sprintf( (char *)buf, "param value error\r\n" );
+            len = strlen( (char *)buf );
+        }
+    }
     else
     {
         // CGI file not found

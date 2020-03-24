@@ -22,6 +22,7 @@ int GetMaxSpeedHttpApi( float *sp );
 int getMilagesHttpApi ( double * mils );
 int SetHandSpeedModeHttoApi( int isHandMode );
 int SetHandSpeedModeSpeedHttpApi( int speed );
+int SetSleepModeHttpApi( int isSleep );
     
 #ifdef __cplusplus
 }
