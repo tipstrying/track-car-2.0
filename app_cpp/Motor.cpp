@@ -568,6 +568,8 @@ void MotionTask(void const *parment)
                                             inOutTarget = InOutSwitchIn;
                                         }
                                     }
+                                    else
+                                        AGV_Pos = navigationOperationData.Data.posTo;
                                 }
                             }
                             else
