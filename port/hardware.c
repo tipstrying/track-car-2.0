@@ -185,7 +185,7 @@ OnOffDef getThingSensor( int ID, int maxDelay )
 }
 int isPackOnCar()
 {
-    if( HAL_GPIO_ReadPin( IN_T1_Port, IN_T1_Pin ) || HAL_GPIO_ReadPin( IN_T2_Port, IN_T2_Pin ) || HAL_GPIO_ReadPin( IN_T3_Port, IN_T3_Pin ) )
+    if( /* HAL_GPIO_ReadPin( IN_T1_Port, IN_T1_Pin )  || */ HAL_GPIO_ReadPin( IN_T2_Port, IN_T2_Pin ) /* || HAL_GPIO_ReadPin( IN_T3_Port, IN_T3_Pin ) */ )
         return 1;
     else
         return 0;
@@ -229,6 +229,7 @@ DR2: MAC addr
 DR10: real-time position
 DR11-DR12: milages
 DR13: sum of real-time position and milages
+DR14: switchType
 */
 int readPosFromBKP( float *position, double *mils )
 {
@@ -271,18 +272,105 @@ int readPosFromBKP( float *position, double *mils )
     else
         return 0;
 }
+int readSwitchTypeFromBKP(int *type)
+{
+    union {
+        float fData;
+        uint32_t uData;
+        char Hex[4];
+    } u32Tof32;
+
+    char buff[10];
+    memset( buff, 0, sizeof(buff) );
+    u32Tof32.uData = HAL_RTCEx_BKUPRead( &hrtc, RTC_BKP_DR14 );
+    memcpy( buff, u32Tof32.Hex, 4 );
+    if( strcmp( "1Ser", buff ) == 0 )
+    {
+        *type = 1;
+    }
+    else if( strcmp( "2Ser", buff ) == 0 )
+    {
+        *type = 2;
+    }
+    else
+        *type = 0;
+    if( *type )
+        return 1;
+    else
+        return 0;
+}
+
+int writeSwitchTypeFromBKP(int type)
+{
+    union {
+        float fData;
+        uint32_t uData;
+        char Hex[4];
+    } u32Tof32;
+
+    switch( type )
+    {
+    case 1:
+        u32Tof32.Hex[0] = '1';
+        u32Tof32.Hex[1] = 'S';
+        u32Tof32.Hex[2] = 'e';
+        u32Tof32.Hex[3] = 'r';
+        break;
+    case 2:
+        u32Tof32.Hex[0] = '2';
+        u32Tof32.Hex[1] = 'S';
+        u32Tof32.Hex[2] = 'e';
+        u32Tof32.Hex[3] = 'r';
+        break;
+    default:
+        u32Tof32.uData = 0;
+        break;
+    }
+    HAL_RTCEx_BKUPWrite( &hrtc, RTC_BKP_DR14, u32Tof32.uData );
+    return 1;
+}
 
 InOutSwitch getSwitchStatus()
 {
-    if( HAL_GPIO_ReadPin( IN_6_GPIO_Port, IN_6_Pin ) && HAL_GPIO_ReadPin( IN_7_GPIO_Port, IN_7_Pin ) )
+    static int type = -1;
+    if( type == -1 )
     {
-        return InOutSwitchIn;
+        if( readSwitchTypeFromBKP( &type ) == 0 )
+            type = 2;
     }
-    if( HAL_GPIO_ReadPin( IN_7_GPIO_Port, IN_7_Pin ) )
+    if( type == 2 )
     {
-        return InOutSwitchOut;
+        if( HAL_GPIO_ReadPin( IN_6_GPIO_Port, IN_6_Pin ) && HAL_GPIO_ReadPin( IN_7_GPIO_Port, IN_7_Pin ) )
+        {
+            return InOutSwitchIn;
+        }
+        if( HAL_GPIO_ReadPin( IN_7_GPIO_Port, IN_7_Pin ) )
+        {
+            return InOutSwitchOut;
+        }
+        return InOutSwitchUnknow;
     }
-    return InOutSwitchUnknow;
+    else if( type == 1 )
+    {
+        if( HAL_GPIO_ReadPin( IN_6_GPIO_Port, IN_6_Pin ) )
+        {
+            return InOutSwitchIn;
+        }
+        if( HAL_GPIO_ReadPin( IN_7_GPIO_Port, IN_7_Pin ) )
+        {
+            return InOutSwitchOut;
+        }
+        return InOutSwitchUnknow;
+    }
+    else
+    {
+        static int isDebugOut = 0;
+        if( !isDebugOut )
+        {
+            isDebugOut = 1;
+            debugOut(0, "[\t%d] Unknow Switch Sensor Type!!!!!!!\r\n", osKernelSysTick() );
+        }
+    }
 }
 
 OnOffDef getEmergencyKey()

@@ -50,6 +50,9 @@ OnOffDef powerKeyWork( uint32_t clock);
 int writePosToBKP( float position, double mils );
 int readPosFromBKP( float *position, double *mils );
  int isPackOnCar();
+int readSwitchTypeFromBKP(int *type);
+int writeSwitchTypeFromBKP(int type);
+
 #ifdef __cplusplus
 }
 #endif

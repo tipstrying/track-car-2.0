@@ -188,6 +188,30 @@ static const CLI_Command_Definition_t xParameterSetIpMac =
     setIpMac,
     -1
 };
+static BaseType_t setBeltSpeedCli( char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString );
+static const CLI_Command_Definition_t xParametersetBeltSpeed =
+{
+    "belt",
+    "\r\nbelt [show] [set speed:%f]",
+    setBeltSpeedCli,
+    -1
+};
+static BaseType_t setSwitchTypeCli( char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString );
+static const CLI_Command_Definition_t xParametersetSwitchTypeCli =
+{
+    "switch",
+    "\r\nswitch [show] [set type:%d]",
+    setSwitchTypeCli,
+    -1
+};
+static BaseType_t RTCReadCli( char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString );
+static const CLI_Command_Definition_t xParameterRTCReadCli =
+{
+    "RTC",
+    "\r\nRTC: read RTC Data",
+    RTCReadCli,
+    -1
+};
 /*-----------------------------------------------------------*/
 
 void vRegisterCLICommands( void )
@@ -207,6 +231,81 @@ void vRegisterCLICommands( void )
     FreeRTOS_CLIRegisterCommand( &xParameterFree );
     FreeRTOS_CLIRegisterCommand( &xParameterReboot );
     FreeRTOS_CLIRegisterCommand( &xParameterSetIpMac );
+    FreeRTOS_CLIRegisterCommand( &xParametersetBeltSpeed );
+    FreeRTOS_CLIRegisterCommand( &xParametersetSwitchTypeCli );
+    FreeRTOS_CLIRegisterCommand( &xParameterRTCReadCli );
+    
+}
+static BaseType_t RTCReadCli( char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString )
+{
+    static int i = 0;
+    uint32_t RTCData;
+    RTCData = HAL_RTCEx_BKUPRead( &hrtc, i );
+    sprintf( pcWriteBuffer, "%d:0x%X  ",i, RTCData );
+    i++;
+    if( i < 17 )
+        return pdTRUE;
+    else
+    {
+        i = 0;
+        return pdFALSE;
+    }
+}
+static BaseType_t setSwitchTypeCli( char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString )
+{
+    /* switch type save on BKP DR14, it is a string '1Ser' or '2Ser' else all error */
+    BaseType_t argc;
+    int type;
+    const char *arg = FreeRTOS_CLIGetParameter( pcCommandString, 1, &argc );
+    if( strcmp( arg, "show" ) == 0 )
+    {
+        if( readSwitchTypeFromBKP( &type ) )
+        {
+            sprintf( pcWriteBuffer, "Switch Sensor Type:%d\r\n", type );
+        }
+        else
+            sprintf( pcWriteBuffer, "Switch Sensor Type Read Error\r\n" );
+    }
+    else
+    {
+        if( sscanf( arg, "set type:%d", &type ) == 1 )
+        {
+            sprintf( pcWriteBuffer, "Set Switch Sensor Type:%d\r\n", type );
+            writeSwitchTypeFromBKP( type );
+        }
+        else
+            sprintf( pcWriteBuffer, "unknow parameter\r\n" );
+    }
+    return pdFALSE;
+}
+
+float getBeltSpeed();
+void setBeltSpeed( float speed );
+
+static BaseType_t setBeltSpeedCli( char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString )
+{
+    const char * arg1, *arg2;
+    BaseType_t argLen;
+    float speed;
+    arg1 = FreeRTOS_CLIGetParameter( pcCommandString, 1, &argLen );
+    if( strstr( arg1, "show" ) != 0 )
+    {
+        sprintf( pcWriteBuffer, "Belt speed now:%0.2f\r\n", getBeltSpeed() );
+    }
+    else
+    {
+        if( strstr( arg1, "set speed" ) != 0 )
+        {
+            if( sscanf( arg1, "set speed:%f", &speed ) == 1 )
+            {
+                setBeltSpeed( speed );
+                sprintf( pcWriteBuffer, "Set Belt Speed:%0.2f\r\n", speed );
+            }
+        }
+        else
+            sprintf( pcWriteBuffer, "unknow parameter\r\n" );
+    }
+    return pdFALSE;
 }
 static BaseType_t setIpMac( char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString )
 {

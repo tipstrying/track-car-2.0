@@ -35,7 +35,15 @@ QueueHandle_t SwitchBeltTaskQue = 0;
 int switchReach = -1;
 InOutSwitch target;
 InOutSwitch targetLast;
-float BeltSpeed = 1;
+static float BeltSpeed = 1.6;
+float getBeltSpeed()
+{
+    return BeltSpeed;
+}
+void setBeltSpeed( float speed )
+{
+    BeltSpeed = speed;
+}
 static struct
 {
     BaseType_t timeStart;
