@@ -538,13 +538,51 @@ void MotionTask(void const *parment)
                             if( listGetItemByCMD( &runTaskHeader, 6, &runTask ) )
                             {
                                 if( navigationOperationData.Data.posTo < runTask.position )
-                                    AGV_Pos = runTask.position + navigationOperationData.Data.posTo;
+                                {
+                                    if( runTask.position + navigationOperationData.Data.posTo < AGV_Pos )
+                                    {
+                                        // back car
+                                        if( getSwitchStatus() == InOutSwitchIn )
+                                        {
+                                            AGV_Pos = runTask.position + navigationOperationData.Data.posTo;
+                                        }
+                                        else
+                                        {
+                                            inOutTarget = InOutSwitchIn;
+                                        }
+                                    }
+                                    else
+                                        AGV_Pos = runTask.position + navigationOperationData.Data.posTo;
+                                }
                                 else
-                                    AGV_Pos = navigationOperationData.Data.posTo;
+                                {
+                                    if( navigationOperationData.Data.posTo < AGV_Pos )
+                                    {
+                                        // back car
+                                        if( getSwitchStatus() == InOutSwitchIn )
+                                        {
+                                            AGV_Pos = navigationOperationData.Data.posTo;
+                                        }
+                                        else
+                                        {
+                                            inOutTarget = InOutSwitchIn;
+                                        }
+                                    }
+                                }
                             }
                             else
                             {
-                                AGV_Pos = navigationOperationData.Data.posTo;
+                                if( navigationOperationData.Data.posTo < AGV_Pos )
+                                {
+                                    if( getSwitchStatus() == InOutSwitchIn )
+                                    {
+                                        AGV_Pos = navigationOperationData.Data.posTo;
+                                    }
+                                    else
+                                        inOutTarget = InOutSwitchIn;
+                                }
+                                else
+                                    AGV_Pos = navigationOperationData.Data.posTo;
                             }
                         }
                         else
