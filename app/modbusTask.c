@@ -35,7 +35,7 @@ QueueHandle_t SwitchBeltTaskQue = 0;
 int switchReach = -1;
 InOutSwitch target;
 InOutSwitch targetLast;
-static float BeltSpeed = 1.6;
+static float BeltSpeed = 2.0;
 float getBeltSpeed()
 {
     return BeltSpeed;
@@ -335,7 +335,7 @@ TaskWakeUp:
                             while( xSemaphoreTake( SwitchIN7Semap, 0 ) == pdPASS )
                                 osDelay(1);
                             timeOutData.timeStart = osKernelSysTick();
-                            timeOutData.timeOut = 1000;
+                            timeOutData.timeOut = 400;
                             timeOutData.boolTimeout = 0;
                         }
                         else

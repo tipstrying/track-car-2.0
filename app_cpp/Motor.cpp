@@ -83,7 +83,12 @@ static struct
 
 int IsMotorAlarm()
 {
-    return (MotionStatus.alarm || !MotionStatus.enable );
+    if( agv.iEmergencyByPause )
+    {
+        return MotionStatus.alarm;
+    }
+    else
+        return (MotionStatus.alarm || !MotionStatus.enable );
 }
 void ClearMotorAlarm()
 {
@@ -532,6 +537,7 @@ void MotionTask(void const *parment)
                         debugOut( 0, "[\t%d] Set Speed:%0.2f\r\n", PreviousWakeTime, agv.sSpeed_max );
                         break;
                     case Enum_SendNavigation:
+
                         if( /* navigationOperationData.Data.posTo < agv.AGV_Pos */ 1 )
                         {
                             RunTaskDef runTask;
