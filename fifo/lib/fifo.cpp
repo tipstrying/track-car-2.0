@@ -105,7 +105,8 @@ int FifoClass::readFromBuff( uint8_t *data, int len, bool iSThrowData )
     {
         if (pBuffMax - pStart >= len)
         {
-            memcpy(data, pStart, len);
+            if( data != NULL )
+                memcpy(data, pStart, len);
             if (iSThrowData)
             {
                 pStart += len;
@@ -116,8 +117,11 @@ int FifoClass::readFromBuff( uint8_t *data, int len, bool iSThrowData )
         else
         {
             int remaining = pBuffMax - pStart;
-            memcpy(data, pStart, remaining);
-            memcpy(data + remaining, pBuffMin, len - remaining);
+            if( data != NULL )
+            {
+                memcpy(data, pStart, remaining);
+                memcpy(data + remaining, pBuffMin, len - remaining);
+            }
             if (iSThrowData)
             {
                 pStart = pBuffMin + (len - remaining);

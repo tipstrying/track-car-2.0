@@ -889,8 +889,30 @@ void CLITask( void const * parment )
     BaseType_t xMoreDataToFollow;
     long lBytes;
     static char cInputString[ 100 ], cOutputString[ 1024 ];
+    int CmdStringIndex = 0;
     static FifoClass stdinBuff;
     static FifoClass stdoutBuff;
+    enum KEY_ACTION {
+        KEY_NULL = 0,	    /* NULL */
+        CTRL_A = 1,         /* Ctrl+a */
+        CTRL_B = 2,         /* Ctrl-b */
+        CTRL_C = 3,         /* Ctrl-c */
+        CTRL_D = 4,         /* Ctrl-d */
+        CTRL_E = 5,         /* Ctrl-e */
+        CTRL_F = 6,         /* Ctrl-f */
+        CTRL_H = 8,         /* Ctrl-h */
+        TAB = 9,            /* Tab */
+        CTRL_K = 11,        /* Ctrl+k */
+        CTRL_L = 12,        /* Ctrl+l */
+        ENTER = 10,         /* Enter */
+        CTRL_N = 14,        /* Ctrl-n */
+        CTRL_P = 16,        /* Ctrl-p */
+        CTRL_T = 20,        /* Ctrl-t */
+        CTRL_U = 21,        /* Ctrl+u */
+        CTRL_W = 23,        /* Ctrl+w */
+        ESC = 27,           /* Escape */
+        BACKSPACE =  127    /* Backspace */
+    };
 
     cliNetworkID = createSocket( &stdinBuff, &stdoutBuff, 5002, cliSOcketConnect, NULL );
     createSocket( NULL, &debugFifoBuff, 5001, NULL, NULL );
@@ -908,25 +930,46 @@ void CLITask( void const * parment )
     u32ToHex.Hex[3] = 'M';
     if( HAL_RTCEx_BKUPRead( &hrtc, RTC_BKP_DR0 ) != u32ToHex.Data )
         HAL_RTCEx_BKUPWrite( &hrtc, RTC_BKP_DR0, u32ToHex.Data );
+    CmdStringIndex = 0;
 
     for( ;; )
     {
         if( stdinBuff.available() )
         {
-            if( stdinBuff.back() == '\n' )
+            switch( stdinBuff.front() )
             {
-                lBytes = stdinBuff.popData( (uint8_t *)cInputString, stdinBuff.available() );
-                cInputString[lBytes] = 0;
-                if( cInputString[lBytes - 2] == '\r' )
-                    cInputString[lBytes - 2] = 0;
-                if( cInputString[lBytes - 1] == '\n' )
-                    cInputString[lBytes - 1] = 0;
-                do
+            case '\b':
+                if( CmdStringIndex > 0 )
+                    CmdStringIndex --;
+                break;
+            case '\t':
+                break;
+            default:
+                cInputString[CmdStringIndex] = stdinBuff.front();
+                if( CmdStringIndex < sizeof(cInputString) - 1 )
+                    CmdStringIndex++;
+                break;
+            }
+            stdinBuff.popData( NULL, 1 );
+            if( CmdStringIndex > 0 )
+            {
+                if( cInputString[CmdStringIndex - 1] == '\n' )
                 {
-                    xMoreDataToFollow = FreeRTOS_CLIProcessCommand( ( const char * ) cInputString, cOutputString, (size_t) sizeof( cOutputString ) );
-                    stdoutBuff.pushData( (uint8_t *) cOutputString, strlen( cOutputString ) );
-                } while( xMoreDataToFollow != pdFAIL );
-                stdoutBuff.pushData( ( uint8_t * ) "\r\nLS-RGV $ ", sizeof( "\r\nLS-RGV $ " ) );
+                //    lBytes = stdinBuff.popData( (uint8_t *)cInputString, stdinBuff.available() );
+                  //  cInputString[lBytes] = 0;
+                    if( cInputString[CmdStringIndex - 2] == '\r' )
+                        cInputString[CmdStringIndex - 2] = 0;
+                    if( cInputString[CmdStringIndex - 1] == '\n' )
+                        cInputString[CmdStringIndex - 1] = 0;
+                    do
+                    {
+                        xMoreDataToFollow = FreeRTOS_CLIProcessCommand( ( const char * ) cInputString, cOutputString, (size_t) sizeof( cOutputString ) );
+                        stdoutBuff.pushData( (uint8_t *) cOutputString, strlen( cOutputString ) );
+                    } while( xMoreDataToFollow != pdFAIL );
+                    memset( cInputString, 0, sizeof(cInputString) );
+                    CmdStringIndex = 0;
+                    stdoutBuff.pushData( ( uint8_t * ) "\r\nLS-RGV $ ", sizeof( "\r\nLS-RGV $ " ) );
+                }
             }
             else
                 osDelay(1);
