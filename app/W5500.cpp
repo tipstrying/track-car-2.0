@@ -878,8 +878,8 @@ static bool showBanner = true;
 static int cliNetworkID = 0;
 int cliSOcketConnect( int i )
 {
-    char buff[100];
-    sprintf( buff, "Welcome to LS-RGV Command Line Interface IP:%d.%d.%d.%d\t", networkconfig.lip[0], networkconfig.lip[1], networkconfig.lip[2], networkconfig.lip[3] );
+    char buff[500];
+    sprintf( buff, "Welcome to LS-RGV Command Line Interface IP:%d.%d.%d.%d\r\n%s", networkconfig.lip[0], networkconfig.lip[1], networkconfig.lip[2], networkconfig.lip[3], BUILDTIME );
     socketServer[cliNetworkID].streamOut->pushData( ( uint8_t * ) buff, strlen(buff) );
     socketServer[cliNetworkID].streamOut->pushData( ( uint8_t * )"\r\nLS-RGV $ ", sizeof( "\r\nLS-RGV $ " ) );
 }

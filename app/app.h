@@ -8,6 +8,8 @@ extern "C" {
 #include "ff.h"
 #include "fatfs.h"
 
+#define softVersion "V1.0"
+    
 typedef struct {
     char enableRealTimeEcode;
     char enableRealTimeSpeed;

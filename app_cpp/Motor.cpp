@@ -88,7 +88,14 @@ int IsMotorAlarm()
         return MotionStatus.alarm;
     }
     else
-        return (MotionStatus.alarm || !MotionStatus.enable );
+    {
+        if( MotionStatus.alarmCleanDisable )
+        {
+            return (MotionStatus.alarm || !MotionStatus.enable );
+        }
+        else
+            return 0;
+    }
 }
 void ClearMotorAlarm()
 {
@@ -949,7 +956,7 @@ void MotionTask(void const *parment)
                             6：清零
                             */
                         if( runTaskHeader.next->cmd != 6 )
-                            debugOut( 0, "[\t%d] run Task at %0.2f: cmd->%d, position->%0.2f, speed->%0.2f\r\n", PreviousWakeTime, agv.AGV_Pos, runTaskHeader.next->cmd, runTaskHeader.next->position, runTaskHeader.next->data.fData );
+                            debugOut( 0, "[\t%d] run Task at %0.2f real-time speed->%f: cmd->%d, position->%0.2f, speed->%0.2f\r\n", PreviousWakeTime, agv.AGV_Pos, agv.Request_RPM, runTaskHeader.next->cmd, runTaskHeader.next->position, runTaskHeader.next->data.fData );
                         switch( runTaskHeader.next->cmd )
                         {
                         case 1:
@@ -1137,7 +1144,12 @@ void MotionTask(void const *parment)
                 }
             }
             else
-                request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.3333333 ) / 1875);
+            {
+                if( agv.Request_RPM == 0 )
+                    request_speed = 0;
+                else
+                    request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.3333333 ) / 1875);
+            }
         }
 
         if (DebugCtrl.enableRealTimeSpeed)
