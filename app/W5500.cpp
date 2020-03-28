@@ -385,6 +385,23 @@ int decodePack( uint8_t *packBuff, int buffLen, uint64_t *packIndex, uint16_t *p
 int IsMotorAlarm();
 void ClearMotorAlarm();
 extern int switchReach;
+static int serverConnectOk( int ip )
+{
+    debugOut(0, "[\t%d] Server connect ok\r\n", osKernelSysTick() );
+    NavigationOperationStd navData;
+    navData.cmd = Enum_SetSleep;
+    navData.Data.op = 0;
+    xQueueSend( NavigationOperationQue, &navData, 100 );
+}
+static int serverDisconnect( int ip )
+{
+    debugOut(0, "[\t%d] Server disconnect\r\n", osKernelSysTick() );
+    NavigationOperationStd navData;
+    navData.cmd = Enum_SetSleep;
+    navData.Data.op = 1;
+    xQueueSend( NavigationOperationQue, &navData, 100 );
+}
+
 int createSocket(FifoClass *in, FifoClass *out, uint16_t port, fun_ptr onCreatep, fun_ptr onClosep );
 void protocolRun( void const *para )
 {
@@ -768,6 +785,7 @@ void protocolRun( void const *para )
                                 }
                                 navData.cmd = Enum_SetHandSpeed;
                                 navData.Data.speedTo = i32ToHex.Data;
+                                xQueueSend( NavigationOperationQue, &navData, 10 );
                                 PackLen = makePack( buff, packIndex, 12021, 0, 0, 0 );
                                 dataOut.pushData( buff, PackLen );
                             }
@@ -955,8 +973,8 @@ void CLITask( void const * parment )
             {
                 if( cInputString[CmdStringIndex - 1] == '\n' )
                 {
-                //    lBytes = stdinBuff.popData( (uint8_t *)cInputString, stdinBuff.available() );
-                  //  cInputString[lBytes] = 0;
+                    //    lBytes = stdinBuff.popData( (uint8_t *)cInputString, stdinBuff.available() );
+                    //  cInputString[lBytes] = 0;
                     if( cInputString[CmdStringIndex - 2] == '\r' )
                         cInputString[CmdStringIndex - 2] = 0;
                     if( cInputString[CmdStringIndex - 1] == '\n' )

@@ -78,6 +78,7 @@ static struct
     bool handSpeedMode;
     int handSpeed;
     BaseType_t handSpeedTime;
+    bool bootUp;
 
 } MotionStatus;
 
@@ -455,6 +456,8 @@ void MotionTask(void const *parment)
     MotionStatus.alarm = false;
     MotionStatus.alarmCleanDisable = false;
     MotionStatus.startUp = true;
+    MotionStatus.bootUp = true;
+    
 
     // defatult enable EXTI, Navigation, Switch, Operation, StartUp log
     DebugCtrl.enableNavigation = 1;
@@ -864,7 +867,7 @@ void MotionTask(void const *parment)
                 break;
             }
         }
-        if( 1 ) //// update hardware message
+        if( 0 ) //// update hardware message
         {
             if (getEmergencyKey() == on)
             {

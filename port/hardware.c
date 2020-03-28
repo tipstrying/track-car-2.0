@@ -476,6 +476,7 @@ OnOffDef powerKeyWork( uint32_t clock)
     }
     return off;
 }
+/*
 void setPowerKey( OnOffDef status )
 {
     if( status == on )
@@ -489,3 +490,4 @@ void setPowerKey( OnOffDef status )
         HAL_GPIO_WritePin( OUT_2_GPIO_Port, OUT_2_Pin, GPIO_PIN_RESET );
     }
 }
+*/

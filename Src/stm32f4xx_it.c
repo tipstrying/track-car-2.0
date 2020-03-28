@@ -115,7 +115,7 @@ void HardFault_Handler(void)
   while (1)
   {
     /* USER CODE BEGIN W1_HardFault_IRQn 0 */
-      HAL_RTCEx_BKUPWrite( &hrtc, RTC_BKP_DR0, 0 );
+      //HAL_RTCEx_BKUPWrite( &hrtc, RTC_BKP_DR0, 0 );
         HAL_GPIO_WritePin( OUT_5_GPIO_Port, OUT_5_Pin, GPIO_PIN_SET );
     /* USER CODE END W1_HardFault_IRQn 0 */
   }

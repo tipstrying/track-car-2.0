@@ -72,10 +72,12 @@ void modbusTask( void const * arg )
     debugOut(0, "[\t%d] Start init Modbus\r\n", osKernelSysTick() );
     if( MB_ENOERR == eMBMSerialInit( &xMBMMaster, MB_RTU, MBM_SERIAL_PORT, MBM_SERIAL_BAUDRATE, MBM_PARITY ) )
     {
+        /*
         while( Battery.Voltage < 25000 )
         {
             osDelay(10);
         }
+        */
 TaskWakeUp:
         debugOut(0, "[\t%d] Battery voltage up to 25000mV [ok]\r\n", osKernelSysTick() );
         debugOut(0, "[\t%d] Start set up Belt Motor [ok]\r\n", osKernelSysTick() );
