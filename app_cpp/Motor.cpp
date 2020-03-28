@@ -457,7 +457,7 @@ void MotionTask(void const *parment)
     MotionStatus.alarmCleanDisable = false;
     MotionStatus.startUp = true;
     MotionStatus.bootUp = true;
-    
+
 
     // defatult enable EXTI, Navigation, Switch, Operation, StartUp log
     DebugCtrl.enableNavigation = 1;
@@ -895,27 +895,13 @@ void MotionTask(void const *parment)
 #if 1
             if (CANopen_Rx.work())
             {
-                static int enCodeAlarmCount = 0;
                 if (abs(agv.EncoderValue - Encoder_Value) > 100000)
                 {
-                    if (enCodeAlarmCount < 3)
-                    {
-                        debugOut( 0, "[\t%d] Encode up too much\r\n", PreviousWakeTime);
-                    }
-                    if (agv.EncoderValue == 0)
-                    {
-                        agv.EncoderValue = Encoder_Value;
-                    }
-                    else
-                    {
-                        enCodeAlarmCount++;
-                    }
+                    debugOut( 0, "[\t%d] Encode up too much [error]\r\n", PreviousWakeTime);
                 }
-                else
-                {
-                    agv.EncoderValue = Encoder_Value;
-                }
-                agv.DetectDynamics();
+
+                agv.EncoderValue = Encoder_Value;
+                //agv.DetectDynamics();
                 static float posBakForBKP;
                 if( fabsf( posBakForBKP - agv.AGV_Pos ) > 1 )
                 {
