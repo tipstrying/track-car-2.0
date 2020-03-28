@@ -25,7 +25,7 @@
 
 /* ----------------------- Defines ------------------------------------------*/
 #define TIMER_TASK_PRIORITY             ( MBP_TASK_PRIORITY )
-#define TIMER_TASK_STACKSIZE            ( 128 )
+#define TIMER_TASK_STACKSIZE            ( 256 )
 #define TIMER_TICKRATE_MS               ( 10 / portTICK_RATE_MS )
 #define MAX_TIMER_HDLS                  ( 3 )
 #define IDX_INVALID                     ( 255 )

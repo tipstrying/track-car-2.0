@@ -548,14 +548,14 @@
           <GroupName>Drivers/CMSIS</GroupName>
           <Files>
             <File>
-              <FileName>startup_stm32f429xx.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>.\startup_stm32f429xx.s</FilePath>
-            </File>
-            <File>
               <FileName>system_stm32f4xx.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Src/system_stm32f4xx.c</FilePath>
+            </File>
+            <File>
+              <FileName>startup_stm32f429xx.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>.\startup_stm32f429xx.s</FilePath>
             </File>
           </Files>
         </Group>

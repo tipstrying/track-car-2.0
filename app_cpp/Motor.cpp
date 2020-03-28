@@ -79,6 +79,7 @@ static struct
     int handSpeed;
     BaseType_t handSpeedTime;
     bool bootUp;
+    BaseType_t lastEncodeTime;
 
 } MotionStatus;
 
@@ -524,6 +525,7 @@ void MotionTask(void const *parment)
     InOutSwitch inOutTargetNow;
     if( inOutTarget == InOutSwitchUnknow )
         inOutTarget = InOutSwitchIn;
+
     //   prvInitHardwares();
     for (;;)
     {
@@ -897,10 +899,11 @@ void MotionTask(void const *parment)
             {
                 if (abs(agv.EncoderValue - Encoder_Value) > 100000)
                 {
-                    debugOut( 0, "[\t%d] Encode up too much [error]\r\n", PreviousWakeTime);
+                    debugOut( 0, "[\t%d] <ERROR> <Motion> {ENCODE} Encode up too much last->%d, new->%d [error]\r\n", PreviousWakeTime, agv.EncoderValue, Encoder_Value);
                 }
 
                 agv.EncoderValue = Encoder_Value;
+                MotionStatus.lastEncodeTime = PreviousWakeTime;
                 //agv.DetectDynamics();
                 static float posBakForBKP;
                 if( fabsf( posBakForBKP - agv.AGV_Pos ) > 1 )
@@ -912,9 +915,21 @@ void MotionTask(void const *parment)
                 if( fabsf( posBakForLog - agv.AGV_Pos ) > 100 )
                 {
                     posBakForLog = agv.AGV_Pos;
-                    debugOut(0, "[\t%d] Real-Time Position: pos->%0.2f, encoder->%d\r\n", PreviousWakeTime, posBakForLog, agv.EncoderValue );
+                    debugOut(0, "[\t%d] <INFO> <Motion> {Real-Time Position} Positon->%0.2f, encoder->%d\r\n", PreviousWakeTime, posBakForLog, agv.EncoderValue );
                 }
+
             }
+            if( PreviousWakeTime > MotionStatus.lastEncodeTime )
+            {
+                if( PreviousWakeTime - MotionStatus.lastEncodeTime > 100 )
+                {
+                    debugOut(0, "[\t%d] <ERROR> <Motion> {ENCODE} Encode up timeout!!!\r\n", PreviousWakeTime );
+                    MotionStatus.lastEncodeTime = PreviousWakeTime;
+                }
+                    
+            }
+            else
+                MotionStatus.lastEncodeTime = PreviousWakeTime;
 #else
             if( MotionStatus.EcodeDelay )
                 MotionStatus.EcodeDelay = false;
