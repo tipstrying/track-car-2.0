@@ -141,40 +141,48 @@ float AGV_Parallel_Motion::Move(float iDistance)
     }
     if (iDistance < 0)
         SetSpeed = -SetSpeed;
-    
+
     if ( this->iEmergencyByKey || this->iEmergencyBySoftware || this->iEmergencyByError || this->iEmergencyByPause || this->iEmergencyByCancel )
     {
+        float securityDelta_straight;
         SetSpeed = 0;
-    }
-
-    float securityDelta_straight;
-    if (speedNow > SetSpeed)
-    {
         securityDelta_straight = sAcceleration * sample_Time / 1000.0;
+        speedNow = speedNow - securityDelta_straight;
+        if( abs(speedNow) < 10 )
+            speedNow = 0;
     }
     else
     {
-        securityDelta_straight = sAcceleration * sample_Time / 1000.0;
-    }
-    if (speedNow > SetSpeed)
-    {
-        if( stopDistance > iDistance )
+
+        float securityDelta_straight;
+        if (speedNow > SetSpeed)
         {
-            if( iDistance > sDeceleration_distance )
-                speedNow = sqrt( 2 * sAcceleration * (iDistance - sDeceleration_distance) );
-            else
-                speedNow = sSpeed_min;
+            securityDelta_straight = sAcceleration * sample_Time / 1000.0;
         }
         else
         {
-            if( speedNow > sSpeed_max )
+            securityDelta_straight = sAcceleration * sample_Time / 1000.0;
+        }
+        if (speedNow > SetSpeed)
+        {
+            if( stopDistance > iDistance )
             {
-                speedNow -= securityDelta_straight;
+                if( iDistance > sDeceleration_distance )
+                    speedNow = sqrt( 2 * sAcceleration * (iDistance - sDeceleration_distance) );
+                else
+                    speedNow = sSpeed_min;
+            }
+            else
+            {
+                if( speedNow > sSpeed_max )
+                {
+                    speedNow -= securityDelta_straight;
+                }
             }
         }
+        else if (speedNow < SetSpeed)
+            speedNow += securityDelta_straight;
     }
-    else if (speedNow < SetSpeed)
-        speedNow += securityDelta_straight;
     return speedNow;
 }
 

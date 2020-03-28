@@ -694,9 +694,12 @@ void MotionTask(void const *parment)
                     case Enum_PauseNavigation:
                         if( navigationOperationData.Data.op )
                         {
+                            /*
                             canOpenStatus.pollStep = 2;
                             navigationOperationData.cmd = 4;
                             xQueueSend( SwitchBeltTaskQue, &navigationOperationData, 100 );
+                            */
+                            debugOut(0, "[\t%d] <CMD> <Motion> {Pause} ok\r\n", PreviousWakeTime );
                             agv.iEmergencyByPause = true;
                         }
                         else
@@ -741,7 +744,7 @@ void MotionTask(void const *parment)
                         }
                         break;
                     case Enum_SetHandSpeed:
-                        if( abs( MotionStatus.handSpeed - navigationOperationData.Data.speedTo ) > 1 )
+                        if( abs( MotionStatus.handSpeed - navigationOperationData.Data.speedTo ) > 50 )
                         {
                             MotionStatus.handSpeed = navigationOperationData.Data.speedTo;
                             debugOut(0, "[\t%d] Set Hand Speed Mode speed:%d\r\n", PreviousWakeTime, MotionStatus.handSpeed );
@@ -926,7 +929,7 @@ void MotionTask(void const *parment)
                     debugOut(0, "[\t%d] <ERROR> <Motion> {ENCODE} Encode up timeout!!!\r\n", PreviousWakeTime );
                     MotionStatus.lastEncodeTime = PreviousWakeTime;
                 }
-                    
+
             }
             else
                 MotionStatus.lastEncodeTime = PreviousWakeTime;
@@ -1149,10 +1152,23 @@ void MotionTask(void const *parment)
             }
             else
             {
-                if( agv.Request_RPM == 0 )
-                    request_speed = 0;
-                else
+                if( agv.iEmergencyByPause )
+                {
                     request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.3333333 ) / 1875);
+                    if( request_speed == 0 )
+                    {
+                        canOpenStatus.pollStep = 2;
+                        navigationOperationData.cmd = 4;
+                        xQueueSend( SwitchBeltTaskQue, &navigationOperationData, 100 );
+                    }
+                }
+                else
+                {
+                    if( agv.Request_RPM == 0 )
+                        request_speed = 0;
+                    else
+                        request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.3333333 ) / 1875);
+                }
             }
         }
 
