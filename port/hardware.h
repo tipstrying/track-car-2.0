@@ -49,7 +49,7 @@ InOutSwitch setSwitch( InOutSwitch target );
 OnOffDef powerKeyWork( uint32_t clock);
 int writePosToBKP( float position, double mils );
 int readPosFromBKP( float *position, double *mils );
- int isPackOnCar();
+ int getThingSensorStatus( int type);
 int readSwitchTypeFromBKP(int *type);
 int writeSwitchTypeFromBKP(int type);
 

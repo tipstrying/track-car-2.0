@@ -183,12 +183,12 @@ OnOffDef getThingSensor( int ID, int maxDelay )
         return off;
     }
 }
-int isPackOnCar()
+int getThingSensorStatus( int type )
 {
-    if( /* HAL_GPIO_ReadPin( IN_T1_Port, IN_T1_Pin )  || */ HAL_GPIO_ReadPin( IN_T2_Port, IN_T2_Pin ) /* || HAL_GPIO_ReadPin( IN_T3_Port, IN_T3_Pin ) */ )
-        return 1;
+    if( type )
+        return HAL_GPIO_ReadPin( IN_T2_Port, IN_T2_Pin );
     else
-        return 0;
+        return ( HAL_GPIO_ReadPin( IN_T1_Port, IN_T1_Pin )  || HAL_GPIO_ReadPin( IN_T2_Port, IN_T2_Pin ) || HAL_GPIO_ReadPin( IN_T3_Port, IN_T3_Pin ) );
 }
 
 

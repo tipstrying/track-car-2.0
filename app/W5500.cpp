@@ -21,6 +21,7 @@ extern "C" {
     void protocolRun( void const *para );
     void vRegisterCLICommands( void );
     void startCLITask();
+    int isPackOnCar();
 }
 #include "fifo.h"
 #include "hardware.h"
@@ -385,6 +386,7 @@ int decodePack( uint8_t *packBuff, int buffLen, uint64_t *packIndex, uint16_t *p
 int IsMotorAlarm();
 void ClearMotorAlarm();
 extern int switchReach;
+
 static int serverConnectOk( int ip )
 {
     debugOut(0, "[\t%d] Server connect ok\r\n", osKernelSysTick() );

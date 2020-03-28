@@ -428,6 +428,20 @@ static CANopenMaster::CANopenResponse CANopen_Rx;
 extern "C" {
     void modbusTask( void const * arg );
     void StartSwitchTask();
+    int isPackOnCar();
+}
+
+int isPackOnCar()
+{
+    if( BeltOperating == 6 || BeltOperating == 7 )
+        return getThingSensorStatus(1);
+    else
+    {
+        if( BeltGetPack )
+            return 0;
+        else
+            return getThingSensorStatus(0);
+    }
 }
 void MotionTask(void const *parment)
 {
@@ -862,6 +876,7 @@ void MotionTask(void const *parment)
             case 7:
                 if( !Belt_Ctrl.info.read_input[0] && !Belt_Ctrl.info.read_input[1] && !Belt_Ctrl.info.read_input[2] )
                 {
+                    BeltGetPack = 1;
                     beltCtrl( 1, BeltRev, 10 );
                 }
                 else
