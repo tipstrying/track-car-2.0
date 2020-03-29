@@ -1038,6 +1038,7 @@ void MotionTask(void const *parment)
                         }
                         else
                         {
+                            /* when car stop by cmd 4,5 must igonre position */
                             if( runTaskHeader.next->cmd == 4 || runTaskHeader.next->cmd == 5 )
                             {
                                 if( agv.iEmergencyBySoftware )
@@ -1057,10 +1058,7 @@ void MotionTask(void const *parment)
         if( 1 )
         {
             /* Let car run to switch status check position when switch status is error */
-            /* Be careful!!! there is a hardware bug! when switch check error, "agv.iEmergencyBySoftware" can make car stop, but, car will go very very slow,
-            until car leave switch status check position.
 
-            */
             if( agv.iEmergencyBySoftware && runTaskHeader.next )
                 agv.Motion_Status_Now = agv.Motion_work( runTaskHeader.next->position );
             else
@@ -1188,7 +1186,6 @@ void MotionTask(void const *parment)
             if (canOpenStatus.count ++ >= 1)
             {
                 canOpenStatus.count = 0;
-
                 if( MotionStatus.alarm )
                 {
                     if( !MotionStatus.alarmCleanDisable )

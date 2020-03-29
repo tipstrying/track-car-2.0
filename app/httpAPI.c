@@ -169,6 +169,17 @@ int GetBatteryVoltageHttpApi( float *Voltage )
     *Voltage = Battery.Voltage;
     return 0;
 }
+int cancelNavigationHttpApi()
+{
+    NavigationOperationStd navData;
+    
+    navData.cmd = Enum_CancelNavigation;
+    navData.Data.op = 1;
+    if( xQueueSend( NavigationOperationQue, &navData, 100 ) == pdPASS )
+        return 0;
+    else
+        return 1;
+}
 void getTaskStatus( uint8_t * buff )
 {
     const char * const pcHeader = "Task            Abs Time      % Time\r\n****************************************\r\n";

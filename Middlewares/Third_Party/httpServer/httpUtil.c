@@ -84,6 +84,12 @@ uint8_t http_get_cgi_handler(uint8_t *uri_name, uint8_t *buf, uint32_t *file_len
         sprintf( (char *)buf, "set op ok\r\n" );
         len = strlen( (char *)buf );
     }
+    else if( strcmp( (const char *)uri_name, "cancelNav.cgi" ) == 0 )
+    {
+        cancelNavigationHttpApi();
+        sprintf( (char *)buf, "cancel ok ok\r\n" );
+        len = strlen( (char *)buf );
+    }
     else
     {
         // CGI file not found
