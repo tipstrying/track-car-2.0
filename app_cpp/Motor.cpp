@@ -623,7 +623,7 @@ void MotionTask(void const *parment)
                         agv.isNewPosition = true;
                         if( agv.iEmergencyByCancel )
                             agv.iEmergencyByCancel = false;
-                        
+
                         debugOut( 0, "[\t%d] Sest Position :%0.2f\r\n", PreviousWakeTime, AGV_Pos );
                         break;
                     case Enum_sendOperation:
@@ -698,6 +698,8 @@ void MotionTask(void const *parment)
 
                     case Enum_CancelNavigation:
                         agv.iEmergencyByCancel = true;
+                        agv.iEmergencyBySoftware = false;
+                        // agv.iEmergencyByPause = false;
                         deleteList( &runTaskHeader );
                         break;
                     case Enum_PauseNavigation:
@@ -714,11 +716,16 @@ void MotionTask(void const *parment)
                         else
                         {
                             debugOut(0, "[\t%d] <INFO> <Motion> {Exit Pause} exit pause mode\r\n", PreviousWakeTime );
-                            
-                            canOpenStatus.pollStep = 3;
-                            navigationOperationData.cmd = 5;
-                            xQueueSend( SwitchBeltTaskQue, &navigationOperationData, 100 );
+
+//                            canOpenStatus.pollStep = 3;
+//                            navigationOperationData.cmd = 5;
+//                            while( switchReach == -2 )
+//                            {
+//                                xQueueSend( SwitchBeltTaskQue, &navigationOperationData, 100 );
+//                                osDelay(10);
+//                            }
                             agv.iEmergencyByPause = false;
+                            
                         }
                         break;
                     case Enum_PullThing:
@@ -1043,6 +1050,8 @@ void MotionTask(void const *parment)
                             {
                                 if( agv.iEmergencyBySoftware )
                                     break;
+                                else
+                                    listDeleteItemByIndex( &runTaskHeader, 1 );
                             }
                             else
                             {
@@ -1146,12 +1155,17 @@ void MotionTask(void const *parment)
                 if( agv.iEmergencyByPause )
                 {
                     request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.3333333 ) / 1875);
+                    /*
                     if( request_speed == 0 )
                     {
-                        canOpenStatus.pollStep = 2;
-                        navigationOperationData.cmd = 4;
-                        xQueueSend( SwitchBeltTaskQue, &navigationOperationData, 100 );
+                        if( switchReach != -2 )
+                        {
+                            canOpenStatus.pollStep = 2;
+                            navigationOperationData.cmd = 4;
+                            xQueueSend( SwitchBeltTaskQue, &navigationOperationData, 100 );
+                        }
                     }
+                    */
                 }
                 else
                 {

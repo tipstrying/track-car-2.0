@@ -288,7 +288,7 @@ TaskWakeUp:
                     break;
                 case 4:
                     debugOut(0, "[\t%d] <INFO> <SWITCH> {Sleep} set sleep mode\r\n", osKernelSysTick() );
-                
+
                     do
                     {
                         while( MB_ENOERR != eMBMWriteSingleRegister( xMBMMaster, SwitchAddr, 0x3100, 0x06 ) )
@@ -300,18 +300,41 @@ TaskWakeUp:
                     } while( modbusReadBackRegs[0] != 0 );
                     do
                     {
-                        while( MB_ENOERR != eMBMWriteSingleRegister( xMBMMaster, SwitchAddr, 0x3100, 0x06 ) )
+                        while( MB_ENOERR != eMBMWriteSingleRegister( xMBMMaster, BeltAddr, 0x3100, 0x06 ) )
                         {
                             osDelay(2);
                         }
-                        while( MB_ENOERR != eMBMReadHoldingRegisters( xMBMMaster, SwitchAddr, 0x3600, 1, modbusReadBackRegs ) )
+                        while( MB_ENOERR != eMBMReadHoldingRegisters( xMBMMaster, BeltAddr, 0x3600, 1, modbusReadBackRegs ) )
                             osDelay(2);
                     } while( modbusReadBackRegs[0] != 0 );
                     switchReach = -2;
                     break;
                 case 5:
                     if( switchReach == -2 )
-                        goto TaskWakeUp;
+                    {
+                        do
+                        {
+                            while( MB_ENOERR != eMBMWriteSingleRegister( xMBMMaster, SwitchAddr, 0x3100, 0x0f ) )
+                            {
+                                osDelay(2);
+                            }
+                            eMBMWriteSingleRegister( xMBMMaster, SwitchAddr, 0x3500, 1 );
+                            while( MB_ENOERR != eMBMReadHoldingRegisters( xMBMMaster, SwitchAddr, 0x3600, 1, modbusReadBackRegs ) )
+                                osDelay(2);
+                        } while( modbusReadBackRegs[0] != 1 );
+                        do
+                        {
+                            while( MB_ENOERR != eMBMWriteSingleRegister( xMBMMaster, BeltAddr, 0x3100, 0x0f ) )
+                            {
+                                osDelay(2);
+                            }
+                            eMBMWriteSingleRegister( xMBMMaster, SwitchAddr, 0x3500, 3 );
+                            while( MB_ENOERR != eMBMReadHoldingRegisters( xMBMMaster, BeltAddr, 0x3600, 1, modbusReadBackRegs ) )
+                                osDelay(2);
+                        } while( modbusReadBackRegs[0] != 3 );
+                        switchReach = 1;
+                    }
+//                        goto TaskWakeUp;
                     break;
                 default:
                     break;
