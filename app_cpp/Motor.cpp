@@ -1038,8 +1038,11 @@ void MotionTask(void const *parment)
                         }
                         else
                         {
-                            if( /* runTaskHeader.next->cmd == 4 || runTaskHeader.next->cmd == 5 */ 0 )
-                                ;
+                            if( runTaskHeader.next->cmd == 4 || runTaskHeader.next->cmd == 5 )
+                            {
+                                if( agv.iEmergencyBySoftware )
+                                    break;
+                            }
                             else
                             {
                                 debugOut( 0, "[\t%d] miss operation at %0.2f : cmd->%d, position->%0.2f, speed->%0.2f\r\n", PreviousWakeTime, agv.AGV_Pos, runTaskHeader.next->cmd, runTaskHeader.next->position, runTaskHeader.next->data.fData );
