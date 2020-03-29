@@ -422,6 +422,8 @@ static BaseType_t GetMilageCmd(char *pcWriteBuffer, size_t xWriteBufferLen, cons
 }
 static BaseType_t GetPositionCmd( char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString )
 {
+    float position;
+    
     return pdFALSE;
 }
 static BaseType_t GetTcpConnectingCmd( char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString )

@@ -28,7 +28,6 @@ public:
     
     bool isNewPosition;
 
-    bool iEmergencyByKey; //急停
     bool iEmergencyBySoftware; // 软件急停
     bool iEmergencyByPause;
     bool iEmergencyByCancel;

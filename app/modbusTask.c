@@ -287,6 +287,8 @@ TaskWakeUp:
                     }
                     break;
                 case 4:
+                    debugOut(0, "[\t%d] <INFO> <SWITCH> {Sleep} set sleep mode\r\n", osKernelSysTick() );
+                
                     do
                     {
                         while( MB_ENOERR != eMBMWriteSingleRegister( xMBMMaster, SwitchAddr, 0x3100, 0x06 ) )
@@ -308,7 +310,8 @@ TaskWakeUp:
                     switchReach = -2;
                     break;
                 case 5:
-                    goto TaskWakeUp;
+                    if( switchReach == -2 )
+                        goto TaskWakeUp;
                     break;
                 default:
                     break;

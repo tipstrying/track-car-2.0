@@ -19,7 +19,6 @@ AGV_Parallel_Motion::AGV_Parallel_Motion()
 
     this->EncoderValue = 0;
     this->move_to_step = ms_Idle;
-    iEmergencyByKey = false;
     iEmergencyBySoftware = false;
 
 }
@@ -32,7 +31,7 @@ AGV_Parallel_Motion::Motion_Status AGV_Parallel_Motion::Motion_work(float iTarge
 {
     Motion_Status rValue = ms_Idle;
     this->DetectDynamics();
-    if ( /* this->iEmergencyByKey || this->iEmergencyBySoftware || this->iEmergencyByError || this->iEmergencyByPause || this->iEmergencyByCancel */ 0 )
+    if ( this->iEmergencyByError )
     {
         this->Request_RPM = 0;
         this->Request_Speed = 0;
@@ -142,7 +141,7 @@ float AGV_Parallel_Motion::Move(float iDistance)
     if (iDistance < 0)
         SetSpeed = -SetSpeed;
 
-    if ( this->iEmergencyByKey || this->iEmergencyBySoftware || this->iEmergencyByError || this->iEmergencyByPause || this->iEmergencyByCancel )
+    if ( this->iEmergencyByPause || this->iEmergencyByCancel )
     {
         float securityDelta_straight;
         SetSpeed = 0;

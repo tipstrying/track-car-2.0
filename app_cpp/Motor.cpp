@@ -495,8 +495,8 @@ void MotionTask(void const *parment)
 
     Can1Init();
 
-    agv.Stop_Accuracy = 1;
-    agv.sArriveCtrlTime = 210;
+    agv.Stop_Accuracy = 2;
+    agv.sArriveCtrlTime = 50;
     agv.sSpeed_min = 10;
     agv.sSpeed_max = 300;
     agv.sDeceleration_distance = 2;
@@ -540,7 +540,6 @@ void MotionTask(void const *parment)
     if( inOutTarget == InOutSwitchUnknow )
         inOutTarget = InOutSwitchIn;
 
-    //   prvInitHardwares();
     for (;;)
     {
         agv.clock = (int)PreviousWakeTime;
@@ -624,6 +623,7 @@ void MotionTask(void const *parment)
                         agv.isNewPosition = true;
                         if( agv.iEmergencyByCancel )
                             agv.iEmergencyByCancel = false;
+                        
                         debugOut( 0, "[\t%d] Sest Position :%0.2f\r\n", PreviousWakeTime, AGV_Pos );
                         break;
                     case Enum_sendOperation:
@@ -689,11 +689,6 @@ void MotionTask(void const *parment)
                         else
                             inOutTarget = InOutSwitchIn;
                         break;
-                    /*
-                    case 6:
-                    SetSelfPosition(navigationOperationData.Data.posTo);
-                    break;
-                    */
 
                     case Enum_disableMotor:
                         if( navigationOperationData.Data.op )
@@ -718,6 +713,8 @@ void MotionTask(void const *parment)
                         }
                         else
                         {
+                            debugOut(0, "[\t%d] <INFO> <Motion> {Exit Pause} exit pause mode\r\n", PreviousWakeTime );
+                            
                             canOpenStatus.pollStep = 3;
                             navigationOperationData.cmd = 5;
                             xQueueSend( SwitchBeltTaskQue, &navigationOperationData, 100 );
@@ -887,31 +884,9 @@ void MotionTask(void const *parment)
                 break;
             }
         }
-        if( 0 ) //// update hardware message
-        {
-            if (getEmergencyKey() == on)
-            {
-                agv.iEmergencyByKey = false;
-            }
-            else
-            {
-                agv.iEmergencyByKey = false;
-            }
-            if( powerKeyWork( PreviousWakeTime ) == on )
-            {
-                //
-                setPowerKey( on );
-            }
-
-        }
 
         if( 1 ) // update encode and run status
         {
-            if (agv.iEmergencyByKey )
-            {
-                AGV_Pos = agv.AGV_Pos;
-                agv.Motion_Status_Now = AGV_Parallel_Motion::ms_Emergency;
-            }
 #if 1
             if (CANopen_Rx.work())
             {
@@ -956,7 +931,6 @@ void MotionTask(void const *parment)
 //       HAL_RTCEx_BKUPWrite( &hrtc, RTC_BKP_DR3, agv.AGV_Pos );
 #endif
 
-            agv.Motion_Status_Now = agv.Motion_work(AGV_Pos);
         }
 
         if( 1 ) // run task at position
@@ -1077,6 +1051,18 @@ void MotionTask(void const *parment)
                 }
             }
         }
+        if( 1 )
+        {
+            /* Let car run to switch status check position when switch status is error */
+            /* Be careful!!! there is a hardware bug! when switch check error, "agv.iEmergencyBySoftware" can make car stop, but, car will go very very slow,
+            until car leave switch status check position.
+
+            */
+            if( agv.iEmergencyBySoftware && runTaskHeader.next )
+                agv.Motion_Status_Now = agv.Motion_work( runTaskHeader.next->position );
+            else
+                agv.Motion_Status_Now = agv.Motion_work(AGV_Pos);
+        }
 
         if( 1 )
         {
@@ -1118,19 +1104,7 @@ void MotionTask(void const *parment)
 
         if( 1 )
         {
-
-//            if( getSwitchStatus() != inOutTarget )
-//            {
-//                if( /* !switchRunning  */ 1 )
-//                {
-//                    navigationOperationData.cmd = 1;
-//                    navigationOperationData.Data.op = inOutTarget;
-//                    xQueueSend( SwitchBeltTaskQue, &navigationOperationData, 0 );
-//                }
-//            }
             target = inOutTarget;
-
-            // setSwitch( inOutTarget );
             if( agv.iEmergencyBySoftware )
             {
                 if( inOutTargetNow == getSwitchStatus() )
@@ -1150,13 +1124,14 @@ void MotionTask(void const *parment)
                 {
                     if( PreviousWakeTime - MotionStatus.handSpeedTime > 500 )
                     {
+                        if( abs(request_speed) > 0 )
+                            debugOut(0, "\t%d] <INFO> <Motion> {HandMode} stop by timeout\r\n", PreviousWakeTime );
                         request_speed = 0;
                     }
                     else
                     {
                         static float mm2RPM = 1.0 / (AGV_WheelDiameter * PI) * 60.0;
                         request_speed = (int)(((double)(MotionStatus.handSpeed * mm2RPM) * 512 * 10000 * 9.3333333 ) / 1875);
-
                     }
                 }
                 else

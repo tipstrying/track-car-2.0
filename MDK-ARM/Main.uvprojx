@@ -81,7 +81,7 @@
           </BeforeMake>
           <AfterMake>
             <RunUserProg1>1</RunUserProg1>
-            <RunUserProg2>1</RunUserProg2>
+            <RunUserProg2>0</RunUserProg2>
             <UserProg1Name>C:\Keil_v5\ARM\ARMCC\bin\fromelf.exe  --bin -o  "update.bin" "#L"</UserProg1Name>
             <UserProg2Name>cp update.bin \\192.168.1.116\share\track-car.bin</UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
