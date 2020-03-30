@@ -491,7 +491,7 @@ TaskWakeUp:
                                 else
                                     iToUShortData.iData = 491520;
                                 */
-                                if(timeOutData.boolTimeout)
+                                if( /* timeOutData.boolTimeout */ 0 )
                                 {
                                     if( timeOutData.boolTimeout == 1 )
                                     {
