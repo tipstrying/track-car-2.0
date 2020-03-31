@@ -316,22 +316,32 @@ void Rx_PDO_Commplate(int oID, char Array[8], int len )
             {
                 if( MotionStatus.alarm != true )
                 {
-                    if( MotionStatus.lastAlarmTime == 0 )
-                        MotionStatus.lastAlarmTime = MotionStatus.lastPDOTime;
+                    MotionStatus.alarm = true;
+                    MotionStatus.lastAlarmTime = MotionStatus.lastPDOTime;
+                    debugOut(0, "[\t%d] Motor Alarm [first]\r\n", osKernelSysTick() );
+                }
+                else
+                {
                     if( osKernelSysTick() > MotionStatus.lastAlarmTime )
                     {
-                        if( osKernelSysTick() - MotionStatus.lastAlarmTime < 10000 )
+                        if( osKernelSysTick() - MotionStatus.lastAlarmTime > 1000 )
                         {
                             MotionStatus.alarmCleanDisable = true;
                         }
                     }
+                    else
+                        MotionStatus.lastAlarmTime = osKernelSysTick();
+                    
                     MotionStatus.lastAlarmTime = osKernelSysTick();
                     MotionStatus.alarm = true;
                     debugOut(0, "[\t%d] Motor Alarm\r\n", osKernelSysTick() );
                 }
             }
             else
+            {
                 MotionStatus.alarm = false;
+                MotionStatus.alarmCleanDisable = false;
+            }
 
             if( MotorStatusWord_PDO & 0x04 )
             {
