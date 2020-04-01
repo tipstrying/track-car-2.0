@@ -57,6 +57,8 @@ void GetNextPiont( float *X);
 double GetMilage( void );
 void cancelNavigate();
 char isTouchPie();
+void GetMotorCurrent( short *current );
+
 
 void getTS_CURVEPAR( float *k, float *j, float *a, float *v );
 void setTS_CURVEPAR( float k, float j, float a, float v );

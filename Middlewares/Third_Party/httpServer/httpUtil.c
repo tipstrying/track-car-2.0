@@ -31,13 +31,14 @@ uint8_t http_get_cgi_handler(uint8_t *uri_name, uint8_t *buf, uint32_t *file_len
     if (strcmp((const char *)uri_name, "status.cgi") == 0)
     {
         double mils;
-        float sp, spMax, pos, voltage;
+        float sp, spMax, pos, voltage, current;
         GetSpeedHttpApi( &sp );
         GetMaxSpeedHttpApi( &spMax );
         GetPositionHttpApi( &pos );
         GetBatteryVoltageHttpApi( &voltage );
         getMilagesHttpApi( &mils );
-        sprintf( (char *)buf, "{\"sp\":%0.2f, \"spMax\":%0.2f, \"pos\":%0.2f, \"milages\":%0.2lf, \"Bv\":%0.1f}", sp, spMax, pos, mils, voltage );
+        GetMotorCurrentHttpApi( &current );
+        sprintf( (char *)buf, "{\"sp\":%0.2f, \"spMax\":%0.2f, \"pos\":%0.2f, \"milages\":%0.2lf, \"Bv\":%0.1f, \"C1\":%0.3f}", sp, spMax, pos, mils, voltage, current );
         len = strlen( (const char*)buf );
     }
     else if( strcmp( (const char *)uri_name, "getruntasklist.cgi" ) == 0 )

@@ -24,6 +24,7 @@ int SetHandSpeedModeHttoApi( int isHandMode );
 int SetHandSpeedModeSpeedHttpApi( int speed );
 int SetSleepModeHttpApi( int isSleep );
 int cancelNavigationHttpApi();
+int GetMotorCurrentHttpApi( float *current );
     
 #ifdef __cplusplus
 }

@@ -80,6 +80,7 @@ static struct
     BaseType_t handSpeedTime;
     bool bootUp;
     BaseType_t lastEncodeTime;
+    short Current;
 
 } MotionStatus;
 
@@ -125,6 +126,11 @@ void GetSpeed(float *xSpeed)
 void GetMaxSpeed(float *xSpeed)
 {
     *xSpeed = agv.sSpeed_max;
+}
+void GetMotorCurrent( short *current )
+{
+    if( current )
+        *current = MotionStatus.Current;
 }
 int SetSelfPosition(float X)
 {
@@ -297,6 +303,8 @@ void Rx_PDO_Commplate(int oID, char Array[8], int len )
                 }
                 MotionStatus.EcodeDelay = false;
                 agv.EncoderValue = Encoder_Value;
+                MotionStatus.lastEncodeTime = osKernelSysTick();
+                
                 agv.DetectDynamics();
                 float posTmp = 0;
                 double milsTmp = 0;
@@ -312,36 +320,36 @@ void Rx_PDO_Commplate(int oID, char Array[8], int len )
             i32ToHex.Hex[1] = Array[5];
             MotorStatusWord_PDO = i32ToHex.Data;
             MotorModeWord_PDO = Array[6];
-            if( MotorStatusWord_PDO & 0x08 )
-            {
-                if( MotionStatus.alarm != true )
-                {
-                    MotionStatus.alarm = true;
-                    MotionStatus.lastAlarmTime = MotionStatus.lastPDOTime;
-                    debugOut(0, "[\t%d] Motor Alarm [first]\r\n", osKernelSysTick() );
-                }
-                else
-                {
-                    if( osKernelSysTick() > MotionStatus.lastAlarmTime )
-                    {
-                        if( osKernelSysTick() - MotionStatus.lastAlarmTime > 1000 )
-                        {
-                            MotionStatus.alarmCleanDisable = true;
-                        }
-                    }
-                    else
-                        MotionStatus.lastAlarmTime = osKernelSysTick();
-                    
-                    MotionStatus.lastAlarmTime = osKernelSysTick();
-                    MotionStatus.alarm = true;
-                    debugOut(0, "[\t%d] Motor Alarm\r\n", osKernelSysTick() );
-                }
-            }
-            else
-            {
-                MotionStatus.alarm = false;
-                MotionStatus.alarmCleanDisable = false;
-            }
+//            if( MotorStatusWord_PDO & 0x08 )
+//            {
+//                if( MotionStatus.alarm != true )
+//                {
+//                    MotionStatus.alarm = true;
+//                    MotionStatus.lastAlarmTime = MotionStatus.lastPDOTime;
+//                    debugOut(0, "[\t%d] Motor Alarm [first]\r\n", osKernelSysTick() );
+//                }
+//                else
+//                {
+//                    if( osKernelSysTick() > MotionStatus.lastAlarmTime )
+//                    {
+//                        if( osKernelSysTick() - MotionStatus.lastAlarmTime > 1000 )
+//                        {
+//                            MotionStatus.alarmCleanDisable = true;
+//                        }
+//                    }
+//                    else
+//                        MotionStatus.lastAlarmTime = osKernelSysTick();
+//
+//                    MotionStatus.lastAlarmTime = osKernelSysTick();
+//                    MotionStatus.alarm = true;
+//                    debugOut(0, "[\t%d] Motor Alarm\r\n", osKernelSysTick() );
+//                }
+//            }
+//            else
+//            {
+//                MotionStatus.alarm = false;
+//                MotionStatus.alarmCleanDisable = false;
+//            }
 
             if( MotorStatusWord_PDO & 0x04 )
             {
@@ -375,16 +383,61 @@ void Rx_PDO_Commplate(int oID, char Array[8], int len )
 
         }
         break;
-    case 281:
+    case 0x281:
     {
         if( 1 )
         {
-            debugOut( 0, "[\t%d] Motor Status Charge: Data ->[", osKernelSysTick() );
-            for( int i = 0; i < 8; i++ )
+            union
             {
-                debugOut( 0, " 0x%02X", Array[i] );
+                short i16Data;
+                uint16_t u16Data;
+                uint8_t Hex[2];
+            } i16ToHex;
+            i16ToHex.Hex[0] = Array[0];
+            i16ToHex.Hex[1] = Array[1];
+
+            MotionStatus.Current = i16ToHex.i16Data;
+            uint16_t alarmCode = 0;
+            i16ToHex.Hex[0] = Array[2];
+            i16ToHex.Hex[1] = Array[3];
+            alarmCode = i16ToHex.u16Data;
+
+            if( alarmCode )
+            {
+                if( MotionStatus.alarm != true )
+                {
+                    MotionStatus.alarm = true;
+                    if( osKernelSysTick() >  MotionStatus.lastAlarmTime )
+                    {
+                        if( osKernelSysTick() - MotionStatus.lastAlarmTime < 1000 )
+                        {
+                            MotionStatus.alarmCleanDisable = true ;
+                        }
+                        else
+                            MotionStatus.lastAlarmTime = MotionStatus.lastPDOTime;
+                    }
+                    else
+                        MotionStatus.lastAlarmTime = MotionStatus.lastPDOTime;
+
+                    debugOut(0, "[\t%d] Motor Alarm [first]:code->0x%X\r\n", osKernelSysTick(), alarmCode );
+                }
+                else
+                {
+                    MotionStatus.alarm = true;
+                    static uint16_t alarmCodeBak;
+                    if( alarmCodeBak != alarmCode )
+                    {
+                        debugOut(0, "[\t%d] Motor Alarm: code->0x%X\r\n", osKernelSysTick(), alarmCode );
+                        alarmCodeBak = alarmCode;
+                    }
+                }
             }
-            debugOut( 0, "\r\n" );
+            else
+            {
+                MotionStatus.alarm = false;
+                MotionStatus.alarmCleanDisable = false;
+            }
+
         }
     }
     break;
@@ -735,7 +788,7 @@ void MotionTask(void const *parment)
 //                                osDelay(10);
 //                            }
                             agv.iEmergencyByPause = false;
-                            
+
                         }
                         break;
                     case Enum_PullThing:
@@ -910,9 +963,10 @@ void MotionTask(void const *parment)
                 if (abs(agv.EncoderValue - Encoder_Value) > 100000)
                 {
                     debugOut( 0, "[\t%d] <ERROR> <Motion> {ENCODE} Encode up too much last->%d, new->%d [error]\r\n", PreviousWakeTime, agv.EncoderValue, Encoder_Value);
+                    agv.iEmergencyByError = true;
                 }
-
-                agv.EncoderValue = Encoder_Value;
+                else
+                    agv.EncoderValue = Encoder_Value;
                 MotionStatus.lastEncodeTime = PreviousWakeTime;
                 //agv.DetectDynamics();
                 static float posBakForBKP;
@@ -929,17 +983,20 @@ void MotionTask(void const *parment)
                 }
 
             }
-            if( PreviousWakeTime > MotionStatus.lastEncodeTime )
+            if( !MotionStatus.startUp )
             {
-                if( PreviousWakeTime - MotionStatus.lastEncodeTime > 100 )
+                if( PreviousWakeTime > MotionStatus.lastEncodeTime )
                 {
-                    debugOut(0, "[\t%d] <ERROR> <Motion> {ENCODE} Encode up timeout!!!\r\n", PreviousWakeTime );
-                    MotionStatus.lastEncodeTime = PreviousWakeTime;
-                }
+                    if( PreviousWakeTime - MotionStatus.lastEncodeTime > 100 )
+                    {
+                        debugOut(0, "[\t%d] <ERROR> <Motion> {ENCODE} Encode up timeout!!!\r\n", PreviousWakeTime );
+                        MotionStatus.lastEncodeTime = PreviousWakeTime;
+                    }
 
+                }
+                else
+                    MotionStatus.lastEncodeTime = PreviousWakeTime;
             }
-            else
-                MotionStatus.lastEncodeTime = PreviousWakeTime;
 #else
             if( MotionStatus.EcodeDelay )
                 MotionStatus.EcodeDelay = false;

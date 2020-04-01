@@ -22,7 +22,7 @@ int GetSpeedHttpApi( float *sp )
     GetSpeed( sp );
     return 0;
 }
-int GetMaxSpeedHttpApi( float *sp )
+int GetMaxSpeedHttpApi( float *sp ) 
 {
     GetMaxSpeed( sp );
     return 0;
@@ -30,6 +30,15 @@ int GetMaxSpeedHttpApi( float *sp )
 int getMilagesHttpApi ( double * mils )
 {
     *mils = GetMilage();
+    return 0;
+}
+int GetMotorCurrentHttpApi( float *current )
+{
+    short c1;
+    GetMotorCurrent( &c1 );
+    if( c1 < 0 )
+        c1 = -c1;
+    *current = ((float)c1) / 55.7;
     return 0;
 }
 int SetPositionHttpApi( float pos )
