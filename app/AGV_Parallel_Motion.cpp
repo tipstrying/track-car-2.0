@@ -69,6 +69,8 @@ AGV_Parallel_Motion::Motion_Status AGV_Parallel_Motion::Move_to(float iTarget)
             {
                 rValue = ms_Arrived;
             }
+            rValue = ms_Straight;
+            
             this->Request_Speed = 0;
         }
         else

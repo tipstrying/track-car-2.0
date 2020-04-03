@@ -559,7 +559,7 @@ void MotionTask(void const *parment)
     Can1Init();
 
     agv.Stop_Accuracy = 2;
-    agv.sArriveCtrlTime = 50;
+    agv.sArriveCtrlTime = 1000;
     agv.sSpeed_min = 10;
     agv.sSpeed_max = 300;
     agv.sDeceleration_distance = 2;
