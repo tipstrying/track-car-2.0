@@ -55,11 +55,12 @@ AGV_Parallel_Motion::Motion_Status AGV_Parallel_Motion::Move_to(float iTarget)
     {
 
     default:
-    case ms_Arrived:
+    
     case ms_Emergency:
     case ms_Cancel:
         break;
-
+    
+    case ms_Arrived:
     case ms_Idle:
         move_to_step_bak = move_to_step;
         if (iDistance < this->Stop_Accuracy)
@@ -93,7 +94,7 @@ AGV_Parallel_Motion::Motion_Status AGV_Parallel_Motion::Move_to(float iTarget)
         }
         else
         {
-            lastTimeCtrl = this->clock;
+           // lastTimeCtrl = this->clock;
             this->Request_Speed = 0.0f;
 
             if (this->clock - lastTimeCtrl > 10)

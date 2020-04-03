@@ -195,6 +195,7 @@ TaskWakeUp:
                     }
                     break;
                 }
+                osDelay(1);
             }
         }
         // if go here, switch is at right pos, in or out all right.

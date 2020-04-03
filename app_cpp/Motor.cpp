@@ -304,7 +304,7 @@ void Rx_PDO_Commplate(int oID, char Array[8], int len )
                 MotionStatus.EcodeDelay = false;
                 agv.EncoderValue = Encoder_Value;
                 MotionStatus.lastEncodeTime = osKernelSysTick();
-                
+
                 agv.DetectDynamics();
                 float posTmp = 0;
                 double milsTmp = 0;
@@ -1208,7 +1208,7 @@ void MotionTask(void const *parment)
                     else
                     {
                         static float mm2RPM = 1.0 / (AGV_WheelDiameter * PI) * 60.0;
-                        request_speed = (int)(((double)(MotionStatus.handSpeed * mm2RPM) * 512 * 10000 * 9.3333333 ) / 1875);
+                        request_speed = (int)(((double)(MotionStatus.handSpeed * mm2RPM) * 512 * 10000 * 6.3333333 ) / 1875);
                     }
                 }
                 else
@@ -1221,7 +1221,7 @@ void MotionTask(void const *parment)
             {
                 if( agv.iEmergencyByPause )
                 {
-                    request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.3333333 ) / 1875);
+                    request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 6.3333333 ) / 1875);
                     /*
                     if( request_speed == 0 )
                     {
@@ -1239,7 +1239,7 @@ void MotionTask(void const *parment)
                     if( agv.Request_RPM == 0 )
                         request_speed = 0;
                     else
-                        request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.3333333 ) / 1875);
+                        request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 6.3333333 ) / 1875);
                 }
             }
         }
@@ -1305,6 +1305,8 @@ void MotionTask(void const *parment)
                     */
                     if( 1 )
                     {
+
+
                         char rpdoData[8];
                         union
                         {
@@ -1316,10 +1318,19 @@ void MotionTask(void const *parment)
                             short Data;
                             char Hex[2];
                         } i16ToHex;
-                        i32ToHex.Data = request_speed;
+                        if( agv.Motion_Status_Now == AGV_Parallel_Motion::ms_Arrived )
+                        {
+                            i32ToHex.Data = 0;
+                            i16ToHex.Data = 0x06;
+                        }
+                        else
+                        {
+                            i32ToHex.Data = request_speed;
+                            i16ToHex.Data = 0x0f;
+                        }
                         for( int i = 0; i < 4; i++ )
                             rpdoData[i] = i32ToHex.Hex[i];
-                        i16ToHex.Data = 0x0f;
+                        
                         rpdoData[4] = i16ToHex.Hex[0];
                         rpdoData[5] = i16ToHex.Hex[1];
                         rpdoData[6] = 3;
