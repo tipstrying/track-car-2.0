@@ -51,15 +51,14 @@ AGV_Parallel_Motion::Motion_Status AGV_Parallel_Motion::Move_to(float iTarget)
     static int lastTimeCtrl = this->clock;
     float iDistance = fabsf( this->AGV_Pos - iTarget );
     static Motion_Status move_to_step_bak = move_to_step;
+//    this->FeedBack_Speed = this->FeedBack_RPM / mm2RPM;
+
     switch( this->move_to_step )
     {
-
     default:
-    
     case ms_Emergency:
     case ms_Cancel:
         break;
-    
     case ms_Arrived:
     case ms_Idle:
         move_to_step_bak = move_to_step;
@@ -71,7 +70,7 @@ AGV_Parallel_Motion::Motion_Status AGV_Parallel_Motion::Move_to(float iTarget)
             }
             else
                 rValue = ms_Straight;
-            
+
             this->Request_Speed = 0;
         }
         else
@@ -185,6 +184,8 @@ float AGV_Parallel_Motion::Move(float iDistance)
         else if (speedNow < SetSpeed)
             speedNow += securityDelta_straight;
     }
+    if( this->iEmergencyByMotorDisable )
+        speedNow = 0;
     return speedNow;
 }
 

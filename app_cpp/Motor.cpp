@@ -318,39 +318,12 @@ void Rx_PDO_Commplate(int oID, char Array[8], int len )
             }
             i32ToHex.Hex[0] = Array[4];
             i32ToHex.Hex[1] = Array[5];
-            MotorStatusWord_PDO = i32ToHex.Data;
-            MotorModeWord_PDO = Array[6];
-
-            if( MotorStatusWord_PDO & 0x04 )
-            {
-                MotionStatus.enable = true;
-            }
-            else
-            {
-                MotionStatus.enable = false;
-            }
-            switch( MotorModeWord_PDO )
-            {
-            case 0:
-                if( MotionStatus.speedMode != false )
-                {
-                    MotionStatus.speedMode = false;
-                    debugOut(0, "[\t%d] Motor Disable\r\n", osKernelSysTick() );
-                }
-                break;
-            default:
-            case 1:
-                if( MotionStatus.speedMode != false )
-                {
-                    MotionStatus.speedMode = false;
-                    debugOut(0, "[\t%d] Motor NOT AT SPEED MODE!!!\r\n", osKernelSysTick() );
-                }
-                break;
-            case 3:
-                MotionStatus.speedMode = true;
-                break;
-            }
-
+            i32ToHex.Hex[2] = Array[6];
+            i32ToHex.Hex[3] = Array[7];
+            double speedTmp = i32ToHex.Data * 1875;
+            speedTmp = speedTmp / 10000;
+            speedTmp = speedTmp / 512;
+            agv.FeedBack_RPM = speedTmp;
         }
         break;
     case 0x281:
@@ -407,7 +380,39 @@ void Rx_PDO_Commplate(int oID, char Array[8], int len )
                 MotionStatus.alarm = false;
                 MotionStatus.alarmCleanDisable = false;
             }
-
+            i16ToHex.Hex[0] = Array[4];
+            i16ToHex.Hex[1] = Array[5];
+            MotorStatusWord_PDO = i16ToHex.u16Data;
+            MotorModeWord_PDO = Array[6];
+            if( MotorStatusWord_PDO & 0x04 )
+            {
+                MotionStatus.enable = true;
+            }
+            else
+            {
+                MotionStatus.enable = false;
+            }
+            switch( MotorModeWord_PDO )
+            {
+            case 0:
+                if( MotionStatus.speedMode != false )
+                {
+                    MotionStatus.speedMode = false;
+                    debugOut(0, "[\t%d] Motor Disable\r\n", osKernelSysTick() );
+                }
+                break;
+            default:
+            case 1:
+                if( MotionStatus.speedMode != false )
+                {
+                    MotionStatus.speedMode = false;
+                    debugOut(0, "[\t%d] Motor NOT AT SPEED MODE!!!\r\n", osKernelSysTick() );
+                }
+                break;
+            case 3:
+                MotionStatus.speedMode = true;
+                break;
+            }
         }
     }
     break;
@@ -1103,8 +1108,23 @@ void MotionTask(void const *parment)
         }
         if( 1 )
         {
+            if( MotionStatus.enable && MotionStatus.speedMode )
+            {
+                if( agv.iEmergencyByMotorDisable )
+                {
+                    debugOut(0, "[\t%d] Set Speed ok\r\n", PreviousWakeTime );
+                }
+                agv.iEmergencyByMotorDisable = false;
+            }
+            else
+            {
+                if( !agv.iEmergencyByMotorDisable )
+                {
+                    debugOut(0, "[\t%d] Set Speed zero by motor disable or not speed mode!\r\n", PreviousWakeTime );
+                }
+                agv.iEmergencyByMotorDisable = true;
+            }
             /* Let car run to switch status check position when switch status is error */
-
             if( agv.iEmergencyBySoftware && runTaskHeader.next )
                 agv.Motion_Status_Now = agv.Motion_work( runTaskHeader.next->position );
             else
