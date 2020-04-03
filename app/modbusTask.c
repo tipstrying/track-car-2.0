@@ -50,6 +50,7 @@ static struct
     BaseType_t timeOut;
     int boolTimeout;
 } timeOutData;
+static int switchType = 0;
 
 void modbusTask( void const * arg )
 {
@@ -61,6 +62,10 @@ void modbusTask( void const * arg )
 
     SwitchIN6Semap = xSemaphoreCreateBinary();
     SwitchIN7Semap = xSemaphoreCreateBinary();
+
+    readSwitchTypeFromBKP( &switchType );
+    if( switchType == 0 )
+        switchType = 2;
 
     debugOut(0, "[\t%d] Modbus task start up [ok]\r\n", osKernelSysTick() );
     debugOut(0, "[\t%d] Start Create Switch and Belt Task QueueHandle\r\n", osKernelSysTick() );
@@ -189,6 +194,7 @@ TaskWakeUp:
                     }
                     break;
                 }
+                osDelay(1);
             }
         }
         // if go here, switch is at right pos, in or out all right.
@@ -416,11 +422,17 @@ TaskWakeUp:
                             debugOut(0, "[\t%d] Switch Mode Checked Ok\r\n", osKernelSysTick() );
                             if( targetGoing == InOutSwitchIn )
                             {
-                                iToUShortData.iData = 168250;
+                                if( switchType == 1 )
+                                    iToUShortData.iData = 207500;
+                                else
+                                    iToUShortData.iData = 168250;
                             }
                             else
                             {
-                                iToUShortData.iData = -168250;
+                                if( switchType == 1 )
+                                    iToUShortData.iData = -207500;
+                                else
+                                    iToUShortData.iData = -168250;
                             }
                             while( MB_ENOERR != eMBMWriteMultipleRegisters( xMBMMaster, SwitchAddr, 0x4000, 2, iToUShortData.uData ) )
                                 osDelay(2);
@@ -587,6 +599,14 @@ TaskWakeUp:
                         }
                         else
                         {
+                            if( target != targetGoing )
+                            {
+                                targetGoing = target;
+                                if( targetGoing != getSwitchStatus() )
+                                {
+                                    switchStatus = 2;
+                                }
+                            }
                             BaseType_t time = osKernelSysTick();
                             if( time > timeOutData.timeStart )
                             {

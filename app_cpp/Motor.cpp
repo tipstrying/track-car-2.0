@@ -304,7 +304,7 @@ void Rx_PDO_Commplate(int oID, char Array[8], int len )
                 MotionStatus.EcodeDelay = false;
                 agv.EncoderValue = Encoder_Value;
                 MotionStatus.lastEncodeTime = osKernelSysTick();
-                
+
                 agv.DetectDynamics();
                 float posTmp = 0;
                 double milsTmp = 0;
@@ -320,36 +320,6 @@ void Rx_PDO_Commplate(int oID, char Array[8], int len )
             i32ToHex.Hex[1] = Array[5];
             MotorStatusWord_PDO = i32ToHex.Data;
             MotorModeWord_PDO = Array[6];
-//            if( MotorStatusWord_PDO & 0x08 )
-//            {
-//                if( MotionStatus.alarm != true )
-//                {
-//                    MotionStatus.alarm = true;
-//                    MotionStatus.lastAlarmTime = MotionStatus.lastPDOTime;
-//                    debugOut(0, "[\t%d] Motor Alarm [first]\r\n", osKernelSysTick() );
-//                }
-//                else
-//                {
-//                    if( osKernelSysTick() > MotionStatus.lastAlarmTime )
-//                    {
-//                        if( osKernelSysTick() - MotionStatus.lastAlarmTime > 1000 )
-//                        {
-//                            MotionStatus.alarmCleanDisable = true;
-//                        }
-//                    }
-//                    else
-//                        MotionStatus.lastAlarmTime = osKernelSysTick();
-//
-//                    MotionStatus.lastAlarmTime = osKernelSysTick();
-//                    MotionStatus.alarm = true;
-//                    debugOut(0, "[\t%d] Motor Alarm\r\n", osKernelSysTick() );
-//                }
-//            }
-//            else
-//            {
-//                MotionStatus.alarm = false;
-//                MotionStatus.alarmCleanDisable = false;
-//            }
 
             if( MotorStatusWord_PDO & 0x04 )
             {
@@ -559,7 +529,7 @@ void MotionTask(void const *parment)
     Can1Init();
 
     agv.Stop_Accuracy = 2;
-    agv.sArriveCtrlTime = 50;
+    agv.sArriveCtrlTime = 5000;
     agv.sSpeed_min = 10;
     agv.sSpeed_max = 300;
     agv.sDeceleration_distance = 2;
@@ -1197,7 +1167,7 @@ void MotionTask(void const *parment)
         {
             if( MotionStatus.handSpeedMode )
             {
-                if( PreviousWakeTime > MotionStatus.handSpeedTime )
+                if( PreviousWakeTime >= MotionStatus.handSpeedTime )
                 {
                     if( PreviousWakeTime - MotionStatus.handSpeedTime > 500 )
                     {
@@ -1316,10 +1286,65 @@ void MotionTask(void const *parment)
                             short Data;
                             char Hex[2];
                         } i16ToHex;
-                        i32ToHex.Data = request_speed;
+                        if( MotionStatus.handSpeedMode )
+                        {
+                            if( abs(request_speed) > 10 )
+                            {
+                                i32ToHex.Data = request_speed;
+                                i16ToHex.Data = 0x0f;
+
+                            }
+                            else
+                            {
+                                if( PreviousWakeTime >= MotionStatus.handSpeedTime )
+                                {
+                                    if( PreviousWakeTime - MotionStatus.handSpeedTime > 100 )
+                                    {
+                                        i32ToHex.Data = 0;
+                                        i16ToHex.Data = 0x06;
+                                    }
+                                    else
+                                    {
+                                        i32ToHex.Data = 0;
+                                        i16ToHex.Data = 0x0f;
+                                    }
+                                }
+                                else
+                                    MotionStatus.handSpeedTime = PreviousWakeTime;
+                            }
+                        }
+                        else
+                        {
+                            if( agv.iEmergencyByPause )
+                            {
+                                if( abs(request_speed) < 10 )
+                                {
+                                    i32ToHex.Data = 0;
+                                    i16ToHex.Data = 0x06;
+                                }
+                                else
+                                {
+                                    i32ToHex.Data = request_speed;
+                                    i16ToHex.Data = 0xf;
+                                }
+                            }
+                            else
+                            {
+                                if( agv.Motion_Status_Now == AGV_Parallel_Motion::ms_Arrived )
+                                {
+                                    i32ToHex.Data = 0;
+                                    i16ToHex.Data = 0x06;
+                                }
+                                else
+                                {
+                                    i32ToHex.Data = request_speed;
+                                    i16ToHex.Data = 0x0f;
+                                }
+                            }
+                        }
                         for( int i = 0; i < 4; i++ )
                             rpdoData[i] = i32ToHex.Hex[i];
-                        i16ToHex.Data = 0x0f;
+
                         rpdoData[4] = i16ToHex.Hex[0];
                         rpdoData[5] = i16ToHex.Hex[1];
                         rpdoData[6] = 3;

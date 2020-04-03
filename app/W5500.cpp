@@ -366,9 +366,11 @@ int decodePack( uint8_t *packBuff, int buffLen, uint64_t *packIndex, uint16_t *p
     }
     if( packLen )
         *packLen = Uint32ToHex.Data;
+    if( *packLen + 22 > 500 )
+        return -1;
     if( *packLen + 21 > buffLen )
         return pdFALSE;
-
+    
     for( int i = 0; i < *packLen; i++ )
         data[i] = *packPiont++;
     crc = CRC16_MODBUS( packBuff, 19 + *packLen );
@@ -417,7 +419,7 @@ void protocolRun( void const *para )
         int  Data;
     } i32ToHex;
 
-    createSocket( &dataIn, &dataOut, 8802, 0, 0 );
+    createSocket( &dataIn, &dataOut, 8802, serverConnectOk, serverDisconnect );
     uint8_t buff[500];
     uint8_t data[100];
     NavigationOperationStd navData;
