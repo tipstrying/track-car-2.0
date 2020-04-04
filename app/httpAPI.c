@@ -66,6 +66,12 @@ int setMotorDisable(int status )
         navData.Data.op = 0;
     return xQueueSend( NavigationOperationQue, &navData, 100 );
 }
+int clearMotoralarmHttpApi()
+{
+    ClearMotorAlarm();
+    return 0;
+}
+
 int SetOpHttpApi( float position, int cmd, float data )
 {
     /*

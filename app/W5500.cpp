@@ -384,7 +384,6 @@ int decodePack(uint8_t *packBuff, int buffLen, uint64_t *packIndex, uint16_t *pa
 调度通信线程
 * *********************************************************************************************************************************************************/
 int IsMotorAlarm();
-void ClearMotorAlarm();
 extern int switchReach;
 
 static int serverConnectOk(int ip)

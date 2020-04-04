@@ -109,8 +109,8 @@ static const CLI_Command_Definition_t xParameterGetBattery =
 static BaseType_t GetInOutStatus( char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString );
 static const CLI_Command_Definition_t xParameterGetInOutStatus =
 {
-    "inout-stats",
-    "\r\ninout-stats: Display IN OUT port status",
+    "io-stats",
+    "\r\nio-stats: Display IN OUT port status",
     GetInOutStatus,
     0
 };
@@ -145,12 +145,8 @@ static const CLI_Command_Definition_t xParameterMotionCtl =
     "motionctl",
     "\r\nmotionctl: Set Motion Parameter online\r\n\
     Usage:\r\n\
-    \tmotionctl [ <set k=? j=? a_max=? v_max=?> ]\r\n\
-    \tmotionctl [ <set manual-mode=<enable|disable>> ]\r\n\
-    \tmotionctl [ <move-free x=? y=?>]\r\n\
-    \tmotionctl [ <move-lattice x+?|x-?|y+?|y-?> ]\r\n\
-    \tmotionctl [ <switch to x> | <switch to y> ]\r\n\
-    \tmotionctl [ <init x=? y=?> ]\r\n"\
+    \tmotionctl [ <set acc=%f> ]\r\n\
+    "
     ,
     MotionCtl,
     -1,
@@ -707,16 +703,14 @@ static BaseType_t MotionCtl( char *pcWriteBuffer, size_t xWriteBufferLen, const 
 {
     const char * parment[5] = {0,0,0,0,0 };
     BaseType_t parameterLen[5] = {0, 0, 0, 0, 0 };
-    float ts_k, ts_j, ts_a, ts_v;
-    float x,y;
-    float x1,y1;
-    int xCount, yCount;
+    float acc;
     parment[0] = FreeRTOS_CLIGetParameter( pcCommandString, 1, &( parameterLen[0] ) );
     if( parment[0] )
     {
-        if( sscanf( parment[0], "set k=%f j=%f a=%f v=%f", &ts_k, &ts_j, &ts_a, &ts_v ) == 4 )
+        if( sscanf( parment[0], "set acc=%f", &acc ) == 1 )
         {
-            sprintf( pcWriteBuffer, "set k=%f j=%f a=%f v=%f\r\n", ts_k, ts_j, ts_a, ts_v );
+            setRunAcc(acc);
+            sprintf( pcWriteBuffer, "set acc=%f\r\n", acc );
         }
         else
         {
@@ -725,7 +719,8 @@ static BaseType_t MotionCtl( char *pcWriteBuffer, size_t xWriteBufferLen, const 
     }
     else
     {
-        sprintf( pcWriteBuffer, "Motion parameter: k=%f j=%f a=%f v=%f\r\n", ts_k, ts_j, ts_a, ts_v );
+        acc = getRunAcc();
+        sprintf( pcWriteBuffer, "Acc:%f\r\n", acc);
     }
     return pdFALSE;
 }

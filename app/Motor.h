@@ -48,7 +48,7 @@ void SetiEmergency( int S );
 float GetStop_Accuracy(void);
 void setManualMode( int status );
 void GetMaxSpeed(float *xSpeed);
-    
+
 void SetMaxSpeed( float xSpeeed );
 void GetSpeed( float *xSpeed);
 void SetPositionMoveTo( float x );
@@ -59,6 +59,9 @@ void cancelNavigate();
 char isTouchPie();
 void GetMotorCurrent( short *current );
 
+void setRunAcc( float acc );
+float getRunAcc();
+void ClearMotorAlarm();
 
 void getTS_CURVEPAR( float *k, float *j, float *a, float *v );
 void setTS_CURVEPAR( float k, float j, float a, float v );
