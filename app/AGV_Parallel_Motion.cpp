@@ -20,7 +20,6 @@ AGV_Parallel_Motion::AGV_Parallel_Motion()
     this->EncoderValue = 0;
     this->move_to_step = ms_Idle;
     iEmergencyBySoftware = false;
-
 }
 
 AGV_Parallel_Motion::~AGV_Parallel_Motion()
@@ -31,7 +30,7 @@ AGV_Parallel_Motion::Motion_Status AGV_Parallel_Motion::Motion_work(float iTarge
 {
     Motion_Status rValue = ms_Idle;
     this->DetectDynamics();
-    if ( this->iEmergencyByError )
+    if (this->iEmergencyByError)
     {
         this->Request_RPM = 0;
         this->Request_Speed = 0;
@@ -49,11 +48,11 @@ AGV_Parallel_Motion::Motion_Status AGV_Parallel_Motion::Move_to(float iTarget)
     static float mm2RPM = 1.0 / (AGV_WheelDiameter * sPI) * 60.0;
     Motion_Status rValue = ms_Idle;
     static int lastTimeCtrl = this->clock;
-    float iDistance = fabsf( this->AGV_Pos - iTarget );
+    float iDistance = fabsf(this->AGV_Pos - iTarget);
     static Motion_Status move_to_step_bak = move_to_step;
-//    this->FeedBack_Speed = this->FeedBack_RPM / mm2RPM;
+    //    this->FeedBack_Speed = this->FeedBack_RPM / mm2RPM;
 
-    switch( this->move_to_step )
+    switch (this->move_to_step)
     {
     default:
     case ms_Emergency:
@@ -82,10 +81,10 @@ AGV_Parallel_Motion::Motion_Status AGV_Parallel_Motion::Move_to(float iTarget)
     case ms_Straight:
         move_to_step_bak = move_to_step;
 
-        if( fabsf(iTarget - this->AGV_Pos) > this->Stop_Accuracy * 0.5)
+        if (fabsf(iTarget - this->AGV_Pos) > this->Stop_Accuracy * 0.5)
         {
             lastTimeCtrl = this->clock;
-            if( this->AGV_Pos > iTarget )
+            if (this->AGV_Pos > iTarget)
             {
                 this->Request_Speed = -this->Move(iDistance);
             }
@@ -107,14 +106,12 @@ AGV_Parallel_Motion::Motion_Status AGV_Parallel_Motion::Move_to(float iTarget)
                 taskEXIT_CRITICAL();
                 this->move_to_step = ms_Idle;
             }
-
         }
         rValue = ms_Straight;
         break;
     case ms_Error:
         rValue = ms_Error;
         break;
-
     }
     this->Request_RPM = this->Request_Speed * mm2RPM;
     return rValue;
@@ -143,13 +140,13 @@ float AGV_Parallel_Motion::Move(float iDistance)
     if (iDistance < 0)
         SetSpeed = -SetSpeed;
 
-    if ( this->iEmergencyByPause || this->iEmergencyByCancel )
+    if (this->iEmergencyByPause || this->iEmergencyByCancel)
     {
         float securityDelta_straight;
         SetSpeed = 0;
         securityDelta_straight = sAcceleration * sample_Time / 1000.0;
         speedNow = speedNow - securityDelta_straight;
-        if( abs(speedNow) < 10 )
+        if (abs(speedNow) < 10)
             speedNow = 0;
     }
     else
@@ -166,16 +163,16 @@ float AGV_Parallel_Motion::Move(float iDistance)
         }
         if (speedNow > SetSpeed)
         {
-            if( stopDistance > iDistance )
+            if (stopDistance > iDistance)
             {
-                if( iDistance > sDeceleration_distance )
-                    speedNow = sqrt( 2 * sAcceleration * (iDistance - sDeceleration_distance) );
+                if (iDistance > sDeceleration_distance)
+                    speedNow = sqrt(2 * sAcceleration * (iDistance - sDeceleration_distance));
                 else
                     speedNow = sSpeed_min;
             }
             else
             {
-                if( speedNow > sSpeed_max )
+                if (speedNow > sSpeed_max)
                 {
                     speedNow -= securityDelta_straight;
                 }
@@ -184,7 +181,7 @@ float AGV_Parallel_Motion::Move(float iDistance)
         else if (speedNow < SetSpeed)
             speedNow += securityDelta_straight;
     }
-    if( this->iEmergencyByMotorDisable )
+    if (this->iEmergencyByMotorDisable)
         speedNow = 0;
     return speedNow;
 }
@@ -214,7 +211,6 @@ void AGV_Parallel_Motion::DetectDynamics(void)
     }
     taskEXIT_CRITICAL();
 }
-
 
 AGV_Parallel_Motion::Motion_Status AGV_Parallel_Motion::getMotionStatus()
 {
