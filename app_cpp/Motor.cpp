@@ -352,7 +352,7 @@ void Rx_PDO_Commplate(int oID, char Array[8], int len )
                     MotionStatus.alarm = true;
                     if( osKernelSysTick() >  MotionStatus.lastAlarmTime )
                     {
-                        if( osKernelSysTick() - MotionStatus.lastAlarmTime < 1000 )
+                        if( osKernelSysTick() - MotionStatus.lastAlarmTime < 10000 )
                         {
                             MotionStatus.alarmCleanDisable = true ;
                         }
