@@ -168,22 +168,6 @@
         <Bp>
           <Number>1</Number>
           <Type>0</Type>
-          <LineNumber>152</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134391182</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\app\AGV_Parallel_Motion.cpp</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\Main\../app/AGV_Parallel_Motion.cpp\152</Expression>
-        </Bp>
-        <Bp>
-          <Number>2</Number>
-          <Type>0</Type>
           <LineNumber>388</LineNumber>
           <EnabledFlag>1</EnabledFlag>
           <Address>0</Address>

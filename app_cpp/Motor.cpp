@@ -354,6 +354,7 @@ void Rx_PDO_Commplate(int oID, char Array[8], int len)
             i16ToHex.Hex[0] = Array[2];
             i16ToHex.Hex[1] = Array[3];
             alarmCode = i16ToHex.u16Data;
+            static int enableAndSpeedModeDelay = 0;
 
             if (alarmCode)
             {
@@ -417,10 +418,20 @@ void Rx_PDO_Commplate(int oID, char Array[8], int len)
                 {
                     MotionStatus.speedMode = false;
                     debugOut(0, "[\t%d] Motor NOT AT SPEED MODE!!!\r\n", osKernelSysTick());
+                    enableAndSpeedModeDelay = osKernelSysTick();
                 }
                 break;
             case 3:
-                MotionStatus.speedMode = true;
+                if( osKernelSysTick() > enableAndSpeedModeDelay )
+                {
+                    if( osKernelSysTick() - enableAndSpeedModeDelay > 500 )
+                    {
+                        MotionStatus.speedMode = true;
+                        break;
+                    }
+                }
+                MotionStatus.speedMode = false;
+            
                 break;
             }
         }
@@ -1201,7 +1212,7 @@ void MotionTask(void const *parment)
                     else
                     {
                         static float mm2RPM = 1.0 / (AGV_WheelDiameter * PI) * 60.0;
-                        request_speed = (int)(((double)(MotionStatus.handSpeed * mm2RPM) * 512 * 10000 * 9.333333) / 1875);
+                        request_speed = (int)(((double)(MotionStatus.handSpeed * mm2RPM) * 512 * 10000 * 8.166667) / 1875);
                     }
                 }
                 else
@@ -1214,7 +1225,7 @@ void MotionTask(void const *parment)
             {
                 if (agv.iEmergencyByPause)
                 {
-                    request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.333333) / 1875);
+                    request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 8.166667) / 1875);
                     /*
                     if( request_speed == 0 )
                     {
@@ -1232,7 +1243,7 @@ void MotionTask(void const *parment)
                     if (agv.Request_RPM == 0)
                         request_speed = 0;
                     else
-                        request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.333333) / 1875);
+                        request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 8.166667) / 1875);
                 }
             }
         }
