@@ -443,7 +443,7 @@ void protocolRun(void const *para)
                         debugOut(0, (char *)"\r\n");
                         if( packIndexBak == packIndex )
                         {
-                            PackLen = makePack(buff, packIndex, packCMD + 10000, 1, 0, NULL);
+                            PackLen = makePack(buff, packIndex, packCMD + 10000, 0, 0, NULL);
                             dataOut.pushData(buff, PackLen);
                         }
                         else
