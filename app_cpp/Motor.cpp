@@ -486,7 +486,7 @@ int isPackOnCar()
     else
     {
         if (BeltGetPack)
-            return 0;
+            return 1;
         else
             return getThingSensorStatus(0);
     }
@@ -865,7 +865,10 @@ void MotionTask(void const *parment)
                     beltCtrl(0, BeltFront, 20);
                     if (!Belt_Ctrl.info.read_input[0] && Belt_Ctrl.info.read_input[1] && !Belt_Ctrl.info.read_input[2])
                     {
-                        BeltGetPack = 0;
+                        if( BeltGetPack )
+                        {
+                            BeltGetPack = 2;
+                        }
                     }
                 }
                 else
@@ -887,6 +890,7 @@ void MotionTask(void const *parment)
                 {
                     beltCtrl(0, BeltFront, 10);
                     BeltOperating = 0;
+                    BeltGetPack = 0;
                 }
                 break;
             case 2:
@@ -903,6 +907,7 @@ void MotionTask(void const *parment)
                 {
                     beltCtrl(0, BeltRev, 10);
                     BeltOperating = 0;
+                    BeltGetPack = 0;
                 }
                 break;
             case 3:
