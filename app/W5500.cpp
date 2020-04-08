@@ -238,10 +238,10 @@ unsigned short CRC16_MODBUS(unsigned char *buff, int len)
     unsigned short tmp = 0xffff;
     unsigned short ret1 = 0;
     for (int n = 0; n < len; n++)
-    { /*ՋԦք6 -- ҪУҩքλ˽Ϊ6ٶ*/
+    {   /*ՋԦք6 -- ҪУҩքλ˽Ϊ6ٶ*/
         tmp = buff[n] ^ tmp;
         for (int i = 0; i < 8; i++)
-        { /*ՋԦք8 -- ָÿһٶchar`эԖ8bitìÿbitּҪԦm*/
+        {   /*ՋԦք8 -- ָÿһٶchar`эԖ8bitìÿbitּҪԦm*/
             if (tmp & 0x01)
             {
                 tmp = tmp >> 1;
@@ -407,7 +407,7 @@ int createSocket(FifoClass *in, FifoClass *out, uint16_t port, fun_ptr onCreatep
 void protocolRun(void const *para)
 {
     static FifoClass dataIn, dataOut;
-    uint64_t packIndex = 0;
+    uint64_t packIndex = -1, packIndexBak = -1;
     uint16_t packCMD = 0;
     uint8_t errorCode;
     int PackLen;
@@ -441,275 +441,288 @@ void protocolRun(void const *para)
                             debugOut(0, (char *)"0X%02X ", data[i]);
                         }
                         debugOut(0, (char *)"\r\n");
-
-                        switch (packCMD)
+                        if( packIndexBak == packIndex )
                         {
-                        case 2001:
-                            if (1)
+                            PackLen = makePack(buff, packIndex, packCMD + 10000, 1, 0, NULL);
+                            dataOut.pushData(buff, PackLen);
+                        }
+                        else
+                        {
+                            packIndexBak = packIndex;
+                            switch (packCMD)
                             {
-                                // Enum_QueryCarInfo
-                                float pos, speed;
-                                int posInt;
-                                uint8_t status;
-                                uint8_t batVol;
-                                status = 0;
-
-                                union {
-                                    uint8_t Hex[4];
-                                    int Data;
-                                } i32ToHex;
-
-                                union {
-                                    uint8_t Hex[2];
-                                    uint16_t Data;
-                                } u16ToHex;
-
-                                GetPosition(&pos);
-                                GetSpeed(&speed);
-                                i32ToHex.Data = (int)pos;
-                                u16ToHex.Data = (uint16_t)speed;
-                                if (switchReach < 0)
-                                    status = 2;
-                                else if (IsMotorAlarm())
+                            case 2001:
+                                if (1)
                                 {
-                                    status = 1;
+                                    // Enum_QueryCarInfo
+                                    float pos, speed;
+                                    int posInt;
+                                    uint8_t status;
+                                    uint8_t batVol;
+                                    status = 0;
+
+                                    union {
+                                        uint8_t Hex[4];
+                                        int Data;
+                                    } i32ToHex;
+
+                                    union {
+                                        uint8_t Hex[2];
+                                        uint16_t Data;
+                                    } u16ToHex;
+
+                                    GetPosition(&pos);
+                                    GetSpeed(&speed);
+                                    i32ToHex.Data = (int)pos;
+                                    u16ToHex.Data = (uint16_t)speed;
+                                    if (switchReach < 0)
+                                        status = 2;
+                                    else if (IsMotorAlarm())
+                                    {
+                                        status = 1;
+                                    }
+
+                                    batVol = (uint8_t)(Battery.Voltage / 1000);
+                                    for (int i = 0; i < 4; i++)
+                                    {
+                                        data[i] = i32ToHex.Hex[3 - i];
+                                    }
+                                    data[4] = u16ToHex.Hex[1];
+                                    data[5] = u16ToHex.Hex[0];
+
+                                    data[6] = status;
+
+                                    data[7] = batVol;
+
+                                    PackLen = makePack(buff, packIndex, 12001, 0, 8, data);
+                                    dataOut.pushData(buff, PackLen);
                                 }
 
-                                batVol = (uint8_t)(Battery.Voltage / 1000);
-                                for (int i = 0; i < 4; i++)
+                                break;
+                            case 2002:
+                                // Enum_SetMaxSpeed
+                                navData.cmd = Enum_SetMaxSpeed;
+                                navData.Data.speedTo = data[0] * 255 + data[1];
+                                if (xQueueSend(NavigationOperationQue, &navData, 1000) == pdPASS)
                                 {
-                                    data[i] = i32ToHex.Hex[3 - i];
+                                    PackLen = makePack(buff, packIndex, 12002, 0, 0, NULL);
+                                    dataOut.pushData(buff, PackLen);
                                 }
-                                data[4] = u16ToHex.Hex[1];
-                                data[5] = u16ToHex.Hex[0];
-
-                                data[6] = status;
-
-                                data[7] = batVol;
-
-                                PackLen = makePack(buff, packIndex, 12001, 0, 8, data);
-                                dataOut.pushData(buff, PackLen);
-                            }
-
-                            break;
-                        case 2002:
-                            // Enum_SetMaxSpeed
-                            navData.cmd = Enum_SetMaxSpeed;
-                            navData.Data.speedTo = data[0] * 255 + data[1];
-                            if (xQueueSend(NavigationOperationQue, &navData, 1000) == pdPASS)
-                            {
-                                PackLen = makePack(buff, packIndex, 12002, 0, 0, NULL);
-                                dataOut.pushData(buff, PackLen);
-                            }
-                            else
-                            {
-                                PackLen = makePack(buff, packIndex, 12002, 1, 0, NULL);
-                                dataOut.pushData(buff, PackLen);
-                            }
-
-                            break;
-                        case 2003:
-                            if (1)
-                            {
-                                uint8_t trails = data[2];
-                                int rValue = 0;
-                                for (int i = 0; i < trails; i++)
+                                else
                                 {
+                                    PackLen = makePack(buff, packIndex, 12002, 1, 0, NULL);
+                                    dataOut.pushData(buff, PackLen);
+                                }
+
+                                break;
+                            case 2003:
+                                if (1)
+                                {
+                                    uint8_t trails = data[2];
+                                    int rValue = 0;
+                                    for (int i = 0; i < trails; i++)
+                                    {
+                                        if (rValue)
+                                            break;
+                                        for (int j = 0; j < 4; j++)
+                                        {
+                                            i32ToHex.Hex[3 - j] = data[3 + j + i * 7];
+                                        }
+                                        navData.cmd = Enum_SendNavigation;
+                                        navData.Data.posTo = i32ToHex.Data;
+                                        if (xQueueSend(NavigationOperationQue, &navData, 100) != pdPASS)
+                                        {
+                                            if (!rValue)
+                                                rValue = 0;
+                                        }
+
+                                        if (data[7 + i * 7] + data[8 + i * 7] != 0)
+                                        {
+                                            navData.cmd = Enum_sendOperation;
+                                            navData.Data.speedTo = data[7 + i * 7] * 255 + data[8 + i * 7];
+                                            navData.Data.op = 1;
+                                            navData.Data.posTo = i32ToHex.Data;
+                                            if (xQueueSend(NavigationOperationQue, &navData, 100) == pdPASS)
+                                            {
+                                                if (!rValue)
+                                                    rValue = 0;
+                                            }
+                                        }
+                                        if (data[9 + i * 7])
+                                        {
+                                            navData.cmd = Enum_sendOperation;
+                                            navData.Data.posTo = i32ToHex.Data;
+                                            navData.Data.op = data[9 + i * 7] + 1;
+                                            if (xQueueSend(NavigationOperationQue, &navData, 100) == pdPASS)
+                                            {
+                                                if (!rValue)
+                                                    rValue = 0;
+                                            }
+                                        }
+                                    }
                                     if (rValue)
-                                        break;
-                                    for (int j = 0; j < 4; j++)
                                     {
-                                        i32ToHex.Hex[3 - j] = data[3 + j + i * 7];
+                                        PackLen = makePack(buff, packIndex, 12003, 1, 0, 0);
                                     }
-                                    navData.cmd = Enum_SendNavigation;
-                                    navData.Data.posTo = i32ToHex.Data;
-                                    if (xQueueSend(NavigationOperationQue, &navData, 100) != pdPASS)
+                                    else
                                     {
-                                        if (!rValue)
-                                            rValue = 0;
+                                        PackLen = makePack(buff, packIndex, 12003, 0, 0, 0);
                                     }
-
-                                    if (data[7 + i * 7] + data[8 + i * 7] != 0)
-                                    {
-                                        navData.cmd = Enum_sendOperation;
-                                        navData.Data.speedTo = data[7 + i * 7] * 255 + data[8 + i * 7];
-                                        navData.Data.op = 1;
-                                        navData.Data.posTo = i32ToHex.Data;
-                                        if (xQueueSend(NavigationOperationQue, &navData, 100) == pdPASS)
-                                        {
-                                            if (!rValue)
-                                                rValue = 0;
-                                        }
-                                    }
-                                    if (data[9 + i * 7])
-                                    {
-                                        navData.cmd = Enum_sendOperation;
-                                        navData.Data.posTo = i32ToHex.Data;
-                                        navData.Data.op = data[9 + i * 7] + 1;
-                                        if (xQueueSend(NavigationOperationQue, &navData, 100) == pdPASS)
-                                        {
-                                            if (!rValue)
-                                                rValue = 0;
-                                        }
-                                    }
+                                    dataOut.pushData(buff, PackLen);
                                 }
-                                if (rValue)
-                                {
-                                    PackLen = makePack(buff, packIndex, 12003, 1, 0, 0);
-                                }
-                                else
-                                {
-                                    PackLen = makePack(buff, packIndex, 12003, 0, 0, 0);
-                                }
-                                dataOut.pushData(buff, PackLen);
-                            }
-                            break;
-                        case 2004:
-                            if (1)
-                            {
-                                int rValue = 0;
-                                navData.cmd = Enum_PauseNavigation;
-                                navData.Data.op = 1;
-                                if (xQueueSend(NavigationOperationQue, &navData, 100) == pdPASS)
-                                    rValue = 0;
-                                else
-                                    rValue = 1;
-                                if (rValue)
-                                {
-                                    PackLen = makePack(buff, packIndex, 12004, 1, 0, 0);
-                                }
-                                else
-                                {
-                                    PackLen = makePack(buff, packIndex, 12004, 0, 0, 0);
-                                }
-                                dataOut.pushData(buff, PackLen);
-                            }
-                            break;
-                        case 2005:
-                            if (1)
-                            {
-                                int rValue = 0;
-                                navData.cmd = Enum_PauseNavigation;
-                                navData.Data.op = 0;
-                                if (xQueueSend(NavigationOperationQue, &navData, 100) == pdPASS)
-                                    rValue = 0;
-                                else
-                                    rValue = 1;
-                                if (rValue)
-                                {
-                                    PackLen = makePack(buff, packIndex, 12005, 1, 0, 0);
-                                }
-                                else
-                                {
-                                    PackLen = makePack(buff, packIndex, 12005, 0, 0, 0);
-                                }
-                                dataOut.pushData(buff, PackLen);
-                            }
-                            break;
-                        case 2006:
-                            if (1)
-                            {
-                                int rValue = 0;
-                                navData.cmd = Enum_CancelNavigation;
-                                navData.Data.op = 1;
-                                if (xQueueSend(NavigationOperationQue, &navData, 100) == pdPASS)
-                                    rValue = 0;
-                                else
-                                    rValue = 1;
-                                if (rValue)
-                                {
-                                    PackLen = makePack(buff, packIndex, 12006, 1, 0, 0);
-                                }
-                                else
-                                {
-                                    PackLen = makePack(buff, packIndex, 12006, 0, 0, 0);
-                                }
-                                dataOut.pushData(buff, PackLen);
-                            }
-                            break;
-                        case 2007:
-                            if (1)
-                            {
-                                if (PackLen == 1)
+                                break;
+                            case 2004:
+                                if (1)
                                 {
                                     int rValue = 0;
-                                    if (!data[0])
-                                        navData.Data.op = 0;
-                                    else
-                                        navData.Data.op = 1;
-
-                                    navData.cmd = Enum_PushThing;
+                                    navData.cmd = Enum_PauseNavigation;
+                                    navData.Data.op = 1;
                                     if (xQueueSend(NavigationOperationQue, &navData, 100) == pdPASS)
                                         rValue = 0;
                                     else
                                         rValue = 1;
                                     if (rValue)
                                     {
-                                        PackLen = makePack(buff, packIndex, 12007, 1, 0, 0);
+                                        PackLen = makePack(buff, packIndex, 12004, 1, 0, 0);
                                     }
                                     else
                                     {
-                                        PackLen = makePack(buff, packIndex, 12007, 0, 0, 0);
+                                        PackLen = makePack(buff, packIndex, 12004, 0, 0, 0);
                                     }
                                     dataOut.pushData(buff, PackLen);
                                 }
-                                else
+                                break;
+                            case 2005:
+                                if (1)
                                 {
-                                    PackLen = makePack(buff, packIndex, 12007, 1, 0, 0);
-                                    dataOut.pushData(buff, PackLen);
-                                }
-                            }
-                            break;
-                        case 2008:
-                            if (1)
-                            {
-                                uint8_t isThingOnCar = isPackOnCar();
-                                PackLen = makePack(buff, packIndex, 12008, 0, 1, &isThingOnCar);
-                                dataOut.pushData(buff, PackLen);
-                            }
-                            break;
-                        case 2010:
-                            if (1)
-                            {
-                                ClearMotorAlarm();
-                                PackLen = makePack(buff, packIndex, 12010, 0, 0, 0);
-                                dataOut.pushData(buff, PackLen);
-                            }
-                            break;
-                        case 2011:
-                            if (1)
-                            {
-                                if (PackLen == 4)
-                                {
-                                    for (int i = 0; i < 4; i++)
-                                    {
-                                        i32ToHex.Hex[i] = data[3 - i];
-                                    }
-                                    navData.cmd = Enum_SetZeroPosition;
-                                    navData.Data.posTo = i32ToHex.Data;
-                                    xQueueSend(NavigationOperationQue, &navData, 100);
-                                    PackLen = makePack(buff, packIndex, 12011, 0, 0, 0);
-                                    dataOut.pushData(buff, PackLen);
-                                }
-                            }
-
-                            break;
-                        case 2013:
-                            if (1)
-                            {
-                                if (PackLen == 1)
-                                {
-                                    if (!data[0])
-                                    {
-                                        navData.Data.op = 0;
-                                    }
-                                    else
-                                        navData.Data.op = 1;
-                                    navData.cmd = Enum_PullThing;
+                                    int rValue = 0;
+                                    navData.cmd = Enum_PauseNavigation;
+                                    navData.Data.op = 0;
                                     if (xQueueSend(NavigationOperationQue, &navData, 100) == pdPASS)
+                                        rValue = 0;
+                                    else
+                                        rValue = 1;
+                                    if (rValue)
                                     {
-                                        PackLen = makePack(buff, packIndex, 12013, 0, 0, 0);
+                                        PackLen = makePack(buff, packIndex, 12005, 1, 0, 0);
+                                    }
+                                    else
+                                    {
+                                        PackLen = makePack(buff, packIndex, 12005, 0, 0, 0);
+                                    }
+                                    dataOut.pushData(buff, PackLen);
+                                }
+                                break;
+                            case 2006:
+                                if (1)
+                                {
+                                    int rValue = 0;
+                                    navData.cmd = Enum_CancelNavigation;
+                                    navData.Data.op = 1;
+                                    if (xQueueSend(NavigationOperationQue, &navData, 100) == pdPASS)
+                                        rValue = 0;
+                                    else
+                                        rValue = 1;
+                                    if (rValue)
+                                    {
+                                        PackLen = makePack(buff, packIndex, 12006, 1, 0, 0);
+                                    }
+                                    else
+                                    {
+                                        PackLen = makePack(buff, packIndex, 12006, 0, 0, 0);
+                                    }
+                                    dataOut.pushData(buff, PackLen);
+                                }
+                                break;
+                            case 2007:
+                                if (1)
+                                {
+                                    if (PackLen == 1)
+                                    {
+                                        int rValue = 0;
+                                        if (!data[0])
+                                            navData.Data.op = 0;
+                                        else
+                                            navData.Data.op = 1;
+
+                                        navData.cmd = Enum_PushThing;
+                                        if (xQueueSend(NavigationOperationQue, &navData, 100) == pdPASS)
+                                            rValue = 0;
+                                        else
+                                            rValue = 1;
+                                        if (rValue)
+                                        {
+                                            PackLen = makePack(buff, packIndex, 12007, 1, 0, 0);
+                                        }
+                                        else
+                                        {
+                                            PackLen = makePack(buff, packIndex, 12007, 0, 0, 0);
+                                        }
                                         dataOut.pushData(buff, PackLen);
+                                    }
+                                    else
+                                    {
+                                        PackLen = makePack(buff, packIndex, 12007, 1, 0, 0);
+                                        dataOut.pushData(buff, PackLen);
+                                    }
+                                }
+                                break;
+                            case 2008:
+                                if (1)
+                                {
+                                    uint8_t isThingOnCar = isPackOnCar();
+                                    PackLen = makePack(buff, packIndex, 12008, 0, 1, &isThingOnCar);
+                                    dataOut.pushData(buff, PackLen);
+                                }
+                                break;
+                            case 2010:
+                                if (1)
+                                {
+                                    ClearMotorAlarm();
+                                    PackLen = makePack(buff, packIndex, 12010, 0, 0, 0);
+                                    dataOut.pushData(buff, PackLen);
+                                }
+                                break;
+                            case 2011:
+                                if (1)
+                                {
+                                    if (PackLen == 4)
+                                    {
+                                        for (int i = 0; i < 4; i++)
+                                        {
+                                            i32ToHex.Hex[i] = data[3 - i];
+                                        }
+                                        navData.cmd = Enum_SetZeroPosition;
+                                        navData.Data.posTo = i32ToHex.Data;
+                                        xQueueSend(NavigationOperationQue, &navData, 100);
+                                        PackLen = makePack(buff, packIndex, 12011, 0, 0, 0);
+                                        dataOut.pushData(buff, PackLen);
+                                    }
+                                }
+
+                                break;
+                            case 2013:
+                                if (1)
+                                {
+                                    if (PackLen == 1)
+                                    {
+                                        if (!data[0])
+                                        {
+                                            navData.Data.op = 0;
+                                        }
+                                        else
+                                            navData.Data.op = 1;
+                                        navData.cmd = Enum_PullThing;
+                                        if (xQueueSend(NavigationOperationQue, &navData, 100) == pdPASS)
+                                        {
+                                            PackLen = makePack(buff, packIndex, 12013, 0, 0, 0);
+                                            dataOut.pushData(buff, PackLen);
+                                        }
+                                        else
+                                        {
+                                            PackLen = makePack(buff, packIndex, 12013, 1, 0, 0);
+                                            dataOut.pushData(buff, PackLen);
+                                        }
                                     }
                                     else
                                     {
@@ -717,82 +730,77 @@ void protocolRun(void const *para)
                                         dataOut.pushData(buff, PackLen);
                                     }
                                 }
-                                else
+                                break;
+                            case 2016:
+                                if (data[0] == 1)
                                 {
-                                    PackLen = makePack(buff, packIndex, 12013, 1, 0, 0);
-                                    dataOut.pushData(buff, PackLen);
+                                    HAL_GPIO_WritePin(OUT_9_GPIO_Port, OUT_9_Pin, GPIO_PIN_SET);
                                 }
-                            }
-                            break;
-                        case 2016:
-                            if (data[0] == 1)
-                            {
-                                HAL_GPIO_WritePin(OUT_9_GPIO_Port, OUT_9_Pin, GPIO_PIN_SET);
-                            }
-                            else
-                                HAL_GPIO_WritePin(OUT_9_GPIO_Port, OUT_9_Pin, GPIO_PIN_RESET);
+                                else
+                                    HAL_GPIO_WritePin(OUT_9_GPIO_Port, OUT_9_Pin, GPIO_PIN_RESET);
 
-                            PackLen = makePack(buff, packIndex, 12016, 0, 0, 0);
-                            dataOut.pushData(buff, PackLen);
-                            break;
-                        case 2017:
-                            if (1)
-                            {
-                                uint8_t isChargeKeyOpen = HAL_GPIO_ReadPin(OUT_9_GPIO_Port, OUT_9_Pin);
-                                PackLen = makePack(buff, packIndex, 12017, 0, 1, &isChargeKeyOpen);
-                                dataOut.pushData(buff, PackLen);
-                            }
-                            break;
-                        case 2018:
-                            /*
-                            navData.cmd = 5;
-                            navData.Data.op = 1;
-                            xQueueSend( NavigationOperationQue, &navData, 100 );
-                            */
-                            PackLen = makePack(buff, packIndex, 12018, 0, 0, 0);
-                            dataOut.pushData(buff, PackLen);
-                            break;
-                        case 2019:
-                            navData.cmd = Enum_SetInOutSwitch;
-                            if (data[0] == 1)
-                                navData.Data.op = 1;
-                            else if (data[0] == 2)
-                                navData.Data.op = 0;
-                            else
-                            {
-                                PackLen = makePack(buff, packIndex, 12019, 1, 0, 0);
+                                PackLen = makePack(buff, packIndex, 12016, 0, 0, 0);
                                 dataOut.pushData(buff, PackLen);
                                 break;
-                            }
-
-                            xQueueSend(NavigationOperationQue, &navData, 100);
-
-                            PackLen = makePack(buff, packIndex, 12019, 0, 0, 0);
-                            dataOut.pushData(buff, PackLen);
-                            break;
-                        case 2020:
-                            navData.cmd = Enum_setHandSpeedMode;
-                            navData.Data.op = data[0];
-                            xQueueSend(NavigationOperationQue, &navData, 100);
-                            PackLen = makePack(buff, packIndex, 12020, 0, 0, 0);
-                            dataOut.pushData(buff, PackLen);
-                            break;
-                        case 2021:
-                            if (PackLen == 4)
-                            {
-                                for (int i = 0; i < 4; i++)
+                            case 2017:
+                                if (1)
                                 {
-                                    i32ToHex.Hex[i] = data[3 - i];
+                                    uint8_t isChargeKeyOpen = HAL_GPIO_ReadPin(OUT_9_GPIO_Port, OUT_9_Pin);
+                                    PackLen = makePack(buff, packIndex, 12017, 0, 1, &isChargeKeyOpen);
+                                    dataOut.pushData(buff, PackLen);
                                 }
-                                navData.cmd = Enum_SetHandSpeed;
-                                navData.Data.speedTo = i32ToHex.Data;
-                                xQueueSend(NavigationOperationQue, &navData, 10);
-                                PackLen = makePack(buff, packIndex, 12021, 0, 0, 0);
+                                break;
+                            case 2018:
+                                /*
+                                navData.cmd = 5;
+                                navData.Data.op = 1;
+                                xQueueSend( NavigationOperationQue, &navData, 100 );
+                                */
+                                PackLen = makePack(buff, packIndex, 12018, 0, 0, 0);
                                 dataOut.pushData(buff, PackLen);
+                                break;
+                            case 2019:
+                                navData.cmd = Enum_SetInOutSwitch;
+                                if (data[0] == 1)
+                                    navData.Data.op = 1;
+                                else if (data[0] == 2)
+                                    navData.Data.op = 0;
+                                else
+                                {
+                                    PackLen = makePack(buff, packIndex, 12019, 1, 0, 0);
+                                    dataOut.pushData(buff, PackLen);
+                                    break;
+                                }
+
+                                xQueueSend(NavigationOperationQue, &navData, 100);
+
+                                PackLen = makePack(buff, packIndex, 12019, 0, 0, 0);
+                                dataOut.pushData(buff, PackLen);
+                                break;
+                            case 2020:
+                                navData.cmd = Enum_setHandSpeedMode;
+                                navData.Data.op = data[0];
+                                xQueueSend(NavigationOperationQue, &navData, 100);
+                                PackLen = makePack(buff, packIndex, 12020, 0, 0, 0);
+                                dataOut.pushData(buff, PackLen);
+                                break;
+                            case 2021:
+                                if (PackLen == 4)
+                                {
+                                    for (int i = 0; i < 4; i++)
+                                    {
+                                        i32ToHex.Hex[i] = data[3 - i];
+                                    }
+                                    navData.cmd = Enum_SetHandSpeed;
+                                    navData.Data.speedTo = i32ToHex.Data;
+                                    xQueueSend(NavigationOperationQue, &navData, 10);
+                                    PackLen = makePack(buff, packIndex, 12021, 0, 0, 0);
+                                    dataOut.pushData(buff, PackLen);
+                                }
+                                break;
+                            default:
+                                break;
                             }
-                            break;
-                        default:
-                            break;
                         }
                     }
                 }

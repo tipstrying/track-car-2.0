@@ -617,7 +617,7 @@ void MotionTask(void const *parment)
                             {
                                 if (navigationOperationData.Data.posTo < runTask.position)
                                 {
-                                    if (runTask.position + navigationOperationData.Data.posTo < AGV_Pos)
+                                    if (runTask.position + navigationOperationData.Data.posTo < agv.AGV_Pos)
                                     {
                                         // back car
                                         if (getSwitchStatus() == InOutSwitchIn)
@@ -634,7 +634,7 @@ void MotionTask(void const *parment)
                                 }
                                 else
                                 {
-                                    if (navigationOperationData.Data.posTo < AGV_Pos)
+                                    if (navigationOperationData.Data.posTo < agv.AGV_Pos)
                                     {
                                         // back car
                                         if (getSwitchStatus() == InOutSwitchIn)
@@ -652,7 +652,7 @@ void MotionTask(void const *parment)
                             }
                             else
                             {
-                                if (navigationOperationData.Data.posTo < AGV_Pos)
+                                if (navigationOperationData.Data.posTo < agv.AGV_Pos)
                                 {
                                     if (getSwitchStatus() == InOutSwitchIn)
                                     {
