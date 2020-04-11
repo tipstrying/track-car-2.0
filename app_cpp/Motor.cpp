@@ -23,11 +23,11 @@ static float lastPosition;
 #ifdef __cplusplus
 extern "C"
 {
-    void MotorTestTask(void const *parment);
-    void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin);
-    void listAddCallBack(RunTaskDef data);
-    void listDelCallBack(RunTaskDef data);
-    void ClearMotorAlarm();
+void MotorTestTask(void const *parment);
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin);
+void listAddCallBack(RunTaskDef data);
+void listDelCallBack(RunTaskDef data);
+void ClearMotorAlarm();
 }
 #endif
 
@@ -497,7 +497,7 @@ int isPackOnCar()
     else
     {
         if (BeltGetPack)
-            return 0;
+            return 1;
         else
             return getThingSensorStatus(0);
     }
@@ -628,7 +628,7 @@ void MotionTask(void const *parment)
                             {
                                 if (navigationOperationData.Data.posTo < runTask.position)
                                 {
-                                    if (runTask.position + navigationOperationData.Data.posTo < AGV_Pos)
+                                    if (runTask.position + navigationOperationData.Data.posTo < agv.AGV_Pos)
                                     {
                                         // back car
                                         if (getSwitchStatus() == InOutSwitchIn)
@@ -645,7 +645,7 @@ void MotionTask(void const *parment)
                                 }
                                 else
                                 {
-                                    if (navigationOperationData.Data.posTo < AGV_Pos)
+                                    if (navigationOperationData.Data.posTo < agv.AGV_Pos)
                                     {
                                         // back car
                                         if (getSwitchStatus() == InOutSwitchIn)
@@ -663,7 +663,7 @@ void MotionTask(void const *parment)
                             }
                             else
                             {
-                                if (navigationOperationData.Data.posTo < AGV_Pos)
+                                if (navigationOperationData.Data.posTo < agv.AGV_Pos)
                                 {
                                     if (getSwitchStatus() == InOutSwitchIn)
                                     {
@@ -876,7 +876,10 @@ void MotionTask(void const *parment)
                     beltCtrl(0, BeltFront, 20);
                     if (!Belt_Ctrl.info.read_input[0] && Belt_Ctrl.info.read_input[1] && !Belt_Ctrl.info.read_input[2])
                     {
-                        BeltGetPack = 0;
+                        if( BeltGetPack )
+                        {
+                            BeltGetPack = 2;
+                        }
                     }
                 }
                 else
@@ -898,6 +901,7 @@ void MotionTask(void const *parment)
                 {
                     beltCtrl(0, BeltFront, 10);
                     BeltOperating = 0;
+                    BeltGetPack = 0;
                 }
                 break;
             case 2:
@@ -914,6 +918,7 @@ void MotionTask(void const *parment)
                 {
                     beltCtrl(0, BeltRev, 10);
                     BeltOperating = 0;
+                    BeltGetPack = 0;
                 }
                 break;
             case 3:
@@ -1122,13 +1127,21 @@ void MotionTask(void const *parment)
         }
         if (1)
         {
+            static BaseType_t speedModeTimeBak = PreviousWakeTime;
             if (MotionStatus.enable && MotionStatus.speedMode)
             {
                 if (agv.iEmergencyByMotorDisable)
                 {
-                    debugOut(0, "[\t%d] Set Speed ok\r\n", PreviousWakeTime);
+                    if( PreviousWakeTime > speedModeTimeBak )
+                    {
+                        if( PreviousWakeTime - speedModeTimeBak > 800 )
+                        {
+                            speedModeTimeBak = PreviousWakeTime;
+                            debugOut(0, "[\t%d] Set Speed ok\r\n", PreviousWakeTime);
+                            agv.iEmergencyByMotorDisable = false;
+                        }
+                    }
                 }
-                agv.iEmergencyByMotorDisable = false;
             }
             else
             {
@@ -1137,8 +1150,9 @@ void MotionTask(void const *parment)
                     debugOut(0, "[\t%d] Set Speed zero by motor disable or not speed mode!\r\n", PreviousWakeTime);
                 }
                 agv.iEmergencyByMotorDisable = true;
+                speedModeTimeBak = PreviousWakeTime;
             }
-            /* Let car run to switch status check position when switch status is error */
+            /* Let car stop at switch-status-check-position when switch status is error */
             if (agv.iEmergencyBySoftware && runTaskHeader.next)
                 agv.Motion_Status_Now = agv.Motion_work(runTaskHeader.next->position);
             else
