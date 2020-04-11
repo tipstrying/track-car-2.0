@@ -38,7 +38,8 @@ uint16_t voltageRealTime = 0;
 void UartTask(void const *par)
 {
     unsigned char U3_485_buff[100];
-    //  int i = 0;
+    uint16_t Volatage_every_buff[100];
+    int i = 0;
     //uint8_t checksum;
     char rambuff[20];
     //uint8_t SendBuff[] = { 0x7f, 0x10, 0x02, 0x06, 0x10, 0x59 };
@@ -68,10 +69,16 @@ void UartTask(void const *par)
 
             voltageRealTime = U3_485_buff[3] * 255 + U3_485_buff[4];
             voltageRealTime = voltageRealTime * 10;
-            if (abs(voltageRealTime - Battery.Voltage) < 10000)
-                Battery.Voltage = voltageRealTime;
-            else if (Battery.Voltage == 0)
-                Battery.Voltage = voltageRealTime;
+            Volatage_every_buff[i++]=voltageRealTime;
+            voltageRealTime=0;
+            if(i==100)
+                i=0; 
+            for(int j=0;j<100;j++)
+            {
+                voltageRealTime+=Volatage_every_buff[j];
+            }
+            voltageRealTime=voltageRealTime/100;
+            Battery.Voltage = voltageRealTime;
 
             /*
             if( U3_485_buff[0] == 0xDD )
