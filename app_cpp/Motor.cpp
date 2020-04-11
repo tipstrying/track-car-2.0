@@ -23,11 +23,11 @@ static float lastPosition;
 #ifdef __cplusplus
 extern "C"
 {
-    void MotorTestTask(void const *parment);
-    void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin);
-    void listAddCallBack(RunTaskDef data);
-    void listDelCallBack(RunTaskDef data);
-    void ClearMotorAlarm();
+void MotorTestTask(void const *parment);
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin);
+void listAddCallBack(RunTaskDef data);
+void listDelCallBack(RunTaskDef data);
+void ClearMotorAlarm();
 }
 #endif
 
@@ -1116,13 +1116,21 @@ void MotionTask(void const *parment)
         }
         if (1)
         {
+            static BaseType_t speedModeTimeBak = PreviousWakeTime;
             if (MotionStatus.enable && MotionStatus.speedMode)
             {
                 if (agv.iEmergencyByMotorDisable)
                 {
-                    debugOut(0, "[\t%d] Set Speed ok\r\n", PreviousWakeTime);
+                    if( PreviousWakeTime > speedModeTimeBak )
+                    {
+                        if( PreviousWakeTime - speedModeTimeBak > 800 )
+                        {
+                            speedModeTimeBak = PreviousWakeTime;
+                            debugOut(0, "[\t%d] Set Speed ok\r\n", PreviousWakeTime);
+                            agv.iEmergencyByMotorDisable = false;
+                        }
+                    }
                 }
-                agv.iEmergencyByMotorDisable = false;
             }
             else
             {
@@ -1131,8 +1139,9 @@ void MotionTask(void const *parment)
                     debugOut(0, "[\t%d] Set Speed zero by motor disable or not speed mode!\r\n", PreviousWakeTime);
                 }
                 agv.iEmergencyByMotorDisable = true;
+                speedModeTimeBak = PreviousWakeTime;
             }
-            /* Let car run to switch status check position when switch status is error */
+            /* Let car stop at switch-status-check-position when switch status is error */
             if (agv.iEmergencyBySoftware && runTaskHeader.next)
                 agv.Motion_Status_Now = agv.Motion_work(runTaskHeader.next->position);
             else

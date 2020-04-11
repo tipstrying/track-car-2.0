@@ -441,14 +441,13 @@ void protocolRun(void const *para)
                             debugOut(0, (char *)"0X%02X ", data[i]);
                         }
                         debugOut(0, (char *)"\r\n");
-                        if( packIndexBak == packIndex )
+                        if( /* packIndexBak == packIndex */ 0 )
                         {
                             PackLen = makePack(buff, packIndex, packCMD + 10000, 0, 0, NULL);
                             dataOut.pushData(buff, PackLen);
                         }
                         else
                         {
-                            packIndexBak = packIndex;
                             switch (packCMD)
                             {
                             case 2001:
@@ -518,45 +517,55 @@ void protocolRun(void const *para)
                             case 2003:
                                 if (1)
                                 {
-                                    uint8_t trails = data[2];
                                     int rValue = 0;
-                                    for (int i = 0; i < trails; i++)
+                                    if( packIndex == packIndexBak )
                                     {
-                                        if (rValue)
-                                            break;
-                                        for (int j = 0; j < 4; j++)
-                                        {
-                                            i32ToHex.Hex[3 - j] = data[3 + j + i * 7];
-                                        }
-                                        navData.cmd = Enum_SendNavigation;
-                                        navData.Data.posTo = i32ToHex.Data;
-                                        if (xQueueSend(NavigationOperationQue, &navData, 100) != pdPASS)
-                                        {
-                                            if (!rValue)
-                                                rValue = 0;
-                                        }
+                                        debugOut(0, "[\t%d] <TCP> {navigation} same index find index->%lld, ignore it\r\n", osKernelSysTick(), packIndex );
+                                        rValue = 0;
+                                    }
+                                    else
+                                    {
+                                        packIndexBak = packIndex;
+                                        uint8_t trails = data[2];
 
-                                        if (data[7 + i * 7] + data[8 + i * 7] != 0)
+                                        for (int i = 0; i < trails; i++)
                                         {
-                                            navData.cmd = Enum_sendOperation;
-                                            navData.Data.speedTo = data[7 + i * 7] * 255 + data[8 + i * 7];
-                                            navData.Data.op = 1;
+                                            if (rValue)
+                                                break;
+                                            for (int j = 0; j < 4; j++)
+                                            {
+                                                i32ToHex.Hex[3 - j] = data[3 + j + i * 7];
+                                            }
+                                            navData.cmd = Enum_SendNavigation;
                                             navData.Data.posTo = i32ToHex.Data;
-                                            if (xQueueSend(NavigationOperationQue, &navData, 100) == pdPASS)
+                                            if (xQueueSend(NavigationOperationQue, &navData, 100) != pdPASS)
                                             {
                                                 if (!rValue)
                                                     rValue = 0;
                                             }
-                                        }
-                                        if (data[9 + i * 7])
-                                        {
-                                            navData.cmd = Enum_sendOperation;
-                                            navData.Data.posTo = i32ToHex.Data;
-                                            navData.Data.op = data[9 + i * 7] + 1;
-                                            if (xQueueSend(NavigationOperationQue, &navData, 100) == pdPASS)
+
+                                            if (data[7 + i * 7] + data[8 + i * 7] != 0)
                                             {
-                                                if (!rValue)
-                                                    rValue = 0;
+                                                navData.cmd = Enum_sendOperation;
+                                                navData.Data.speedTo = data[7 + i * 7] * 255 + data[8 + i * 7];
+                                                navData.Data.op = 1;
+                                                navData.Data.posTo = i32ToHex.Data;
+                                                if (xQueueSend(NavigationOperationQue, &navData, 100) == pdPASS)
+                                                {
+                                                    if (!rValue)
+                                                        rValue = 0;
+                                                }
+                                            }
+                                            if (data[9 + i * 7])
+                                            {
+                                                navData.cmd = Enum_sendOperation;
+                                                navData.Data.posTo = i32ToHex.Data;
+                                                navData.Data.op = data[9 + i * 7] + 1;
+                                                if (xQueueSend(NavigationOperationQue, &navData, 100) == pdPASS)
+                                                {
+                                                    if (!rValue)
+                                                        rValue = 0;
+                                                }
                                             }
                                         }
                                     }
@@ -801,6 +810,7 @@ void protocolRun(void const *para)
                             default:
                                 break;
                             }
+                            //packIndexBak = packIndex;
                         }
                     }
                 }
