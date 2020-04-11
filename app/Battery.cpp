@@ -64,20 +64,20 @@ void UartTask(void const *par)
         // HAL_UART_Transmit_DMA( &huart2, SendBuff, sizeof( SendBuff ) );
         HAL_UART_Transmit(&huart2, SendBuff, sizeof(SendBuff), 1000);
         HAL_GPIO_WritePin(USART2_RD_GPIO_Port, USART2_RD_Pin, GPIO_PIN_RESET);
-        if (xSemaphoreTake(U3_Sema_Rx, 1000) == pdPASS)
+        if (xSemaphoreTake(U3_Sema_Rx, 100) == pdPASS)
         {
 
             voltageRealTime = U3_485_buff[3] * 255 + U3_485_buff[4];
             voltageRealTime = voltageRealTime * 10;
-            Volatage_every_buff[i++]=voltageRealTime;
-            voltageRealTime=0;
-            if(i==100)
-                i=0; 
-            for(int j=0;j<100;j++)
+            Volatage_every_buff[i++] = voltageRealTime;
+            voltageRealTime = 0;
+            if(i >= 100)
+                i = 0;
+            for(int j = 0; j < 100; j++)
             {
-                voltageRealTime+=Volatage_every_buff[j];
+                voltageRealTime += Volatage_every_buff[j];
             }
-            voltageRealTime=voltageRealTime/100;
+            voltageRealTime = voltageRealTime / 100;
             Battery.Voltage = voltageRealTime;
 
             /*
@@ -154,7 +154,7 @@ void UartTask(void const *par)
         }
         else
         {
-           // HAL_UART_AbortReceive_IT(&huart2);
+            // HAL_UART_AbortReceive_IT(&huart2);
             HAL_UART_AbortReceive(&huart2);
             if (DebugCtrl.enableBattery)
             {
