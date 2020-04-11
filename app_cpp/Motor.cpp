@@ -354,7 +354,6 @@ void Rx_PDO_Commplate(int oID, char Array[8], int len)
             i16ToHex.Hex[0] = Array[2];
             i16ToHex.Hex[1] = Array[3];
             alarmCode = i16ToHex.u16Data;
-            static int enableAndSpeedModeDelay = 0;
 
             if (alarmCode)
             {
@@ -418,20 +417,10 @@ void Rx_PDO_Commplate(int oID, char Array[8], int len)
                 {
                     MotionStatus.speedMode = false;
                     debugOut(0, "[\t%d] Motor NOT AT SPEED MODE!!!\r\n", osKernelSysTick());
-                    enableAndSpeedModeDelay = osKernelSysTick();
                 }
                 break;
             case 3:
-                if( osKernelSysTick() > enableAndSpeedModeDelay )
-                {
-                    if( osKernelSysTick() - enableAndSpeedModeDelay > 500 )
-                    {
-                        MotionStatus.speedMode = true;
-                        break;
-                    }
-                }
-                MotionStatus.speedMode = false;
-            
+                MotionStatus.speedMode = true;
                 break;
             }
         }
