@@ -125,7 +125,7 @@ void modbusTask(void const *arg)
                 int iData;
                 USHORT uData[2];
             } iToUShortData;
-            iToUShortData.iData = 16384000;
+            iToUShortData.iData = 16384000 * 2;
             while (MB_ENOERR != eMBMWriteMultipleRegisters(xMBMMaster, SwitchAddr, 0x4a00, 2, iToUShortData.uData))
             {
                 osDelay(2);
@@ -152,7 +152,7 @@ void modbusTask(void const *arg)
                 {
                     osDelay(2);
                 }
-                iToUShortData.iData = 16384000;
+                iToUShortData.iData = 16384000 * 2;
                 while (MB_ENOERR != eMBMWriteMultipleRegisters(xMBMMaster, SwitchAddr, 0x4a00, 2, iToUShortData.uData))
                 {
                     osDelay(2);
@@ -245,7 +245,7 @@ void modbusTask(void const *arg)
                         eMBMWriteSingleRegister(xMBMMaster, SwitchAddr, 0x3500, 1);
                         while (MB_ENOERR != eMBMReadHoldingRegisters(xMBMMaster, SwitchAddr, 0x3600, 1, modbusReadBackRegs))
                             osDelay(2);
-                        iToUShortData.iData = 16384000;
+                        iToUShortData.iData = 16384000 * 2;
                         while (MB_ENOERR != eMBMWriteMultipleRegisters(xMBMMaster, SwitchAddr, 0x4a00, 2, iToUShortData.uData))
                         {
                             osDelay(2);
@@ -405,7 +405,7 @@ void modbusTask(void const *arg)
                                         eMBMWriteSingleRegister(xMBMMaster, SwitchAddr, 0x3500, 1);
                                         while (MB_ENOERR != eMBMReadHoldingRegisters(xMBMMaster, SwitchAddr, 0x3600, 1, modbusReadBackRegs))
                                             osDelay(2);
-                                        iToUShortData.iData = 16384000;
+                                        iToUShortData.iData = 16384000 * 2;
                                         while (MB_ENOERR != eMBMWriteMultipleRegisters(xMBMMaster, SwitchAddr, 0x4a00, 2, iToUShortData.uData))
                                         {
                                             osDelay(2);
@@ -579,7 +579,7 @@ void modbusTask(void const *arg)
                                     osDelay(2);
                                 while (MB_ENOERR != eMBMReadHoldingRegisters(xMBMMaster, SwitchAddr, 0x3600, 1, modbusReadBackRegs))
                                     osDelay(2);
-                                iToUShortData.iData = 16384000;
+                                iToUShortData.iData = 16384000 * 2;
                                 while (MB_ENOERR != eMBMWriteMultipleRegisters(xMBMMaster, SwitchAddr, 0x4a00, 2, iToUShortData.uData))
                                 {
                                     osDelay(2);

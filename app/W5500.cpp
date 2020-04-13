@@ -903,6 +903,7 @@ int createSocket(FifoClass *in, FifoClass *out, uint16_t port, fun_ptr onCreatep
     socketServer[socketDataid].use = true;
     socketServer[socketDataid].close = false;
     socketServer[socketDataid].onConnect = onCreatep;
+    socketServer[socketDataid].onClose = onClosep;
     sockertID[socketServer[socketDataid].socketID] = 1;
 
     return socketDataid;
