@@ -807,6 +807,19 @@ void protocolRun(void const *para)
                                     dataOut.pushData(buff, PackLen);
                                 }
                                 break;
+                            case 2022:
+                                if( 1 )
+                                {
+                                    InOutSwitch in = getSwitchStatus();
+                                    if( in == InOutSwitchIn )
+                                        data[0] = 2;
+                                    else if( in == InOutSwitchOut )
+                                        data[0] = 1;
+                                    else
+                                        data[0] = 0;
+                                    PackLen = makePack( buff, packIndex, 12022, 0, 1, data );
+                                    dataOut.pushData(buff, PackLen );
+                                }
                             default:
                                 break;
                             }

@@ -289,8 +289,9 @@ void modbusTask(void const *arg)
                     }
                     break;
                 case 4:
+                    
                     debugOut(0, "[\t%d] <INFO> <SWITCH> {Sleep} set sleep mode\r\n", osKernelSysTick());
-
+/*
                     do
                     {
                         while (MB_ENOERR != eMBMWriteSingleRegister(xMBMMaster, SwitchAddr, 0x3100, 0x06))
@@ -310,8 +311,10 @@ void modbusTask(void const *arg)
                             osDelay(2);
                     } while (modbusReadBackRegs[0] != 0);
                     switchReach = -2;
+                    */
                     break;
                 case 5:
+                    /*
                     if (switchReach == -2)
                     {
                         do
@@ -336,6 +339,7 @@ void modbusTask(void const *arg)
                         } while (modbusReadBackRegs[0] != 3);
                         switchReach = 1;
                     }
+                    */
                     //                        goto TaskWakeUp;
                     break;
                 default:
