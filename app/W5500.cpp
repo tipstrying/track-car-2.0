@@ -474,12 +474,7 @@ void protocolRun(void const *para)
                                     GetSpeed(&speed);
                                     i32ToHex.Data = (int)pos;
                                     u16ToHex.Data = (uint16_t)speed;
-                                    if (switchReach < 0)
-                                        status = 2;
-                                    else if (IsMotorAlarm())
-                                    {
-                                        status = 1;
-                                    }
+                                    status = GetMotionStatus();
 
                                     batVol = (uint8_t)(Battery.Voltage / 1000);
                                     for (int i = 0; i < 4; i++)
@@ -807,6 +802,19 @@ void protocolRun(void const *para)
                                     dataOut.pushData(buff, PackLen);
                                 }
                                 break;
+                            case 2022:
+                                if( 1 )
+                                {
+                                    InOutSwitch in = getSwitchStatus();
+                                    if( in == InOutSwitchIn )
+                                        data[0] = 2;
+                                    else if( in == InOutSwitchOut )
+                                        data[0] = 1;
+                                    else
+                                        data[0] = 0;
+                                    PackLen = makePack( buff, packIndex, 12022, 0, 1, data );
+                                    dataOut.pushData(buff, PackLen );
+                                }
                             default:
                                 break;
                             }
@@ -903,6 +911,7 @@ int createSocket(FifoClass *in, FifoClass *out, uint16_t port, fun_ptr onCreatep
     socketServer[socketDataid].use = true;
     socketServer[socketDataid].close = false;
     socketServer[socketDataid].onConnect = onCreatep;
+    socketServer[socketDataid].onClose = onClosep;
     sockertID[socketServer[socketDataid].socketID] = 1;
 
     return socketDataid;

@@ -17,7 +17,7 @@
 #include "socket.h"
 #include "httpapi.h"
 #include "listRunTask.h"
-
+#include "buildTime.h"
 #ifdef _USE_FLASH_
 #include "dataflash.h"
 #endif
@@ -72,6 +72,11 @@ uint8_t http_get_cgi_handler(uint8_t *uri_name, uint8_t *buf, uint32_t *file_len
     {
         getRamStatus( buf );
         len = strlen( (const char*)buf );
+    }
+    else if( strcmp( (const char*) uri_name, "softVersion.cgi" ) == 0 )
+    {
+        sprintf( (char *)buf, "{\"version\":\"%s\"}", BUILDTIME );
+        len = strlen( (char *)buf );
     }
     else if( strcmp( (const char *)uri_name, "disableMotor.cgi" ) == 0 )
     {

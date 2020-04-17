@@ -125,7 +125,7 @@ void modbusTask(void const *arg)
                 int iData;
                 USHORT uData[2];
             } iToUShortData;
-            iToUShortData.iData = 16384000;
+            iToUShortData.iData = 16384000 * 2;
             while (MB_ENOERR != eMBMWriteMultipleRegisters(xMBMMaster, SwitchAddr, 0x4a00, 2, iToUShortData.uData))
             {
                 osDelay(2);
@@ -152,7 +152,7 @@ void modbusTask(void const *arg)
                 {
                     osDelay(2);
                 }
-                iToUShortData.iData = 16384000;
+                iToUShortData.iData = 16384000 * 2;
                 while (MB_ENOERR != eMBMWriteMultipleRegisters(xMBMMaster, SwitchAddr, 0x4a00, 2, iToUShortData.uData))
                 {
                     osDelay(2);
@@ -245,7 +245,7 @@ void modbusTask(void const *arg)
                         eMBMWriteSingleRegister(xMBMMaster, SwitchAddr, 0x3500, 1);
                         while (MB_ENOERR != eMBMReadHoldingRegisters(xMBMMaster, SwitchAddr, 0x3600, 1, modbusReadBackRegs))
                             osDelay(2);
-                        iToUShortData.iData = 16384000;
+                        iToUShortData.iData = 16384000 * 2;
                         while (MB_ENOERR != eMBMWriteMultipleRegisters(xMBMMaster, SwitchAddr, 0x4a00, 2, iToUShortData.uData))
                         {
                             osDelay(2);
@@ -289,8 +289,9 @@ void modbusTask(void const *arg)
                     }
                     break;
                 case 4:
+                    
                     debugOut(0, "[\t%d] <INFO> <SWITCH> {Sleep} set sleep mode\r\n", osKernelSysTick());
-
+/*
                     do
                     {
                         while (MB_ENOERR != eMBMWriteSingleRegister(xMBMMaster, SwitchAddr, 0x3100, 0x06))
@@ -310,8 +311,10 @@ void modbusTask(void const *arg)
                             osDelay(2);
                     } while (modbusReadBackRegs[0] != 0);
                     switchReach = -2;
+                    */
                     break;
                 case 5:
+                    /*
                     if (switchReach == -2)
                     {
                         do
@@ -336,6 +339,7 @@ void modbusTask(void const *arg)
                         } while (modbusReadBackRegs[0] != 3);
                         switchReach = 1;
                     }
+                    */
                     //                        goto TaskWakeUp;
                     break;
                 default:
@@ -405,7 +409,7 @@ void modbusTask(void const *arg)
                                         eMBMWriteSingleRegister(xMBMMaster, SwitchAddr, 0x3500, 1);
                                         while (MB_ENOERR != eMBMReadHoldingRegisters(xMBMMaster, SwitchAddr, 0x3600, 1, modbusReadBackRegs))
                                             osDelay(2);
-                                        iToUShortData.iData = 16384000;
+                                        iToUShortData.iData = 16384000 * 2;
                                         while (MB_ENOERR != eMBMWriteMultipleRegisters(xMBMMaster, SwitchAddr, 0x4a00, 2, iToUShortData.uData))
                                         {
                                             osDelay(2);
@@ -579,7 +583,7 @@ void modbusTask(void const *arg)
                                     osDelay(2);
                                 while (MB_ENOERR != eMBMReadHoldingRegisters(xMBMMaster, SwitchAddr, 0x3600, 1, modbusReadBackRegs))
                                     osDelay(2);
-                                iToUShortData.iData = 16384000;
+                                iToUShortData.iData = 16384000 * 2;
                                 while (MB_ENOERR != eMBMWriteMultipleRegisters(xMBMMaster, SwitchAddr, 0x4a00, 2, iToUShortData.uData))
                                 {
                                     osDelay(2);

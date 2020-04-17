@@ -179,14 +179,14 @@ eMBPSerialTxEnable( xMBPSerialHandle xSerialHdl, pbMBPSerialTransmitterEmptyCB p
 
             while( pxSerialIntHdl->pbMBPTransmitterEmptyFN( pxSerialIntHdl->xMBHdl, data, sizeof(data), &BytesToSend ) )
             {
-
+/*
                 debugOut(0, "[\t%d] Modbus:", osKernelSysTick() );
                 for( int i = 0; i < BytesToSend; i++ )
                 {
                     debugOut(0, "0x%X ", data[i] );
                 }
                 debugOut(0, "\r\n" );
-
+*/
                 HAL_UART_Transmit( &huart7, data, BytesToSend, 100 );
             }
             HAL_GPIO_WritePin( UART7_RD_GPIO_Port, UART7_RD_Pin, GPIO_PIN_RESET );
@@ -243,13 +243,14 @@ void uart2RecTask( void const *arg )
                 xSerialHdls[0].pvMBPReceiveFN( xSerialHdls[0].xMBHdl, data, len );
             HAL_UART_AbortReceive( &huart7 );
             HAL_UART_Receive_DMA( &huart7, data, sizeof(data) );
-            
+          /*  
             debugOut(0, "[\t%d] Modbus RecData:", osKernelSysTick() );
             for( int i = 0; i < len; i++ )
             {
                 debugOut(0, "0x%X ", data[i] );
             }
             debugOut(0, "\r\n" );
+            */
         }
     }
 }

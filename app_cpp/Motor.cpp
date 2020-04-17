@@ -28,6 +28,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin);
 void listAddCallBack(RunTaskDef data);
 void listDelCallBack(RunTaskDef data);
 void ClearMotorAlarm();
+uint8_t GetMotionStatus();
 }
 #endif
 
@@ -75,6 +76,8 @@ static struct
     bool speedMode;
     BaseType_t lastPDOTime;
     bool startUp;
+    bool startUpErrorFix;
+
     bool handSpeedMode;
     int handSpeed;
     BaseType_t handSpeedTime;
@@ -132,6 +135,16 @@ void GetMotorCurrent(short *current)
 {
     if (current)
         *current = MotionStatus.Current;
+}
+uint8_t GetMotionStatus() {
+    if( agv.iEmergencyByPause )
+        return 2;
+    else if( IsMotorAlarm() )
+    {
+        return 1;
+    }
+    else
+        return 0;
 }
 int SetSelfPosition(float X)
 {
@@ -390,6 +403,9 @@ void Rx_PDO_Commplate(int oID, char Array[8], int len)
                 MotionStatus.alarm = false;
                 MotionStatus.alarmCleanDisable = false;
             }
+            if( MotionStatus.startUpErrorFix )
+                MotionStatus.alarmCleanDisable = false;
+
             i16ToHex.Hex[0] = Array[4];
             i16ToHex.Hex[1] = Array[5];
             MotorStatusWord_PDO = i16ToHex.u16Data;
@@ -421,6 +437,7 @@ void Rx_PDO_Commplate(int oID, char Array[8], int len)
                 break;
             case 3:
                 MotionStatus.speedMode = true;
+                MotionStatus.startUpErrorFix = false;
                 break;
             }
         }
@@ -520,6 +537,7 @@ void MotionTask(void const *parment)
     MotionStatus.alarmCleanDisable = false;
     MotionStatus.startUp = true;
     MotionStatus.bootUp = true;
+    MotionStatus.startUpErrorFix = true;
 
     // defatult enable EXTI, Navigation, Switch, Operation, StartUp log
     DebugCtrl.enableNavigation = 1;
@@ -547,7 +565,7 @@ void MotionTask(void const *parment)
     agv.sSpeed_min = 10;
     agv.sSpeed_max = 300;
     agv.sDeceleration_distance = 2;
-    agv.sAcceleration = 2000;
+    agv.sAcceleration = 3000;
 
     uint32_t PreviousWakeTime = osKernelSysTick();
 
@@ -586,6 +604,14 @@ void MotionTask(void const *parment)
     InOutSwitch inOutTargetNow;
     if (inOutTarget == InOutSwitchUnknow)
         inOutTarget = InOutSwitchIn;
+    /*
+        while( Battery.Voltage < 25000 )
+        {
+            osDelay(100);
+        }
+        */
+    debugOut(0, "[\t%d] Motion Task start up ok\r\n", osKernelSysTick() );
+
 
     for (;;)
     {
@@ -815,21 +841,8 @@ void MotionTask(void const *parment)
                         }
                         MotionStatus.handSpeedTime = PreviousWakeTime;
                         break;
-                    case Enum_SetSleep:
-                        if (navigationOperationData.Data.op)
-                        {
-                            canOpenStatus.pollStep = 2;
-                            navigationOperationData.cmd = 4;
-                            xQueueSend(SwitchBeltTaskQue, &navigationOperationData, 100);
-                        }
-                        else
-                        {
-                            canOpenStatus.pollStep = 3;
-                            navigationOperationData.cmd = 5;
-                            xQueueSend(SwitchBeltTaskQue, &navigationOperationData, 100);
-                        }
-                        break;
                     default:
+                        debugOut(0, "[\t%d] Unknow CMD:%d\r\n", PreviousWakeTime, navigationOperationData.cmd );
                         break;
                     }
                 }
@@ -970,7 +983,7 @@ void MotionTask(void const *parment)
                     debugOut(0, "[\t%d] <INFO> <Motion> {Real-Time Position} Positon->%0.2f, encoder->%d\r\n", PreviousWakeTime, posBakForLog, agv.EncoderValue);
                 }
             }
-            if (!MotionStatus.startUp)
+            if (!MotionStatus.startUpErrorFix)
             {
                 if (PreviousWakeTime > MotionStatus.lastEncodeTime)
                 {
@@ -1215,7 +1228,7 @@ void MotionTask(void const *parment)
                     else
                     {
                         static float mm2RPM = 1.0 / (AGV_WheelDiameter * PI) * 60.0;
-                        request_speed = (int)(((double)(MotionStatus.handSpeed * mm2RPM) * 512 * 10000 * 9.333333) / 1875);
+                        request_speed = (int)(((double)(MotionStatus.handSpeed * mm2RPM) * 512 * 10000 * 8.166667) / 1875);
                     }
                 }
                 else
@@ -1228,7 +1241,7 @@ void MotionTask(void const *parment)
             {
                 if (agv.iEmergencyByPause)
                 {
-                    request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.333333) / 1875);
+                    request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 8.166667) / 1875);
                     /*
                     if( request_speed == 0 )
                     {
@@ -1246,7 +1259,7 @@ void MotionTask(void const *parment)
                     if (agv.Request_RPM == 0)
                         request_speed = 0;
                     else
-                        request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.333333) / 1875);
+                        request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 8.166667) / 1875);
                 }
             }
         }
@@ -1402,6 +1415,7 @@ void MotionTask(void const *parment)
                     if ((MotorStatusWord_PDO & 0x08) != 0)
                     {
                         CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x6040, 0, 0x86);
+                        canOpenStatus.pollStep = 6;
                     }
                     else
                         canOpenStatus.pollStep = 3;
@@ -1412,9 +1426,12 @@ void MotionTask(void const *parment)
                     canOpenStatus.pollStep = 1;
                     break;
                 case 6:
+                    CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x6040, 0, 6);
+                    canOpenStatus.pollStep = 3;
+                    break;
 
                 default:
-                    canOpenStatus.pollStep = -1;
+                    canOpenStatus.pollStep = 0;
                     break;
                 }
             }

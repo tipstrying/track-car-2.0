@@ -3,7 +3,7 @@
 
 #define PI acos(-1.0)
 #define AGV_WheelDiameter 60 //mm
-#define AGV_EncoderCPC (10000 * 9.333333)
+#define AGV_EncoderCPC (10000 * 8.166667)
 
 #include "hardware.h"
 
