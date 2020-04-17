@@ -474,12 +474,7 @@ void protocolRun(void const *para)
                                     GetSpeed(&speed);
                                     i32ToHex.Data = (int)pos;
                                     u16ToHex.Data = (uint16_t)speed;
-                                    if (switchReach < 0)
-                                        status = 2;
-                                    else if (IsMotorAlarm())
-                                    {
-                                        status = 1;
-                                    }
+                                    status = GetMotionStatus();
 
                                     batVol = (uint8_t)(Battery.Voltage / 1000);
                                     for (int i = 0; i < 4; i++)

@@ -28,6 +28,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin);
 void listAddCallBack(RunTaskDef data);
 void listDelCallBack(RunTaskDef data);
 void ClearMotorAlarm();
+uint8_t GetMotionStatus();
 }
 #endif
 
@@ -134,6 +135,16 @@ void GetMotorCurrent(short *current)
 {
     if (current)
         *current = MotionStatus.Current;
+}
+uint8_t GetMotionStatus() {
+    if( agv.iEmergencyByPause )
+        return 2;
+    else if( IsMotorAlarm() )
+    {
+        return 1;
+    }
+    else
+        return 0;
 }
 int SetSelfPosition(float X)
 {
@@ -593,12 +604,12 @@ void MotionTask(void const *parment)
     InOutSwitch inOutTargetNow;
     if (inOutTarget == InOutSwitchUnknow)
         inOutTarget = InOutSwitchIn;
-/*
-    while( Battery.Voltage < 25000 )
-    {
-        osDelay(100);
-    }
-    */
+    /*
+        while( Battery.Voltage < 25000 )
+        {
+            osDelay(100);
+        }
+        */
     debugOut(0, "[\t%d] Motion Task start up ok\r\n", osKernelSysTick() );
 
 
