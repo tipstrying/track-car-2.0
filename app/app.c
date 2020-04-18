@@ -67,8 +67,8 @@ void InitTask( void const * parment )
     osThreadDef( u2RecService, uart2RecTask, osPriorityHigh, 0, 256 );
     osThreadCreate( osThread( u2RecService ), NULL);
 
-    osThreadDef( BatteryTask, UartTask, osPriorityAboveNormal, 0, 256 );
-    osThreadCreate( osThread( BatteryTask ), NULL);
+ //   osThreadDef( BatteryTask, UartTask, osPriorityAboveNormal, 0, 256 );
+ //   osThreadCreate( osThread( BatteryTask ), NULL);
 
     osThreadDef(MotionTask, MotionTask, osPriorityRealtime, 0, 4096 );
     osThreadCreate(osThread(MotionTask), NULL);

@@ -128,11 +128,13 @@ typedef struct
     int socketID;
     bool use;
     bool close;
+    BaseType_t lastUseTime;
+    BaseType_t timeOut;
 } networkDef;
 
 networkDef socketServer[4];
 static CONFIG_MSG networkconfig = SetNetWorkParment();
-void socketServer_run(int i, FifoClass *in, FifoClass *out, uint16_t port, fun_ptr func1, fun_ptr func2);
+void socketServer_run(int i, FifoClass *in, FifoClass *out, uint16_t port, fun_ptr func1, fun_ptr func2, int FD);
 
 void W5500Task(void const *par)
 {
@@ -223,7 +225,7 @@ void W5500Task(void const *par)
                 {
                     if (socketServer[i].close)
                         close(socketServer[i].socketID);
-                    socketServer_run(socketServer[i].socketID, socketServer[i].streamIn, socketServer[i].streamOut, socketServer[i].netPara.port, socketServer[i].onConnect, socketServer[i].onClose);
+                    socketServer_run(socketServer[i].socketID, socketServer[i].streamIn, socketServer[i].streamOut, socketServer[i].netPara.port, socketServer[i].onConnect, socketServer[i].onClose, i);
                 }
             }
         }
@@ -389,21 +391,20 @@ extern int switchReach;
 static int serverConnectOk(int ip)
 {
     debugOut(0, "[\t%d] Server connect ok\r\n", osKernelSysTick());
-    NavigationOperationStd navData;
-    navData.cmd = Enum_SetSleep;
-    navData.Data.op = 0;
-    xQueueSend(NavigationOperationQue, &navData, 100);
 }
 static int serverDisconnect(int ip)
 {
-    debugOut(0, "[\t%d] Server disconnect\r\n", osKernelSysTick());
-    NavigationOperationStd navData;
-    navData.cmd = Enum_SetSleep;
-    navData.Data.op = 1;
-    xQueueSend(NavigationOperationQue, &navData, 100);
+    if( ip == 1 )
+    {
+        debugOut(0, "[\t%d] Server disconnect\r\n", osKernelSysTick());
+    }
+    else
+    {
+        debugOut(0, "[\t%d] Server disconnect by timeout\r\n", osKernelSysTick());
+    }
 }
 
-int createSocket(FifoClass *in, FifoClass *out, uint16_t port, fun_ptr onCreatep, fun_ptr onClosep);
+int createSocket(FifoClass *in, FifoClass *out, uint16_t port, fun_ptr onCreatep, fun_ptr onClosep, BaseType_t timeout);
 void protocolRun(void const *para)
 {
     static FifoClass dataIn, dataOut;
@@ -416,7 +417,7 @@ void protocolRun(void const *para)
         int Data;
     } i32ToHex;
 
-    createSocket(&dataIn, &dataOut, 8802, serverConnectOk, serverDisconnect);
+    createSocket(&dataIn, &dataOut, 8802, serverConnectOk, serverDisconnect, 3000);
     uint8_t buff[500];
     uint8_t data[100];
     NavigationOperationStd navData;
@@ -834,13 +835,14 @@ void protocolRun(void const *para)
 /* ******************************************************************************
 socket 服务线程
 *************************************************************************************/
-void socketServer_run(int i, FifoClass *in, FifoClass *out, uint16_t port, fun_ptr func1, fun_ptr func2)
+void socketServer_run(int i, FifoClass *in, FifoClass *out, uint16_t port, fun_ptr func1, fun_ptr func2, int FD)
 {
     static uint8_t buffer[2048];
     int len = 0;
     switch (getSn_SR(i))
     {
     case SOCK_INIT:
+        socketServer[FD].lastUseTime = 0;
         listen(i);
         if (func1)
             func1(0);
@@ -853,6 +855,7 @@ void socketServer_run(int i, FifoClass *in, FifoClass *out, uint16_t port, fun_p
         len = getSn_RX_RSR(i);
         if (len > 0)
         {
+            socketServer[FD].lastUseTime = osKernelSysTick();
             recv(i, buffer, len);
             if (in)
                 in->pushData(buffer, len);
@@ -865,6 +868,27 @@ void socketServer_run(int i, FifoClass *in, FifoClass *out, uint16_t port, fun_p
                 out->popData(buffer, len);
                 send(i, buffer, len);
             }
+        }
+        if( socketServer[FD].lastUseTime <= osKernelSysTick() )
+        {
+            if( socketServer[FD].lastUseTime == 0 )
+                socketServer[FD].lastUseTime = osKernelSysTick();
+
+            if( osKernelSysTick() - socketServer[FD].lastUseTime > socketServer[FD].timeOut )
+            {
+                if (socketServer[i].streamIn)
+                    socketServer[i].streamIn->clean();
+                if (socketServer[i].streamOut)
+                    socketServer[i].streamOut->clean();
+                close(i);
+                if (func2)
+                    func2(2);
+                close(i);
+            }
+        }
+        else
+        {
+            socketServer[FD].lastUseTime = osKernelSysTick();
         }
         break;
     case SOCK_CLOSE_WAIT:
@@ -901,7 +925,7 @@ int getFreeSocketData()
     }
     return -1;
 }
-int createSocket(FifoClass *in, FifoClass *out, uint16_t port, fun_ptr onCreatep, fun_ptr onClosep)
+int createSocket(FifoClass *in, FifoClass *out, uint16_t port, fun_ptr onCreatep, fun_ptr onClosep, BaseType_t timeout)
 {
     int socketDataid = getFreeSocketData();
     socketServer[socketDataid].socketID = getFreeSocketID();
@@ -913,6 +937,7 @@ int createSocket(FifoClass *in, FifoClass *out, uint16_t port, fun_ptr onCreatep
     socketServer[socketDataid].onConnect = onCreatep;
     socketServer[socketDataid].onClose = onClosep;
     sockertID[socketServer[socketDataid].socketID] = 1;
+    socketServer[socketDataid].timeOut = timeout;
 
     return socketDataid;
 }
@@ -960,8 +985,8 @@ void CLITask(void const *parment)
         BACKSPACE = 127 /* Backspace */
     };
 
-    cliNetworkID = createSocket(&stdinBuff, &stdoutBuff, 5002, cliSOcketConnect, NULL);
-    createSocket(NULL, &debugFifoBuff, 5001, NULL, NULL);
+    cliNetworkID = createSocket(&stdinBuff, &stdoutBuff, 5002, cliSOcketConnect, NULL, portMAX_DELAY);
+    createSocket(NULL, &debugFifoBuff, 5001, NULL, NULL, portMAX_DELAY);
 
     vRegisterCLICommands();
     stdinBuff.clean();

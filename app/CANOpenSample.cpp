@@ -121,6 +121,10 @@ bool CANopenResponse::work()
                     case 0x0300://pdo2-rx
                         break;
                     case 0x0380://pdo3-tx
+                        if( this->Event_Rx_PDO_Complete )
+                        {
+                            this->Event_Rx_PDO_Complete(oID, oArray, oLength);
+                        }
                         break;
                     case 0x0400://pdo3-rx
                         break;
@@ -544,7 +548,7 @@ bool CANopenRequest::initialzation( int iNode_ID, bool isNew )
     static int last_Node_ID = 0;
     if( isNew )
         polling_step = 0;
-    
+
     if( iNode_ID == 0 && iNode_ID > 127)
         return false;
     if( iNode_ID != last_Node_ID )

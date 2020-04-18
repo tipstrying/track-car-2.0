@@ -29,6 +29,7 @@ void listAddCallBack(RunTaskDef data);
 void listDelCallBack(RunTaskDef data);
 void ClearMotorAlarm();
 uint8_t GetMotionStatus();
+    void GetMotorVoltage( short *Voltage );
 }
 #endif
 
@@ -84,6 +85,7 @@ static struct
     bool bootUp;
     BaseType_t lastEncodeTime;
     short Current;
+    short Voltage;
 
 } MotionStatus;
 
@@ -135,6 +137,10 @@ void GetMotorCurrent(short *current)
 {
     if (current)
         *current = MotionStatus.Current;
+}
+void GetMotorVoltage( short *Voltage )
+{
+    *Voltage = MotionStatus.Voltage;
 }
 uint8_t GetMotionStatus() {
     if( agv.iEmergencyByPause )
@@ -443,6 +449,20 @@ void Rx_PDO_Commplate(int oID, char Array[8], int len)
         }
     }
     break;
+    case 0x381 :
+        if( 1 )
+        {
+            union {
+                short i16Data;
+                uint16_t u16Data;
+                uint8_t Hex[2];
+            } i16ToHex;
+            i16ToHex.Hex[0] = Array[0];
+            i16ToHex.Hex[1] = Array[1];
+            MotionStatus.Voltage = i16ToHex.u16Data * 1000;
+            Battery.Voltage = MotionStatus.Voltage;
+        }
+        break;
     default:
         break;
     }
