@@ -12,6 +12,7 @@
 #include "motor.h"
 #include "stdio.h"
 #include "hardware.h"
+#include "iwdg.h"
 
 QueueHandle_t NavigationOperationQue = 0;                            // 网络消息命令
 DebugOutCtlDef DebugCtrl;
@@ -110,6 +111,7 @@ void vApplicationTickHook( void )
         HAL_GPIO_TogglePin( OUT_2_GPIO_Port, OUT_2_Pin );
         i = 0;
     }
+    HAL_IWDG_Refresh(&hiwdg);
 }
 
 unsigned long getRunTimeCounterValue(void)

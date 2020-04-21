@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F429xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Inc;  ..\app;  ..\app_cpp;  ..\Src\Ethernet;  ..\Src\Ethernet\W5500;  ..\port;  ..\fifo\inc;  ../Drivers/CMSIS/Include;  ../Drivers/STM32F4xx_HAL_Driver/Inc;  ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;  ../Drivers/CMSIS/Device/ST/STM32F4xx/Include;  ../Middlewares/Third_Party/FatFs/src;  ../Middlewares/Third_Party/FreeRTOS/Source/include;  ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;  ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;  ..\Middlewares\Third_Party\FreeRTOS\Source\cli;  ..\MDK-ARM;  ..\Middlewares\Third_Party\httpServer;  ..\Middlewares\Third_Party\modbus\include\common;  ..\Middlewares\Third_Party\modbus\include\internal;  ..\Middlewares\Third_Party\modbus\include;  ..\Middlewares\Third_Party\modbus\port</IncludePath>
+              <IncludePath>../Inc;    ..\app;    ..\app_cpp;    ..\Src\Ethernet;    ..\Src\Ethernet\W5500;    ..\port;    ..\fifo\inc;    ../Drivers/CMSIS/Include;    ../Drivers/STM32F4xx_HAL_Driver/Inc;    ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;    ../Drivers/CMSIS/Device/ST/STM32F4xx/Include;    ../Middlewares/Third_Party/FatFs/src;    ../Middlewares/Third_Party/FreeRTOS/Source/include;    ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;    ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;    ..\Middlewares\Third_Party\FreeRTOS\Source\cli;    ..\MDK-ARM;    ..\Middlewares\Third_Party\httpServer;    ..\Middlewares\Third_Party\modbus\include\common;    ..\Middlewares\Third_Party\modbus\include\internal;    ..\Middlewares\Third_Party\modbus\include;    ..\Middlewares\Third_Party\modbus\port</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -503,6 +503,11 @@
               <FilePath>../Src/freertos.c</FilePath>
             </File>
             <File>
+              <FileName>iwdg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Src/iwdg.c</FilePath>
+            </File>
+            <File>
               <FileName>rtc.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Src/rtc.c</FilePath>
@@ -548,14 +553,14 @@
           <GroupName>Drivers/CMSIS</GroupName>
           <Files>
             <File>
-              <FileName>system_stm32f4xx.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Src/system_stm32f4xx.c</FilePath>
-            </File>
-            <File>
               <FileName>startup_stm32f429xx.s</FileName>
               <FileType>2</FileType>
               <FilePath>.\startup_stm32f429xx.s</FilePath>
+            </File>
+            <File>
+              <FileName>system_stm32f4xx.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Src/system_stm32f4xx.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -776,6 +781,11 @@
               <FileName>stm32f4xx_hal_dac_ex.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dac_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f4xx_hal_iwdg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_iwdg.c</FilePath>
             </File>
             <File>
               <FileName>stm32f4xx_hal_rtc.c</FileName>

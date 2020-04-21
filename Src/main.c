@@ -56,6 +56,7 @@
 #include "dac.h"
 #include "dma.h"
 #include "fatfs.h"
+#include "iwdg.h"
 #include "rtc.h"
 #include "sdio.h"
 #include "spi.h"
@@ -145,6 +146,7 @@ int main(void)
   MX_CAN1_Init();
   MX_ADC1_Init();
   MX_DAC_Init();
+  MX_IWDG_Init();
   MX_RTC_Init();
   /* USER CODE BEGIN 2 */
 
