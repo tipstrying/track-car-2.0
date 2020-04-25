@@ -40,6 +40,7 @@ public:
     float FeedBack_RPM;
 
     float sAcceleration;
+    float sDcceleration;
     float sDeceleration_distance;
     float sSpeed_max;
 

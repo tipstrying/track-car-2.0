@@ -124,7 +124,7 @@ float AGV_Parallel_Motion::Move(float iDistance)
     static float speedOld = 0;
     float stopDistance;
 
-    stopDistance = (speedNow * speedNow) / (2.0 * sAcceleration) + sDeceleration_distance;
+    stopDistance = (speedNow * speedNow) / (2.0 * sDcceleration) + sDeceleration_distance;
     if (abs(iDistance) > stopDistance)
     {
         SetSpeed = sSpeed_max;
@@ -144,7 +144,7 @@ float AGV_Parallel_Motion::Move(float iDistance)
     {
         float securityDelta_straight;
         SetSpeed = 0;
-        securityDelta_straight = sAcceleration * sample_Time / 1000.0;
+        securityDelta_straight = sDcceleration * sample_Time / 1000.0;
         speedNow = speedNow - securityDelta_straight;
         if (abs(speedNow) < 10)
             speedNow = 0;
@@ -155,7 +155,7 @@ float AGV_Parallel_Motion::Move(float iDistance)
         float securityDelta_straight;
         if (speedNow > SetSpeed)
         {
-            securityDelta_straight = sAcceleration * sample_Time / 1000.0;
+            securityDelta_straight = sDcceleration * sample_Time / 1000.0;
         }
         else
         {
@@ -166,7 +166,7 @@ float AGV_Parallel_Motion::Move(float iDistance)
             if (stopDistance > iDistance)
             {
                 if (iDistance > sDeceleration_distance)
-                    speedNow = sqrt(2 * sAcceleration * (iDistance - sDeceleration_distance));
+                    speedNow = sqrt(2 * sDcceleration * (iDistance - sDeceleration_distance));
                 else
                     speedNow = sSpeed_min;
             }

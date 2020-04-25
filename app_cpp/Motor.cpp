@@ -29,7 +29,7 @@ void listAddCallBack(RunTaskDef data);
 void listDelCallBack(RunTaskDef data);
 void ClearMotorAlarm();
 uint8_t GetMotionStatus();
-    void GetMotorVoltage( short *Voltage );
+void GetMotorVoltage( short *Voltage );
 }
 #endif
 
@@ -585,7 +585,8 @@ void MotionTask(void const *parment)
     agv.sSpeed_min = 10;
     agv.sSpeed_max = 300;
     agv.sDeceleration_distance = 2;
-    agv.sAcceleration = 3000;
+    agv.sAcceleration = 1000;
+    agv.sDcceleration = 3000;
 
     uint32_t PreviousWakeTime = osKernelSysTick();
 
@@ -978,7 +979,6 @@ void MotionTask(void const *parment)
 
         if (1) // update encode and run status
         {
-#if 1
             if (CANopen_Rx.work())
             {
                 if (abs(agv.EncoderValue - Encoder_Value) > 100000)
@@ -1016,13 +1016,6 @@ void MotionTask(void const *parment)
                 else
                     MotionStatus.lastEncodeTime = PreviousWakeTime;
             }
-#else
-            if (MotionStatus.EcodeDelay)
-                MotionStatus.EcodeDelay = false;
-            agv.EncoderValue += agv.Request_RPM * AGV_EncoderCPC * 5 / 60 / 1000;
-            // agv.DetectDynamics();
-//       HAL_RTCEx_BKUPWrite( &hrtc, RTC_BKP_DR3, agv.AGV_Pos );
-#endif
         }
 
         if (1) // run task at position

@@ -214,7 +214,7 @@ eMBPSerialRxEnable( xMBPSerialHandle xSerialHdl, pvMBPSerialReceiverCB pvMBPRece
         {
             MBP_ASSERT( NULL == pxSerialIntHdl->pvMBPReceiveFN );
             HAL_GPIO_WritePin( UART7_RD_GPIO_Port, UART7_RD_Pin, GPIO_PIN_RESET );
-            __HAL_UART_ENABLE_IT( &huart7, UART_IT_RXNE );
+           // __HAL_UART_ENABLE_IT( &huart7, UART_IT_RXNE );
             pxSerialIntHdl->pvMBPReceiveFN = ( pvMBPSerialReceiverAPIV2CB ) pvMBPReceiveFN;
         }
         else
