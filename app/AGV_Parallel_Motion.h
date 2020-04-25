@@ -61,6 +61,9 @@ private:
     float Move(float iDistance);
     Motion_Status move_to_step;
     Motion_Status secondLocaliztionType;
+
+    double speedNow;
+    double x;
 };
 
 #endif
