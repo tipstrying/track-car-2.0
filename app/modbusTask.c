@@ -82,34 +82,70 @@ void modbusTask(void const *arg)
             osDelay(10);
         }
         */
-    TaskWakeUp:
+        int i = 0;
+TaskWakeUp:
         debugOut(0, "[\t%d] Battery voltage up to 25000mV [ok]\r\n", osKernelSysTick());
         debugOut(0, "[\t%d] Start set up Belt Motor [ok]\r\n", osKernelSysTick());
         for (;;)
         {
             while (MB_ENOERR != eMBMReadHoldingRegisters(xMBMMaster, BeltAddr, 0x3600, 1, modbusReadBackRegs))
             {
+                i--;
+                if(i <= 0)
+                {
+                    debugOut(0, "[\t%d] read address[1] 0x3600 eMBMReadHoldingRegisters error\r\n", osKernelSysTick());
+                    break;
+                }
                 osDelay(3);
             }
+            i = 10;
             if (modbusReadBackRegs[0] != 3)
             {
                 debugOut(0, "[\t%d] Belt Motor Clean alarm\r\n", osKernelSysTick());
                 while (MB_ENOERR != eMBMWriteSingleRegister(xMBMMaster, BeltAddr, 0x3100, 0x80))
                 {
+                    i--;
+                    if(i <= 0)
+                    {
+                        debugOut(0, "[\t%d] write address[2] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
+                        break;
+                    }
                     osDelay(2);
                 }
+                i = 10;
                 while (MB_ENOERR != eMBMWriteSingleRegister(xMBMMaster, BeltAddr, 0x3100, 0x06))
                 {
+                    i--;
+                    if(i <= 0)
+                    {
+                        debugOut(0, "[\t%d] write address[3] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
+                        break;
+                    }
                     osDelay(2);
                 }
+                i = 10;
                 while (MB_ENOERR != eMBMWriteSingleRegister(xMBMMaster, BeltAddr, 0x3100, 0x0f))
                 {
+                    i--;
+                    if(i <= 0)
+                    {
+                        debugOut(0, "[\t%d] write address[4] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
+                        break;
+                    }
                     osDelay(2);
                 }
+                i = 10;
                 while (MB_ENOERR != eMBMWriteSingleRegister(xMBMMaster, BeltAddr, 0x3500, 0x03))
                 {
+                    i--;
+                    if(i <= 0)
+                    {
+                        debugOut(0, "[\t%d] write address[5] 0x3500 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
+                        break;
+                    }
                     osDelay(2);
                 }
+                i = 10;
             }
             else
             {
@@ -128,35 +164,84 @@ void modbusTask(void const *arg)
             iToUShortData.iData = 16384000 * 2;
             while (MB_ENOERR != eMBMWriteMultipleRegisters(xMBMMaster, SwitchAddr, 0x4a00, 2, iToUShortData.uData))
             {
+                i--;
+                if(i <= 0)
+                {
+                    debugOut(0, "[\t%d] write address[6] 0x4a00 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
+                    break;
+                }
                 osDelay(2);
             }
+            i = 10;
             while (MB_ENOERR != eMBMReadHoldingRegisters(xMBMMaster, SwitchAddr, 0x3600, 1, modbusReadBackRegs))
             {
+                i--;
+                if(i <= 0)
+                {
+                    debugOut(0, "[\t%d] read address[7] 0x3600 eMBMReadHoldingRegisters error\r\n", osKernelSysTick());
+                    break;
+                }
                 osDelay(3);
             }
+            i = 10;
             if (modbusReadBackRegs[0] != 3)
             {
                 while (MB_ENOERR != eMBMWriteSingleRegister(xMBMMaster, SwitchAddr, 0x3100, 0x80))
                 {
+                    i--;
+                    if(i <= 0)
+                    {
+                        debugOut(0, "[\t%d] write address[8] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
+                        break;
+                    }
                     osDelay(2);
                 }
+                i = 10;
                 while (MB_ENOERR != eMBMWriteSingleRegister(xMBMMaster, SwitchAddr, 0x3100, 0x06))
                 {
+                    i--;
+                    if(i <= 0)
+                    {
+                        debugOut(0, "[\t%d] write address[9] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
+                        break;
+                    }
                     osDelay(2);
                 }
+                i = 10;
                 while (MB_ENOERR != eMBMWriteSingleRegister(xMBMMaster, SwitchAddr, 0x3100, 0xaf))
                 {
+                    i--;
+                    if(i <= 0)
+                    {
+                        debugOut(0, "[\t%d] write address[10] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
+                        break;
+                    }
                     osDelay(2);
                 }
+                i = 10;
                 while (MB_ENOERR != eMBMWriteSingleRegister(xMBMMaster, SwitchAddr, 0x3500, 0x03))
                 {
+                    i--;
+                    if(i <= 0)
+                    {
+                        debugOut(0, "[\t%d] write address[11] 0x3500 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
+                        break;
+                    }
                     osDelay(2);
                 }
+                i = 10;
                 iToUShortData.iData = 16384000 * 2;
                 while (MB_ENOERR != eMBMWriteMultipleRegisters(xMBMMaster, SwitchAddr, 0x4a00, 2, iToUShortData.uData))
                 {
+                    i--;
+                    if(i <= 0)
+                    {
+                        debugOut(0, "[\t%d] write address[12] 0x4a00 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
+                        break;
+                    }
                     osDelay(2);
                 }
+                i = 10;
             }
             else
             {
@@ -178,8 +263,15 @@ void modbusTask(void const *arg)
 
             while (MB_ENOERR != eMBMWriteMultipleRegisters(xMBMMaster, SwitchAddr, 0x6f00, 2, iToUShortData.uData))
             {
+                i--;
+                if(i <= 0)
+                {
+                    debugOut(0, "[\t%d] write address[13] 0x6f00 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
+                    break;
+                }
                 osDelay(2);
             }
+            i = 10;
             for (;;)
             {
                 if (getSwitchStatus() == InOutSwitchIn)
@@ -187,8 +279,15 @@ void modbusTask(void const *arg)
                     iToUShortData.iData = 0;
                     while (MB_ENOERR != eMBMWriteMultipleRegisters(xMBMMaster, SwitchAddr, 0x6f00, 2, iToUShortData.uData))
                     {
+                        i--;
+                        if(i <= 0)
+                        {
+                            debugOut(0, "[\t%d] write address[14] 0x6f00 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
+                            break;
+                        }
                         osDelay(2);
                     }
+                    i = 10;
                     break;
                 }
                 osDelay(1);
@@ -215,7 +314,16 @@ void modbusTask(void const *arg)
             {
                 modbusReadBackRegs[0] = 0;
                 while (MB_ENOERR != eMBMReadHoldingRegisters(xMBMMaster, SwitchAddr, 0x3600, 1, modbusReadBackRegs))
+                {
+                    i--;
+                    if(i <= 0)
+                    {
+                        debugOut(0, "[\t%d] read address[15] 0x3600 eMBMReadHoldingRegisters error\r\n", osKernelSysTick());
+                        break;
+                    }
                     osDelay(2);
+                }
+                i = 10;
                 debugOut(0, "[\t%d] Switch Mode Read\r\n", osKernelSysTick());
                 if (modbusReadBackRegs[0] != 1)
                 {
@@ -224,16 +332,37 @@ void modbusTask(void const *arg)
                     {
                         while (MB_ENOERR != eMBMWriteSingleRegister(xMBMMaster, BeltAddr, 0x3100, 0x80))
                         {
+                            i--;
+                            if(i <= 0)
+                            {
+                                debugOut(0, "[\t%d] write address[16] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
+                                break;
+                            }
                             osDelay(2);
                         }
+                        i = 10;
                         while (MB_ENOERR != eMBMWriteSingleRegister(xMBMMaster, BeltAddr, 0x3100, 0x06))
                         {
+                            i--;
+                            if(i <= 0)
+                            {
+                                debugOut(0, "[\t%d] write address[17] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
+                                break;
+                            }
                             osDelay(2);
                         }
+                        i = 10;
                         while (MB_ENOERR != eMBMWriteSingleRegister(xMBMMaster, BeltAddr, 0x3100, 0x0f))
                         {
+                            i--;
+                            if(i <= 0)
+                            {
+                                debugOut(0, "[\t%d] write address[18] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
+                                break;
+                            }
                             osDelay(2);
                         }
+                        i = 10;
                         /*
                             Be careful!!!!!!!
                             Motor Charge to Position Mode from Speed Mode will auto run once, if 0x4000 REG not 0 !!!! ;
@@ -241,15 +370,40 @@ void modbusTask(void const *arg)
                         */
                         iToUShortData.iData = 0;
                         while (MB_ENOERR != eMBMWriteMultipleRegisters(xMBMMaster, SwitchAddr, 0x4000, 2, iToUShortData.uData))
+                        {
+                            i--;
+                            if(i <= 0)
+                            {
+                                debugOut(0, "[\t%d] write address[19] 0x4000 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
+                                break;
+                            }
                             osDelay(2);
+                        }
+                        i = 10;
                         eMBMWriteSingleRegister(xMBMMaster, SwitchAddr, 0x3500, 1);
                         while (MB_ENOERR != eMBMReadHoldingRegisters(xMBMMaster, SwitchAddr, 0x3600, 1, modbusReadBackRegs))
+                        {
+                            i--;
+                            if(i <= 0)
+                            {
+                                debugOut(0, "[\t%d] read address[20] 0x3600 eMBMReadHoldingRegisters error\r\n", osKernelSysTick());
+                                break;
+                            }
                             osDelay(2);
+                        }
+                        i = 10;
                         iToUShortData.iData = 16384000 * 2;
                         while (MB_ENOERR != eMBMWriteMultipleRegisters(xMBMMaster, SwitchAddr, 0x4a00, 2, iToUShortData.uData))
                         {
+                            i--;
+                            if(i <= 0)
+                            {
+                                debugOut(0, "[\t%d] write address[21] 0x4a00 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
+                                break;
+                            }
                             osDelay(2);
                         }
+                        i = 10;
                     } while (modbusReadBackRegs[0] != 1);
                 }
                 switchMotorMode = 1;
@@ -274,44 +428,71 @@ void modbusTask(void const *arg)
                     case 0:
                         iToUShortData.iData = 0;
                         while (MB_ENOERR != eMBMWriteMultipleRegisters(xMBMMaster, BeltAddr, 0x6f00, 2, iToUShortData.uData))
+                        {
+                            i--;
+                            if(i <= 0)
+                            {
+                                debugOut(0, "[\t%d] write address[22] 0x6f00 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
+                                break;
+                            }
                             osDelay(2);
+                        }
+                        i = 10;
                         break;
                     case -1:
                         iToUShortData.iData = -8912000 * BeltSpeed;
                         while (MB_ENOERR != eMBMWriteMultipleRegisters(xMBMMaster, BeltAddr, 0x6f00, 2, iToUShortData.uData))
+                        {
+                            i--;
+                            if(i <= 0)
+                            {
+                                debugOut(0, "[\t%d] write address[23] 0x6f00 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
+                                break;
+                            }
                             osDelay(2);
+                        }
+                        i = 10;
                         break;
                     case 1:
                         iToUShortData.iData = 8912000 * BeltSpeed;
                         while (MB_ENOERR != eMBMWriteMultipleRegisters(xMBMMaster, BeltAddr, 0x6f00, 2, iToUShortData.uData))
+                        {
+                            i--;
+                            if(i <= 0)
+                            {
+                                debugOut(0, "[\t%d] write address[24] 0x6f00 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
+                                break;
+                            }
                             osDelay(2);
+                        }
+                        i = 10;
                         break;
                     }
                     break;
                 case 4:
-                    
+
                     debugOut(0, "[\t%d] <INFO> <SWITCH> {Sleep} set sleep mode\r\n", osKernelSysTick());
-/*
-                    do
-                    {
-                        while (MB_ENOERR != eMBMWriteSingleRegister(xMBMMaster, SwitchAddr, 0x3100, 0x06))
-                        {
-                            osDelay(2);
-                        }
-                        while (MB_ENOERR != eMBMReadHoldingRegisters(xMBMMaster, SwitchAddr, 0x3600, 1, modbusReadBackRegs))
-                            osDelay(2);
-                    } while (modbusReadBackRegs[0] != 0);
-                    do
-                    {
-                        while (MB_ENOERR != eMBMWriteSingleRegister(xMBMMaster, BeltAddr, 0x3100, 0x06))
-                        {
-                            osDelay(2);
-                        }
-                        while (MB_ENOERR != eMBMReadHoldingRegisters(xMBMMaster, BeltAddr, 0x3600, 1, modbusReadBackRegs))
-                            osDelay(2);
-                    } while (modbusReadBackRegs[0] != 0);
-                    switchReach = -2;
-                    */
+                    /*
+                                        do
+                                        {
+                                            while (MB_ENOERR != eMBMWriteSingleRegister(xMBMMaster, SwitchAddr, 0x3100, 0x06))
+                                            {
+                                                osDelay(2);
+                                            }
+                                            while (MB_ENOERR != eMBMReadHoldingRegisters(xMBMMaster, SwitchAddr, 0x3600, 1, modbusReadBackRegs))
+                                                osDelay(2);
+                                        } while (modbusReadBackRegs[0] != 0);
+                                        do
+                                        {
+                                            while (MB_ENOERR != eMBMWriteSingleRegister(xMBMMaster, BeltAddr, 0x3100, 0x06))
+                                            {
+                                                osDelay(2);
+                                            }
+                                            while (MB_ENOERR != eMBMReadHoldingRegisters(xMBMMaster, BeltAddr, 0x3600, 1, modbusReadBackRegs))
+                                                osDelay(2);
+                                        } while (modbusReadBackRegs[0] != 0);
+                                        switchReach = -2;
+                                        */
                     break;
                 case 5:
                     /*
@@ -379,7 +560,16 @@ void modbusTask(void const *arg)
                             {
                                 modbusReadBackRegs[0] = 0;
                                 while (MB_ENOERR != eMBMReadHoldingRegisters(xMBMMaster, SwitchAddr, 0x3600, 1, modbusReadBackRegs))
+                                {
+                                    i--;
+                                    if(i <= 0)
+                                    {
+                                        debugOut(0, "[\t%d] read address[25] 0x3600 eMBMReadHoldingRegisters error\r\n", osKernelSysTick());
+                                        break;
+                                    }
                                     osDelay(2);
+                                }
+                                i = 10;
                                 debugOut(0, "[\t%d] Switch Mode Read\r\n", osKernelSysTick());
                                 if (modbusReadBackRegs[0] != 1)
                                 {
@@ -388,16 +578,37 @@ void modbusTask(void const *arg)
                                     {
                                         while (MB_ENOERR != eMBMWriteSingleRegister(xMBMMaster, BeltAddr, 0x3100, 0x80))
                                         {
+                                            i--;
+                                            if(i <= 0)
+                                            {
+                                                debugOut(0, "[\t%d] write address[26] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
+                                                break;
+                                            }
                                             osDelay(2);
                                         }
+                                        i = 10;
                                         while (MB_ENOERR != eMBMWriteSingleRegister(xMBMMaster, BeltAddr, 0x3100, 0x06))
                                         {
+                                            i--;
+                                            if(i <= 0)
+                                            {
+                                                debugOut(0, "[\t%d] write address[27] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
+                                                break;
+                                            }
                                             osDelay(2);
                                         }
+                                        i = 10;
                                         while (MB_ENOERR != eMBMWriteSingleRegister(xMBMMaster, BeltAddr, 0x3100, 0x0f))
                                         {
+                                            i--;
+                                            if(i <= 0)
+                                            {
+                                                debugOut(0, "[\t%d] write address[28] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
+                                                break;
+                                            }
                                             osDelay(2);
                                         }
+                                        i = 10;
                                         /*
                                             Be careful!!!!!!!
                                             Motor Charge to Position Mode from Speed Mode will auto run once, if 0x4000 REG not 0 !!!! ;
@@ -405,15 +616,40 @@ void modbusTask(void const *arg)
                                         */
                                         iToUShortData.iData = 0;
                                         while (MB_ENOERR != eMBMWriteMultipleRegisters(xMBMMaster, SwitchAddr, 0x4000, 2, iToUShortData.uData))
+                                        {
+                                            i--;
+                                            if(i <= 0)
+                                            {
+                                                debugOut(0, "[\t%d] write address[29] 0x4000 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
+                                                break;
+                                            }
                                             osDelay(2);
+                                        }
+                                        i = 10;
                                         eMBMWriteSingleRegister(xMBMMaster, SwitchAddr, 0x3500, 1);
                                         while (MB_ENOERR != eMBMReadHoldingRegisters(xMBMMaster, SwitchAddr, 0x3600, 1, modbusReadBackRegs))
+                                        {
+                                            i--;
+                                            if(i <= 0)
+                                            {
+                                                debugOut(0, "[\t%d] read address[30] 0x3600 eMBMReadHoldingRegisters error\r\n", osKernelSysTick());
+                                                break;
+                                            }
                                             osDelay(2);
+                                        }
+                                        i = 10;
                                         iToUShortData.iData = 16384000 * 2;
                                         while (MB_ENOERR != eMBMWriteMultipleRegisters(xMBMMaster, SwitchAddr, 0x4a00, 2, iToUShortData.uData))
                                         {
+                                            i--;
+                                            if(i <= 0)
+                                            {
+                                                debugOut(0, "[\t%d] write address[31] 0x4a00 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
+                                                break;
+                                            }
                                             osDelay(2);
                                         }
+                                        i = 10;
                                     } while (modbusReadBackRegs[0] != 1);
                                 }
                                 switchMotorMode = 1;
@@ -434,14 +670,41 @@ void modbusTask(void const *arg)
                                     iToUShortData.iData = -168250;
                             }
                             while (MB_ENOERR != eMBMWriteMultipleRegisters(xMBMMaster, SwitchAddr, 0x4000, 2, iToUShortData.uData))
+                            {
+                                i--;
+                                if(i <= 0)
+                                {
+                                    debugOut(0, "[\t%d] write address[32] 0x4000 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
+                                    break;
+                                }
                                 osDelay(2);
+                            }
+                            i = 10;
                             debugOut(0, "[\t%d] Switch Send Position Ok\r\n", osKernelSysTick());
 
                             while (MB_ENOERR != eMBMWriteSingleRegister(xMBMMaster, SwitchAddr, 0x3100, 0x6f))
+                            {
+                                i--;
+                                if(i <= 0)
+                                {
+                                    debugOut(0, "[\t%d] write address[33] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
+                                    break;
+                                }
                                 osDelay(2);
+                            }
+                            i = 10;
 
                             while (MB_ENOERR != eMBMWriteSingleRegister(xMBMMaster, SwitchAddr, 0x3100, 0x7f))
+                            {
+                                i--;
+                                if(i <= 0)
+                                {
+                                    debugOut(0, "[\t%d] write address[34] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
+                                    break;
+                                }
                                 osDelay(2);
+                            }
+                            i = 10;
                             debugOut(0, "[\t%d] Switch Ctrl Word Send Ok\r\n", osKernelSysTick());
                             while (xSemaphoreTake(SwitchIN6Semap, 0) == pdPASS)
                                 osDelay(1);
@@ -459,6 +722,12 @@ void modbusTask(void const *arg)
                         {
                             while (MB_ENOERR != eMBMReadHoldingRegisters(xMBMMaster, SwitchAddr, 0x3200, 1, modbusReadBackRegs))
                             {
+                                i--;
+                                if(i <= 0)
+                                {
+                                    debugOut(0, "[\t%d] read address[35] 0x3200 eMBMReadHoldingRegisters error\r\n", osKernelSysTick());
+                                    break;
+                                }
                                 osDelay(3);
                                 if (osKernelSysTick() > timeBak)
                                 {
@@ -470,6 +739,7 @@ void modbusTask(void const *arg)
                                 else
                                     timeBak = osKernelSysTick();
                             }
+                            i = 10;
 
                         } while (!(modbusReadBackRegs[0] & 0x400));
                         debugOut(0, "[\t%d] switch motor step ok\r\n", osKernelSysTick());
@@ -479,19 +749,49 @@ void modbusTask(void const *arg)
                             {
                                 while (MB_ENOERR != eMBMWriteSingleRegister(xMBMMaster, BeltAddr, 0x3100, 0x06))
                                 {
+                                    i--;
+                                    if(i <= 0)
+                                    {
+                                        debugOut(0, "[\t%d] write address[36] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
+                                        break;
+                                    }
                                     osDelay(2);
                                 }
+                                i = 10;
                                 while (MB_ENOERR != eMBMWriteSingleRegister(xMBMMaster, BeltAddr, 0x3100, 0x0f))
                                 {
+                                    i--;
+                                    if(i <= 0)
+                                    {
+                                        debugOut(0, "[\t%d] write address[37] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
+                                        break;
+                                    }
                                     osDelay(2);
                                 }
+                                i = 10;
 
                                 while (MB_ENOERR != eMBMWriteSingleRegister(xMBMMaster, SwitchAddr, 0x3500, 3))
+                                {
+                                    i--;
+                                    if(i <= 0)
+                                    {
+                                        debugOut(0, "[\t%d] write address[38] 0x3500 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
+                                        break;
+                                    }
                                     osDelay(2);
+                                }
+                                i = 10;
                                 while (MB_ENOERR != eMBMReadHoldingRegisters(xMBMMaster, SwitchAddr, 0x3600, 1, modbusReadBackRegs))
                                 {
+                                    i--;
+                                    if(i <= 0)
+                                    {
+                                        debugOut(0, "[\t%d] read address[39] 0x3600 eMBMReadHoldingRegisters error\r\n", osKernelSysTick());
+                                        break;
+                                    }
                                     osDelay(3);
                                 }
+                                i = 10;
                             } while (modbusReadBackRegs[0] != 3);
                             switchMotorMode = 3;
                             if (targetGoing == InOutSwitchIn)
@@ -544,7 +844,16 @@ void modbusTask(void const *arg)
                             }
 
                             while (MB_ENOERR != eMBMWriteMultipleRegisters(xMBMMaster, SwitchAddr, 0x6f00, 2, iToUShortData.uData))
+                            {
+                                i--;
+                                if(i <= 0)
+                                {
+                                    debugOut(0, "[\t%d] write address[40] 0x6f00 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
+                                    break;
+                                }
                                 osDelay(2);
+                            }
+                            i = 10;
                             switchStatus = 4;
                         }
                         else
@@ -560,17 +869,40 @@ void modbusTask(void const *arg)
                         {
                             iToUShortData.iData = 0;
                             while (MB_ENOERR != eMBMWriteMultipleRegisters(xMBMMaster, SwitchAddr, 0x6f00, 2, iToUShortData.uData))
+                            {
+                                i--;
+                                if(i <= 0)
+                                {
+                                    debugOut(0, "[\t%d] write address[41] 0x6f00 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
+                                    break;
+                                }
                                 osDelay(2);
+                            }
+                            i = 10;
                             do
                             {
                                 while (MB_ENOERR != eMBMWriteSingleRegister(xMBMMaster, BeltAddr, 0x3100, 0x06))
                                 {
+                                    i--;
+                                    if(i <= 0)
+                                    {
+                                        debugOut(0, "[\t%d] write address[42] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
+                                        break;
+                                    }
                                     osDelay(2);
                                 }
+                                i = 10;
                                 while (MB_ENOERR != eMBMWriteSingleRegister(xMBMMaster, BeltAddr, 0x3100, 0x6f))
                                 {
+                                    i--;
+                                    if(i <= 0)
+                                    {
+                                        debugOut(0, "[\t%d] write address[43] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
+                                        break;
+                                    }
                                     osDelay(2);
                                 }
+                                i = 10;
                                 /*
                                     Be careful!!!!!!!
                                     Motor Charge to Position Mode from Speed Mode will auto run once, if 0x4000 REG not 0 !!!! ;
@@ -578,16 +910,50 @@ void modbusTask(void const *arg)
                                 */
                                 iToUShortData.iData = 0;
                                 while (MB_ENOERR != eMBMWriteMultipleRegisters(xMBMMaster, SwitchAddr, 0x4000, 2, iToUShortData.uData))
+                                {
+                                    i--;
+                                    if(i <= 0)
+                                    {
+                                        debugOut(0, "[\t%d] write address[44] 0x4000 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
+                                        break;
+                                    }
                                     osDelay(2);
+                                }
+                                i = 10;
                                 while (MB_ENOERR != eMBMWriteSingleRegister(xMBMMaster, SwitchAddr, 0x3500, 1))
+                                {
+                                    i--;
+                                    if(i <= 0)
+                                    {
+                                        debugOut(0, "[\t%d] write address[45] 0x3500 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
+                                        break;
+                                    }
                                     osDelay(2);
+                                }
+                                i = 10;
                                 while (MB_ENOERR != eMBMReadHoldingRegisters(xMBMMaster, SwitchAddr, 0x3600, 1, modbusReadBackRegs))
+                                {
+                                    i--;
+                                    if(i <= 0)
+                                    {
+                                        debugOut(0, "[\t%d] read address[46] 0x3600 eMBMReadHoldingRegisters error\r\n", osKernelSysTick());
+                                        break;
+                                    }
                                     osDelay(2);
+                                }
+                                i = 10;
                                 iToUShortData.iData = 16384000 * 2;
                                 while (MB_ENOERR != eMBMWriteMultipleRegisters(xMBMMaster, SwitchAddr, 0x4a00, 2, iToUShortData.uData))
                                 {
+                                    i--;
+                                    if(i <= 0)
+                                    {
+                                        debugOut(0, "[\t%d] write address[47] 0x4a00 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
+                                        break;
+                                    }
                                     osDelay(2);
                                 }
+                                i = 10;
                             } while (modbusReadBackRegs[0] != 1);
                             switchMotorMode = 1;
                             switchStatus = 5;
