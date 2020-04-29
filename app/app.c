@@ -108,10 +108,10 @@ void vApplicationTickHook( void )
     {
         /* 心跳�*/
         HAL_GPIO_TogglePin( SLEEP_GPIO_Port, SLEEP_Pin );
-        HAL_GPIO_TogglePin( OUT_2_GPIO_Port, OUT_2_Pin );
+       // HAL_GPIO_WritePin( OUT_4_GPIO_Port, OUT_4_Pin, GPIO_PIN_SET );
         i = 0;
     }
-    HAL_IWDG_Refresh(&hiwdg);
+    //HAL_IWDG_Refresh(&hiwdg);
 }
 
 unsigned long getRunTimeCounterValue(void)

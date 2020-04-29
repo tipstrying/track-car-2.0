@@ -40,6 +40,9 @@ public:
     float FeedBack_RPM;
 
     float sAcceleration;
+    float sDcceleration;
+    float sAcceleratuinXXX;
+    
     float sDeceleration_distance;
     float sSpeed_max;
 
@@ -60,6 +63,9 @@ private:
     float Move(float iDistance);
     Motion_Status move_to_step;
     Motion_Status secondLocaliztionType;
+
+    double speedNow;
+    double x;
 };
 
 #endif

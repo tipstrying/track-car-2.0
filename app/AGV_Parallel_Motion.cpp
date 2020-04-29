@@ -20,6 +20,9 @@ AGV_Parallel_Motion::AGV_Parallel_Motion()
     this->EncoderValue = 0;
     this->move_to_step = ms_Idle;
     iEmergencyBySoftware = false;
+    speedNow = 0;
+    x = 0;
+    sAcceleratuinXXX = 5000;
 }
 
 AGV_Parallel_Motion::~AGV_Parallel_Motion()
@@ -105,6 +108,8 @@ AGV_Parallel_Motion::Motion_Status AGV_Parallel_Motion::Move_to(float iTarget)
                 }
                 taskEXIT_CRITICAL();
                 this->move_to_step = ms_Idle;
+                x = 0;
+                speedNow = 0;
             }
         }
         rValue = ms_Straight;
@@ -119,12 +124,13 @@ AGV_Parallel_Motion::Motion_Status AGV_Parallel_Motion::Move_to(float iTarget)
 
 float AGV_Parallel_Motion::Move(float iDistance)
 {
+#if 0
     float SetSpeed = 0.000;
     static float speedNow = 0;
     static float speedOld = 0;
     float stopDistance;
 
-    stopDistance = (speedNow * speedNow) / (2.0 * sAcceleration) + sDeceleration_distance;
+    stopDistance = (speedNow * speedNow) / (2.0 * sDcceleration) + sDeceleration_distance;
     if (abs(iDistance) > stopDistance)
     {
         SetSpeed = sSpeed_max;
@@ -144,7 +150,7 @@ float AGV_Parallel_Motion::Move(float iDistance)
     {
         float securityDelta_straight;
         SetSpeed = 0;
-        securityDelta_straight = sAcceleration * sample_Time / 1000.0;
+        securityDelta_straight = sDcceleration * sample_Time / 1000.0;
         speedNow = speedNow - securityDelta_straight;
         if (abs(speedNow) < 10)
             speedNow = 0;
@@ -155,7 +161,7 @@ float AGV_Parallel_Motion::Move(float iDistance)
         float securityDelta_straight;
         if (speedNow > SetSpeed)
         {
-            securityDelta_straight = sAcceleration * sample_Time / 1000.0;
+            securityDelta_straight = sDcceleration * sample_Time / 1000.0;
         }
         else
         {
@@ -166,7 +172,7 @@ float AGV_Parallel_Motion::Move(float iDistance)
             if (stopDistance > iDistance)
             {
                 if (iDistance > sDeceleration_distance)
-                    speedNow = sqrt(2 * sAcceleration * (iDistance - sDeceleration_distance));
+                    speedNow = sqrt(2 * sDcceleration * (iDistance - sDeceleration_distance));
                 else
                     speedNow = sSpeed_min;
             }
@@ -184,6 +190,92 @@ float AGV_Parallel_Motion::Move(float iDistance)
     if (this->iEmergencyByMotorDisable)
         speedNow = 0;
     return speedNow;
+#else
+    double SetSpeed = 0.000;
+//    static double speedNow = 0;
+//    static double x = 0;
+    double stopDistance;
+
+    //stopDistance = (double)1 / 4 * x * x * x * x * 5000;
+    stopDistance = (double)1 / 4 * x * x * x * x * sAcceleratuinXXX;
+
+    if (stopDistance - iDistance > 1)
+        SetSpeed = sSpeed_min;
+    else
+    {
+        SetSpeed = sSpeed_max;
+    }
+
+    if( abs( iDistance ) <= Stop_Accuracy /* * 0.5 */ )
+    {
+        SetSpeed = sSpeed_min;
+    }
+    if( iDistance < 0 )
+        SetSpeed = -SetSpeed;
+    // float securityDelta_straight;
+
+    if( this->iEmergencyByPause || this->iEmergencyByCancel )
+    {
+        SetSpeed = 0;
+        x -= (double)sample_Time / 1000;
+        if( x > 0 )
+        {
+           // speedNow = x * x * x * 5000;
+            speedNow = x * x * x * sAcceleratuinXXX;
+        }
+        else 
+        {
+            speedNow = 0;
+            x = 0;
+        }
+        if( abs( speedNow ) < 10 )
+            speedNow = 0;
+    }
+    else
+    {
+        if (speedNow > SetSpeed)
+        {
+            if( stopDistance > iDistance )
+            {
+                x -= (double)sample_Time / 1000;
+                //stopDistance = (double)1 / 4 * x * x * x * x * 5000;
+                stopDistance = (double)1 / 4 * x * x * x * x * sAcceleratuinXXX;
+                if( stopDistance > iDistance )
+                {
+                   // x = iDistance * 4 / 5000;
+                    x = iDistance * 4 / sAcceleratuinXXX;
+                    x = sqrt(x);
+                    x = sqrt(x);
+                }
+                //speedNow = x * x * x * 5000;
+                speedNow = x * x * x * sAcceleratuinXXX;
+            }
+            else
+            {
+                x -= (double)sample_Time / 1000;
+                //stopDistance = (double)1 / 4 * x * x * x * x * 5000;
+                stopDistance = (double)1 / 4 * x * x * x * x * sAcceleratuinXXX;
+                //speedNow = x * x * x * 5000;
+                speedNow = x * x * x * sAcceleratuinXXX;
+            }
+        }
+        else if( speedNow < SetSpeed )
+        {
+            x += (double)sample_Time / 1000;
+            //speedNow = x * x * x * 5000;
+            speedNow = x * x * x * sAcceleratuinXXX;
+        }
+        if( abs( speedNow - sSpeed_max ) < 10 )
+            speedNow = sSpeed_max;
+    }
+    if (this->iEmergencyByMotorDisable)
+    {
+        x = 0;
+        speedNow = 0;
+    }
+
+    return (float)speedNow;// > sSpeed_min ? speedNow : sSpeed_min;
+#endif
 }
 
 void AGV_Parallel_Motion::DetectDynamics(void)

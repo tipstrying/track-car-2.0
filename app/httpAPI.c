@@ -182,7 +182,7 @@ int InOutStatus()
 int GetBatteryVoltageHttpApi( float *Voltage )
 {
     /* Battery.Voltage; */ 
-    short v;
+    unsigned short v;
     GetMotorVoltage( &v );
     *Voltage = v;
     return 0;
