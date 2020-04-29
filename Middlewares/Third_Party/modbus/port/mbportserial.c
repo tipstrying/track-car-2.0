@@ -250,7 +250,6 @@ void uart2RecTask( void const *arg )
                 debugOut(0, "0x%X ", data[i] );
             }
             debugOut(0, "\r\n" );
-            
         }
     }
 }
