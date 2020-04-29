@@ -22,6 +22,7 @@ AGV_Parallel_Motion::AGV_Parallel_Motion()
     iEmergencyBySoftware = false;
     speedNow = 0;
     x = 0;
+    sAcceleratuinXXX = 5000;
 }
 
 AGV_Parallel_Motion::~AGV_Parallel_Motion()
@@ -195,7 +196,8 @@ float AGV_Parallel_Motion::Move(float iDistance)
 //    static double x = 0;
     double stopDistance;
 
-    stopDistance = (double)1 / 4 * x * x * x * x * 5000;
+    //stopDistance = (double)1 / 4 * x * x * x * x * 5000;
+    stopDistance = (double)1 / 4 * x * x * x * x * sAcceleratuinXXX;
 
     if (stopDistance - iDistance > 1)
         SetSpeed = sSpeed_min;
@@ -210,32 +212,61 @@ float AGV_Parallel_Motion::Move(float iDistance)
     }
     if( iDistance < 0 )
         SetSpeed = -SetSpeed;
-    float securityDelta_straight;
-    if (speedNow > SetSpeed)
+    // float securityDelta_straight;
+
+    if( this->iEmergencyByPause || this->iEmergencyByCancel )
     {
-        if( stopDistance > iDistance )
+        SetSpeed = 0;
+        x -= (double)sample_Time / 1000;
+        if( x > 0 )
         {
-            x -= (double)sample_Time / 1000;
-            stopDistance = (double)1 / 4 * x * x * x * x * 5000;
+           // speedNow = x * x * x * 5000;
+            speedNow = x * x * x * sAcceleratuinXXX;
+        }
+        else 
+        {
+            speedNow = 0;
+            x = 0;
+        }
+        if( abs( speedNow ) < 10 )
+            speedNow = 0;
+    }
+    else
+    {
+        if (speedNow > SetSpeed)
+        {
             if( stopDistance > iDistance )
             {
-                x = iDistance * 4 / 5000;
-                x = sqrt(x);
-                x = sqrt(x);
+                x -= (double)sample_Time / 1000;
+                //stopDistance = (double)1 / 4 * x * x * x * x * 5000;
+                stopDistance = (double)1 / 4 * x * x * x * x * sAcceleratuinXXX;
+                if( stopDistance > iDistance )
+                {
+                   // x = iDistance * 4 / 5000;
+                    x = iDistance * 4 / sAcceleratuinXXX;
+                    x = sqrt(x);
+                    x = sqrt(x);
+                }
+                //speedNow = x * x * x * 5000;
+                speedNow = x * x * x * sAcceleratuinXXX;
             }
-            speedNow = x * x * x * 5000;
+            else
+            {
+                x -= (double)sample_Time / 1000;
+                //stopDistance = (double)1 / 4 * x * x * x * x * 5000;
+                stopDistance = (double)1 / 4 * x * x * x * x * sAcceleratuinXXX;
+                //speedNow = x * x * x * 5000;
+                speedNow = x * x * x * sAcceleratuinXXX;
+            }
         }
-        else
+        else if( speedNow < SetSpeed )
         {
-            x -= (double)sample_Time / 1000;
-            stopDistance = (double)1 / 4 * x * x * x * x * 5000;
-            speedNow = x * x * x * 5000;
+            x += (double)sample_Time / 1000;
+            //speedNow = x * x * x * 5000;
+            speedNow = x * x * x * sAcceleratuinXXX;
         }
-    }
-    else if( speedNow < SetSpeed )
-    {
-        x += (double)sample_Time / 1000;
-        speedNow = x * x * x * 5000;
+        if( abs( speedNow - sSpeed_max ) < 10 )
+            speedNow = sSpeed_max;
     }
     if (this->iEmergencyByMotorDisable)
     {

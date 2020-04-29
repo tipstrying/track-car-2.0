@@ -1059,8 +1059,13 @@ extern "C"
 
 int debugOut(int isISR, const char *fmt, ...)
 {
-
-    if (__get_BASEPRI())
+    /*
+        if (__get_BASEPRI())
+        {
+            taskENTER_CRITICAL();
+        }
+        */
+    if ( !isISR )
     {
         taskENTER_CRITICAL();
     }
@@ -1068,8 +1073,12 @@ int debugOut(int isISR, const char *fmt, ...)
     va_start(args, fmt);
     vprintf(fmt, args);
     va_end(args);
+    if ( !isISR )
+        taskEXIT_CRITICAL();
+    /*
     if (__get_BASEPRI())
         taskEXIT_CRITICAL();
+    */
     return 0;
 }
 int fputc(int c, FILE *f)

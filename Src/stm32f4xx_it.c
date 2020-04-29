@@ -71,6 +71,7 @@
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 #include "app.h"
+#include "hardware.h"
 int count = 0;
 /* USER CODE END 0 */
 
@@ -101,6 +102,7 @@ void NMI_Handler(void)
   /* USER CODE END NonMaskableInt_IRQn 0 */
   /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
     HAL_GPIO_WritePin( OUT_5_GPIO_Port, OUT_5_Pin, GPIO_PIN_SET );
+    setITFlag( NMIIsr );
   /* USER CODE END NonMaskableInt_IRQn 1 */
 }
 
@@ -111,6 +113,7 @@ void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
    // faultCallBack( "HardFault_Handler" );
+    setITFlag( HardFault );
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
   {

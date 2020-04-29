@@ -35,6 +35,16 @@ typedef enum {
     off = 0
 } OnOffDef;
 
+typedef enum {
+    uart2Isr = 1,
+    uart7Isr = 2,
+    gpioIsr = 3,
+    canIsr = 4,
+    unknowIsr = 5,
+    NMIIsr = 6,
+    HardFault = 7,
+}ISREnumDef;
+    
 
 int prvInitHardwares ();
     
@@ -52,6 +62,7 @@ int readPosFromBKP( float *position, double *mils );
  int getThingSensorStatus( int type);
 int readSwitchTypeFromBKP(int *type);
 int writeSwitchTypeFromBKP(int type);
+void setITFlag( ISREnumDef isr );
 
 #ifdef __cplusplus
 }

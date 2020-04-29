@@ -29,7 +29,7 @@ void listAddCallBack(RunTaskDef data);
 void listDelCallBack(RunTaskDef data);
 void ClearMotorAlarm();
 uint8_t GetMotionStatus();
-void GetMotorVoltage( short *Voltage );
+void GetMotorVoltage( unsigned short *Voltage );
 }
 #endif
 
@@ -85,7 +85,7 @@ static struct
     bool bootUp;
     BaseType_t lastEncodeTime;
     short Current;
-    short Voltage;
+    unsigned short Voltage;
 
 } MotionStatus;
 
@@ -138,7 +138,7 @@ void GetMotorCurrent(short *current)
     if (current)
         *current = MotionStatus.Current;
 }
-void GetMotorVoltage( short *Voltage )
+void GetMotorVoltage( unsigned short *Voltage )
 {
     *Voltage = MotionStatus.Voltage;
 }
@@ -191,11 +191,14 @@ void GetPosition(float *X)
 void setRunAcc(float acc)
 {
     if (agv.Motion_Status_Now == AGV_Parallel_Motion::ms_Arrived)
+    {
         agv.sAcceleration = acc;
+        agv.sAcceleratuinXXX = acc;
+    }
 }
 float getRunAcc()
 {
-    return agv.sAcceleration;
+    return agv.sAcceleratuinXXX;
 }
 
 void SetiEmergency(int S)
@@ -448,7 +451,7 @@ void Rx_PDO_Commplate(int oID, char Array[8], int len)
             }
         }
     }
-    break;
+    break; 
     case 0x381 :
         if( 1 )
         {
@@ -799,25 +802,12 @@ void MotionTask(void const *parment)
                     case Enum_PauseNavigation:
                         if (navigationOperationData.Data.op)
                         {
-                            /*
-                            canOpenStatus.pollStep = 2;
-                            navigationOperationData.cmd = 4;
-                            xQueueSend( SwitchBeltTaskQue, &navigationOperationData, 100 );
-                            */
                             debugOut(0, "[\t%d] <CMD> <Motion> {Pause} ok\r\n", PreviousWakeTime);
                             agv.iEmergencyByPause = true;
                         }
                         else
                         {
                             debugOut(0, "[\t%d] <INFO> <Motion> {Exit Pause} exit pause mode\r\n", PreviousWakeTime);
-
-                            //                            canOpenStatus.pollStep = 3;
-                            //                            navigationOperationData.cmd = 5;
-                            //                            while( switchReach == -2 )
-                            //                            {
-                            //                                xQueueSend( SwitchBeltTaskQue, &navigationOperationData, 100 );
-                            //                                osDelay(10);
-                            //                            }
                             agv.iEmergencyByPause = false;
                         }
                         break;
@@ -1173,7 +1163,14 @@ void MotionTask(void const *parment)
             else
                 agv.Motion_Status_Now = agv.Motion_work(AGV_Pos);
         }
-
+        
+        if(1)
+        {
+            if( agv.iEmergencyByCancel )
+            {
+                AGV_Pos = agv.AGV_Pos;
+            }
+        }
         if (1)
         {
             if (xSemaphoreTake(setZerpSemap, 0) == pdPASS)

@@ -41,6 +41,8 @@ public:
 
     float sAcceleration;
     float sDcceleration;
+    float sAcceleratuinXXX;
+    
     float sDeceleration_distance;
     float sSpeed_max;
 

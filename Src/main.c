@@ -146,7 +146,7 @@ int main(void)
   MX_CAN1_Init();
   MX_ADC1_Init();
   MX_DAC_Init();
-  MX_IWDG_Init();
+ // MX_IWDG_Init();
   MX_RTC_Init();
   /* USER CODE BEGIN 2 */
 

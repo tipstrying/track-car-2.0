@@ -226,6 +226,7 @@ int writePosToBKP( float position, double mils )
 DR0: bootloader flag-> "appM" load app
 DR1: IP addr
 DR2: MAC addr
+DR3: Last IT Source
 DR10: real-time position
 DR11-DR12: milages
 DR13: sum of real-time position and milages
@@ -272,6 +273,11 @@ int readPosFromBKP( float *position, double *mils )
     else
         return 0;
 }
+void setITFlag( ISREnumDef isr )
+{
+    hrtc.Instance->BKP3R = isr;
+}
+
 int readSwitchTypeFromBKP(int *type)
 {
     union {
