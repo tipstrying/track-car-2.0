@@ -225,35 +225,35 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     }
     if (GPIO_Pin == IN_6_Pin)
     {
-        if (SwitchIN6Semap)
-        {
-            if (HAL_GPIO_ReadPin(IN_6_GPIO_Port, IN_6_Pin))
-            {
-                debugOut(1, "[\t%d] GPIO ISR IN6 [UP] [ok]\r\n", osKernelSysTick());
-                BaseType_t nextTask;
-                //    xSemaphoreGiveFromISR( SwitchIN6Semap, &nextTask );
-            }
-            else
-            {
-                debugOut(1, "[\t%d] GPIO ISR IN6 [DOWN] [ok]\r\n", osKernelSysTick());
-            }
-        }
+//        if (SwitchIN6Semap)
+//        {
+//            if (HAL_GPIO_ReadPin(IN_6_GPIO_Port, IN_6_Pin))
+//            {
+//               // debugOut(1, "[\t%d] GPIO ISR IN6 [UP] [ok]\r\n", osKernelSysTick());
+//                BaseType_t nextTask;
+//                    xSemaphoreGiveFromISR( SwitchIN6Semap, &nextTask );
+//            }
+//            else
+//            {
+//               // debugOut(1, "[\t%d] GPIO ISR IN6 [DOWN] [ok]\r\n", osKernelSysTick());
+//            }
+//        }
     }
     if (GPIO_Pin == IN_7_Pin)
     {
-        if (SwitchIN7Semap)
-        {
-            if (HAL_GPIO_ReadPin(IN_7_GPIO_Port, IN_7_Pin))
-            {
-                debugOut(1, "[\t%d] GPIO ISR IN7 [UP] [ok]\r\n", osKernelSysTick());
-                BaseType_t nextTask;
-                //   xSemaphoreGiveFromISR( SwitchIN7Semap, &nextTask );
-            }
-            else
-            {
-                debugOut(1, "[\t%d] GPIO ISR IN7 [DOWN] [ok]\r\n", osKernelSysTick());
-            }
-        }
+//        if (SwitchIN7Semap)
+//        {
+//            if (HAL_GPIO_ReadPin(IN_7_GPIO_Port, IN_7_Pin))
+//            {
+//               // debugOut(1, "[\t%d] GPIO ISR IN7 [UP] [ok]\r\n", osKernelSysTick());
+//                BaseType_t nextTask;
+//                   xSemaphoreGiveFromISR( SwitchIN7Semap, &nextTask );
+//            }
+//            else
+//            {
+//                //debugOut(1, "[\t%d] GPIO ISR IN7 [DOWN] [ok]\r\n", osKernelSysTick());
+//            }
+//        }
     }
 }
 
@@ -451,7 +451,7 @@ void Rx_PDO_Commplate(int oID, char Array[8], int len)
             }
         }
     }
-    break; 
+    break;
     case 0x381 :
         if( 1 )
         {
@@ -590,7 +590,7 @@ void MotionTask(void const *parment)
     agv.sDeceleration_distance = 2;
     agv.sAcceleration = 1000;
     agv.sDcceleration = 3000;
-		agv.sAcceleratuinXXX = 5000;
+    agv.sAcceleratuinXXX = 5000;
 
     uint32_t PreviousWakeTime = osKernelSysTick();
 
@@ -1164,7 +1164,7 @@ void MotionTask(void const *parment)
             else
                 agv.Motion_Status_Now = agv.Motion_work(AGV_Pos);
         }
-        
+
         if(1)
         {
             if( agv.iEmergencyByCancel )
@@ -1445,6 +1445,26 @@ void MotionTask(void const *parment)
                     canOpenStatus.pollStep = 0;
                     break;
                 }
+            }
+        }
+        if(1)
+        {
+            static int in7 = 0, in6 = 0;
+            if( HAL_GPIO_ReadPin(IN_6_GPIO_Port, IN_6_Pin) != in6 )
+            {
+                in6 = HAL_GPIO_ReadPin( IN_6_GPIO_Port, IN_6_Pin );
+                if( in6 )
+                    debugOut(0, "[\t%d] GPIO IN6 UP\r\n", PreviousWakeTime );
+                else
+                    debugOut(0, "[\t%d] GPIO IN6 DOWN\r\n", PreviousWakeTime );
+            }
+            if( HAL_GPIO_ReadPin( IN_7_GPIO_Port, IN_7_Pin ) != in7 )
+            {
+                in7 = HAL_GPIO_ReadPin( IN_7_GPIO_Port, IN_7_Pin );
+                if( in7 )
+                    debugOut(0, "[\t%d] GPIO IN7 UP\r\n", PreviousWakeTime );
+                else
+                    debugOut(0, "[\t%d] GPIO IN7 DOWN\r\n", PreviousWakeTime );
             }
         }
         // todo :

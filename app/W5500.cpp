@@ -1055,30 +1055,37 @@ extern "C"
 {
     int fputc(int c, FILE *f);
     int debugOut(int isISR, const char *fmt, ...);
+    static int inHandlerMode (void);
+}
+static int inHandlerMode (void)
+{
+  return __get_IPSR() != 0;
 }
 
 int debugOut(int isISR, const char *fmt, ...)
 {
-    /*
-        if (__get_BASEPRI())
-        {
-            taskENTER_CRITICAL();
-        }
-        */
-    if ( !isISR )
+
+    if (!inHandlerMode())
     {
         taskENTER_CRITICAL();
     }
+    /*
+    if ( !isISR )
+    {
+    taskENTER_CRITICAL();
+    }
+    */
     va_list args;
     va_start(args, fmt);
     vprintf(fmt, args);
     va_end(args);
-    if ( !isISR )
-        taskEXIT_CRITICAL();
     /*
-    if (__get_BASEPRI())
-        taskEXIT_CRITICAL();
+    if ( !isISR )
+    taskEXIT_CRITICAL();
     */
+    if (!inHandlerMode())
+        taskEXIT_CRITICAL();
+
     return 0;
 }
 int fputc(int c, FILE *f)
