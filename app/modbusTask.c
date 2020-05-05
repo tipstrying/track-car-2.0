@@ -84,6 +84,7 @@ void modbusTask(void const *arg)
         */
         int i = 0;
 TaskWakeUp:
+        i = 10;
         debugOut(0, "[\t%d] Battery voltage up to 25000mV [ok]\r\n", osKernelSysTick());
         debugOut(0, "[\t%d] Start set up Belt Motor [ok]\r\n", osKernelSysTick());
         for (;;)
@@ -94,7 +95,8 @@ TaskWakeUp:
                 if(i <= 0)
                 {
                     debugOut(0, "[\t%d] read address[1] 0x3600 eMBMReadHoldingRegisters error\r\n", osKernelSysTick());
-                    break;
+                    goto TaskWakeUp;
+//                    break;
                 }
                 osDelay(3);
             }
@@ -108,7 +110,8 @@ TaskWakeUp:
                     if(i <= 0)
                     {
                         debugOut(0, "[\t%d] write address[2] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
-                        break;
+                        goto TaskWakeUp;
+//                        break;
                     }
                     osDelay(2);
                 }
@@ -119,7 +122,8 @@ TaskWakeUp:
                     if(i <= 0)
                     {
                         debugOut(0, "[\t%d] write address[3] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
-                        break;
+                        goto TaskWakeUp;
+//                        break;
                     }
                     osDelay(2);
                 }
@@ -130,7 +134,8 @@ TaskWakeUp:
                     if(i <= 0)
                     {
                         debugOut(0, "[\t%d] write address[4] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
-                        break;
+                        goto TaskWakeUp;
+//                        break;
                     }
                     osDelay(2);
                 }
@@ -141,7 +146,8 @@ TaskWakeUp:
                     if(i <= 0)
                     {
                         debugOut(0, "[\t%d] write address[5] 0x3500 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
-                        break;
+                        goto TaskWakeUp;
+//                        break;
                     }
                     osDelay(2);
                 }
@@ -168,7 +174,8 @@ TaskWakeUp:
                 if(i <= 0)
                 {
                     debugOut(0, "[\t%d] write address[6] 0x4a00 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
-                    break;
+                    goto TaskWakeUp;
+//                    break;
                 }
                 osDelay(2);
             }
@@ -179,7 +186,8 @@ TaskWakeUp:
                 if(i <= 0)
                 {
                     debugOut(0, "[\t%d] read address[7] 0x3600 eMBMReadHoldingRegisters error\r\n", osKernelSysTick());
-                    break;
+                    goto TaskWakeUp;
+//                    break;
                 }
                 osDelay(3);
             }
@@ -192,7 +200,8 @@ TaskWakeUp:
                     if(i <= 0)
                     {
                         debugOut(0, "[\t%d] write address[8] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
-                        break;
+                        goto TaskWakeUp;
+//                        break;
                     }
                     osDelay(2);
                 }
@@ -203,7 +212,8 @@ TaskWakeUp:
                     if(i <= 0)
                     {
                         debugOut(0, "[\t%d] write address[9] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
-                        break;
+                        goto TaskWakeUp;
+//                        break;
                     }
                     osDelay(2);
                 }
@@ -214,7 +224,8 @@ TaskWakeUp:
                     if(i <= 0)
                     {
                         debugOut(0, "[\t%d] write address[10] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
-                        break;
+                        goto TaskWakeUp;
+//                        break;
                     }
                     osDelay(2);
                 }
@@ -225,7 +236,8 @@ TaskWakeUp:
                     if(i <= 0)
                     {
                         debugOut(0, "[\t%d] write address[11] 0x3500 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
-                        break;
+                        goto TaskWakeUp;
+//                        break;
                     }
                     osDelay(2);
                 }
@@ -237,7 +249,8 @@ TaskWakeUp:
                     if(i <= 0)
                     {
                         debugOut(0, "[\t%d] write address[12] 0x4a00 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
-                        break;
+                        goto TaskWakeUp;
+//                        break;
                     }
                     osDelay(2);
                 }
@@ -267,7 +280,8 @@ TaskWakeUp:
                 if(i <= 0)
                 {
                     debugOut(0, "[\t%d] write address[13] 0x6f00 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
-                    break;
+                    goto TaskWakeUp;
+//                    break;
                 }
                 osDelay(2);
             }
@@ -283,7 +297,8 @@ TaskWakeUp:
                         if(i <= 0)
                         {
                             debugOut(0, "[\t%d] write address[14] 0x6f00 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
-                            break;
+                            goto TaskWakeUp;
+//                            break;
                         }
                         osDelay(2);
                     }
@@ -319,7 +334,8 @@ TaskWakeUp:
                     if(i <= 0)
                     {
                         debugOut(0, "[\t%d] read address[15] 0x3600 eMBMReadHoldingRegisters error\r\n", osKernelSysTick());
-                        break;
+                        goto TaskWakeUp;
+//                        break;
                     }
                     osDelay(2);
                 }
@@ -336,7 +352,8 @@ TaskWakeUp:
                             if(i <= 0)
                             {
                                 debugOut(0, "[\t%d] write address[16] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
-                                break;
+                                goto TaskWakeUp;
+//                                break;
                             }
                             osDelay(2);
                         }
@@ -347,7 +364,8 @@ TaskWakeUp:
                             if(i <= 0)
                             {
                                 debugOut(0, "[\t%d] write address[17] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
-                                break;
+                                goto TaskWakeUp;
+//                                break;
                             }
                             osDelay(2);
                         }
@@ -358,7 +376,8 @@ TaskWakeUp:
                             if(i <= 0)
                             {
                                 debugOut(0, "[\t%d] write address[18] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
-                                break;
+                                goto TaskWakeUp;
+//                                break;
                             }
                             osDelay(2);
                         }
@@ -375,7 +394,8 @@ TaskWakeUp:
                             if(i <= 0)
                             {
                                 debugOut(0, "[\t%d] write address[19] 0x4000 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
-                                break;
+                                goto TaskWakeUp;
+//                                break;
                             }
                             osDelay(2);
                         }
@@ -387,7 +407,8 @@ TaskWakeUp:
                             if(i <= 0)
                             {
                                 debugOut(0, "[\t%d] read address[20] 0x3600 eMBMReadHoldingRegisters error\r\n", osKernelSysTick());
-                                break;
+                                goto TaskWakeUp;
+//                                break;
                             }
                             osDelay(2);
                         }
@@ -399,7 +420,8 @@ TaskWakeUp:
                             if(i <= 0)
                             {
                                 debugOut(0, "[\t%d] write address[21] 0x4a00 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
-                                break;
+                                goto TaskWakeUp;
+//                                break;
                             }
                             osDelay(2);
                         }
@@ -433,7 +455,8 @@ TaskWakeUp:
                             if(i <= 0)
                             {
                                 debugOut(0, "[\t%d] write address[22] 0x6f00 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
-                                break;
+                                goto TaskWakeUp;
+//                                break;
                             }
                             osDelay(2);
                         }
@@ -447,7 +470,8 @@ TaskWakeUp:
                             if(i <= 0)
                             {
                                 debugOut(0, "[\t%d] write address[23] 0x6f00 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
-                                break;
+                                goto TaskWakeUp;
+//                                break;
                             }
                             osDelay(2);
                         }
@@ -461,7 +485,8 @@ TaskWakeUp:
                             if(i <= 0)
                             {
                                 debugOut(0, "[\t%d] write address[24] 0x6f00 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
-                                break;
+                                goto TaskWakeUp;
+//                                break;
                             }
                             osDelay(2);
                         }
@@ -565,7 +590,8 @@ TaskWakeUp:
                                     if(i <= 0)
                                     {
                                         debugOut(0, "[\t%d] read address[25] 0x3600 eMBMReadHoldingRegisters error\r\n", osKernelSysTick());
-                                        break;
+                                        goto TaskWakeUp;
+//                                        break;
                                     }
                                     osDelay(2);
                                 }
@@ -582,7 +608,8 @@ TaskWakeUp:
                                             if(i <= 0)
                                             {
                                                 debugOut(0, "[\t%d] write address[26] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
-                                                break;
+                                                goto TaskWakeUp;
+//                                                break;
                                             }
                                             osDelay(2);
                                         }
@@ -593,7 +620,8 @@ TaskWakeUp:
                                             if(i <= 0)
                                             {
                                                 debugOut(0, "[\t%d] write address[27] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
-                                                break;
+                                                goto TaskWakeUp;
+//                                                break;
                                             }
                                             osDelay(2);
                                         }
@@ -604,7 +632,8 @@ TaskWakeUp:
                                             if(i <= 0)
                                             {
                                                 debugOut(0, "[\t%d] write address[28] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
-                                                break;
+                                                goto TaskWakeUp;
+//                                                break;
                                             }
                                             osDelay(2);
                                         }
@@ -621,7 +650,8 @@ TaskWakeUp:
                                             if(i <= 0)
                                             {
                                                 debugOut(0, "[\t%d] write address[29] 0x4000 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
-                                                break;
+                                                goto TaskWakeUp;
+//                                                break;
                                             }
                                             osDelay(2);
                                         }
@@ -633,7 +663,8 @@ TaskWakeUp:
                                             if(i <= 0)
                                             {
                                                 debugOut(0, "[\t%d] read address[30] 0x3600 eMBMReadHoldingRegisters error\r\n", osKernelSysTick());
-                                                break;
+                                                goto TaskWakeUp;
+//                                                break;
                                             }
                                             osDelay(2);
                                         }
@@ -645,7 +676,8 @@ TaskWakeUp:
                                             if(i <= 0)
                                             {
                                                 debugOut(0, "[\t%d] write address[31] 0x4a00 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
-                                                break;
+                                                goto TaskWakeUp;
+//                                                break;
                                             }
                                             osDelay(2);
                                         }
@@ -675,7 +707,8 @@ TaskWakeUp:
                                 if(i <= 0)
                                 {
                                     debugOut(0, "[\t%d] write address[32] 0x4000 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
-                                    break;
+                                    goto TaskWakeUp;
+//                                    break;
                                 }
                                 osDelay(2);
                             }
@@ -688,7 +721,8 @@ TaskWakeUp:
                                 if(i <= 0)
                                 {
                                     debugOut(0, "[\t%d] write address[33] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
-                                    break;
+                                    goto TaskWakeUp;
+//                                    break;
                                 }
                                 osDelay(2);
                             }
@@ -700,7 +734,8 @@ TaskWakeUp:
                                 if(i <= 0)
                                 {
                                     debugOut(0, "[\t%d] write address[34] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
-                                    break;
+                                    goto TaskWakeUp;
+//                                    break;
                                 }
                                 osDelay(2);
                             }
@@ -726,7 +761,8 @@ TaskWakeUp:
                                 if(i <= 0)
                                 {
                                     debugOut(0, "[\t%d] read address[35] 0x3200 eMBMReadHoldingRegisters error\r\n", osKernelSysTick());
-                                    break;
+                                    goto TaskWakeUp;
+//                                    break;
                                 }
                                 osDelay(3);
                                 if (osKernelSysTick() > timeBak)
@@ -753,7 +789,8 @@ TaskWakeUp:
                                     if(i <= 0)
                                     {
                                         debugOut(0, "[\t%d] write address[36] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
-                                        break;
+                                        goto TaskWakeUp;
+//                                        break;
                                     }
                                     osDelay(2);
                                 }
@@ -764,7 +801,8 @@ TaskWakeUp:
                                     if(i <= 0)
                                     {
                                         debugOut(0, "[\t%d] write address[37] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
-                                        break;
+                                        goto TaskWakeUp;
+//                                        break;
                                     }
                                     osDelay(2);
                                 }
@@ -776,7 +814,8 @@ TaskWakeUp:
                                     if(i <= 0)
                                     {
                                         debugOut(0, "[\t%d] write address[38] 0x3500 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
-                                        break;
+                                        goto TaskWakeUp;
+//                                        break;
                                     }
                                     osDelay(2);
                                 }
@@ -787,7 +826,8 @@ TaskWakeUp:
                                     if(i <= 0)
                                     {
                                         debugOut(0, "[\t%d] read address[39] 0x3600 eMBMReadHoldingRegisters error\r\n", osKernelSysTick());
-                                        break;
+                                        goto TaskWakeUp;
+//                                        break;
                                     }
                                     osDelay(3);
                                 }
@@ -849,7 +889,8 @@ TaskWakeUp:
                                 if(i <= 0)
                                 {
                                     debugOut(0, "[\t%d] write address[40] 0x6f00 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
-                                    break;
+                                    goto TaskWakeUp;
+//                                    break;
                                 }
                                 osDelay(2);
                             }
@@ -874,7 +915,8 @@ TaskWakeUp:
                                 if(i <= 0)
                                 {
                                     debugOut(0, "[\t%d] write address[41] 0x6f00 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
-                                    break;
+                                    goto TaskWakeUp;
+//                                    break;
                                 }
                                 osDelay(2);
                             }
@@ -887,7 +929,8 @@ TaskWakeUp:
                                     if(i <= 0)
                                     {
                                         debugOut(0, "[\t%d] write address[42] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
-                                        break;
+                                        goto TaskWakeUp;
+//                                        break;
                                     }
                                     osDelay(2);
                                 }
@@ -898,7 +941,8 @@ TaskWakeUp:
                                     if(i <= 0)
                                     {
                                         debugOut(0, "[\t%d] write address[43] 0x3100 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
-                                        break;
+                                        goto TaskWakeUp;
+//                                        break;
                                     }
                                     osDelay(2);
                                 }
@@ -915,7 +959,8 @@ TaskWakeUp:
                                     if(i <= 0)
                                     {
                                         debugOut(0, "[\t%d] write address[44] 0x4000 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
-                                        break;
+                                        goto TaskWakeUp;
+//                                        break;
                                     }
                                     osDelay(2);
                                 }
@@ -926,7 +971,8 @@ TaskWakeUp:
                                     if(i <= 0)
                                     {
                                         debugOut(0, "[\t%d] write address[45] 0x3500 eMBMWriteSingleRegister error\r\n", osKernelSysTick());
-                                        break;
+                                        goto TaskWakeUp;
+//                                        break;
                                     }
                                     osDelay(2);
                                 }
@@ -937,7 +983,8 @@ TaskWakeUp:
                                     if(i <= 0)
                                     {
                                         debugOut(0, "[\t%d] read address[46] 0x3600 eMBMReadHoldingRegisters error\r\n", osKernelSysTick());
-                                        break;
+                                        goto TaskWakeUp;
+//                                        break;
                                     }
                                     osDelay(2);
                                 }
@@ -949,7 +996,8 @@ TaskWakeUp:
                                     if(i <= 0)
                                     {
                                         debugOut(0, "[\t%d] write address[47] 0x4a00 eMBMWriteMultipleRegisters error\r\n", osKernelSysTick());
-                                        break;
+                                        goto TaskWakeUp;
+//                                        break;
                                     }
                                     osDelay(2);
                                 }

@@ -590,6 +590,7 @@ void MotionTask(void const *parment)
     agv.sDeceleration_distance = 2;
     agv.sAcceleration = 1000;
     agv.sDcceleration = 3000;
+		agv.sAcceleratuinXXX = 5000;
 
     uint32_t PreviousWakeTime = osKernelSysTick();
 
