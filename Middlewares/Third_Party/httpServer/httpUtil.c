@@ -75,7 +75,7 @@ uint8_t http_get_cgi_handler(uint8_t *uri_name, uint8_t *buf, uint32_t *file_len
     }
     else if( strcmp( (const char*) uri_name, "softVersion.cgi" ) == 0 )
     {
-        sprintf( (char *)buf, "{\"version\":\"%s\"}", BUILDTIME );
+        sprintf( (char *)buf, "%s", BUILDTIMEJSON );
         len = strlen( (char *)buf );
     }
     else if( strcmp( (const char *)uri_name, "disableMotor.cgi" ) == 0 )
