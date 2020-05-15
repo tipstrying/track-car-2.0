@@ -108,6 +108,7 @@ CONFIG_MSG SetNetWorkParment(void)
 static FifoClass debugFifoBuff;
 
 static CONFIG_MSG networkconfig = SetNetWorkParment();
+void socketServerRun();
 
 void W5500Task(void const *par)
 {
@@ -193,6 +194,7 @@ void W5500Task(void const *par)
             {
                 httpServer_run(i);
             }
+            socketServerRun();
         }
     }
 }
