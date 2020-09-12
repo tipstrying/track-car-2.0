@@ -154,7 +154,7 @@
           <Type>0</Type>
           <LineNumber>3260</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134421622</Address>
+          <Address>134422862</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -164,6 +164,22 @@
           <Filename>../Middlewares/Third_Party/FreeRTOS/Source/tasks.c</Filename>
           <ExecCommand></ExecCommand>
           <Expression>\\Main\../Middlewares/Third_Party/FreeRTOS/Source/tasks.c\3260</Expression>
+        </Bp>
+        <Bp>
+          <Number>1</Number>
+          <Type>0</Type>
+          <LineNumber>1190</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134354842</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>..\app\W5500.cpp</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\Main\../app/W5500.cpp\1190</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
