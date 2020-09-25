@@ -46,11 +46,11 @@
 void startCLITask()
 {
     void CLITask( void const * parment );
-    void protocolRun( void const * para );
+//    //void protocolRun( void const * para );
     osThreadDef( CLITask, CLITask, osPriorityAboveNormal, 0, 1024 );
     osThreadCreate( osThread( CLITask ), NULL);
-    osThreadDef( protocolRun, protocolRun, osPriorityAboveNormal, 0, 1024 );
-    osThreadCreate( osThread( protocolRun ), NULL);
+//   // osThreadDef( protocolRun, protocolRun, osPriorityAboveNormal, 0, 1024 );
+//    //osThreadCreate( osThread( protocolRun ), NULL);
 }
 static void prvSaveTraceFile( void );
 

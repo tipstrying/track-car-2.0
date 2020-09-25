@@ -74,7 +74,7 @@ void InitTask( void const * parment )
     osThreadDef(MotionTask, MotionTask, osPriorityRealtime, 0, 4096 );
     osThreadCreate(osThread(MotionTask), NULL);
 
-    osThreadDef( EthernetTask, W5500Task, osPriorityAboveNormal, 0, 2000  );
+    osThreadDef( EthernetTask, W5500Task, osPriorityAboveNormal, 0, 3072  );
     osThreadCreate( osThread( EthernetTask ), NULL);
 
     osThreadDef( modbus, modbusTask, osPriorityHigh, 0, 1280 );

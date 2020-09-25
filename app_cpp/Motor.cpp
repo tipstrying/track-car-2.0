@@ -1612,6 +1612,7 @@ void MotionTask(void const *parment)
                                         {
                                             i32ToHex.Data = 0;
                                             i16ToHex.Data = 0x06;
+																						
                                         }
                                         else
                                         {
@@ -1633,6 +1634,7 @@ void MotionTask(void const *parment)
                                         {
                                             i32ToHex.Data = 0;
                                             i16ToHex.Data = 0x06;
+																						
                                         }
                                         else
                                         {

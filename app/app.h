@@ -83,6 +83,7 @@ extern BattreyStd Battery;
 
 void W5500Task( void const * par );
 void UartTask( void const * par );
+void CLITask( void const * parment );
 int debugOut( int isISR, const char *fmt, ... );
 
 #ifdef __cplusplus
