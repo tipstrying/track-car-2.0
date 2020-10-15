@@ -829,33 +829,33 @@ void MotionTask(void const *parment)
                                         listAdd(&runTaskHeader, runTask);
                                         break;
 
-                                    case 2:
-                                        runTask.cmd = 2;
-                                        runTask.data.uData = 0;
-                                        runTask.position = navigationOperationData.Data.posTo;
-                                        listAdd(&runTaskHeader, runTask);
-                                        break;
+//                                    case 2:
+//                                        runTask.cmd = 2;
+//                                        runTask.data.uData = 0;
+//                                        runTask.position = navigationOperationData.Data.posTo;
+//                                        listAdd(&runTaskHeader, runTask);
+//                                        break;
 
-                                    case 3:
-                                        runTask.cmd = 3;
-                                        runTask.data.uData = 1;
-                                        runTask.position = navigationOperationData.Data.posTo;
-                                        listAdd(&runTaskHeader, runTask);
-                                        break;
+//                                    case 3:
+//                                        runTask.cmd = 3;
+//                                        runTask.data.uData = 1;
+//                                        runTask.position = navigationOperationData.Data.posTo;
+//                                        listAdd(&runTaskHeader, runTask);
+//                                        break;
 
-                                    case 4:
-                                        runTask.cmd = 4;
-                                        runTask.data.uData = 0;
-                                        runTask.position = navigationOperationData.Data.posTo;
-                                        listAdd(&runTaskHeader, runTask);
-                                        break;
+//                                    case 4:
+//                                        runTask.cmd = 4;
+//                                        runTask.data.uData = 0;
+//                                        runTask.position = navigationOperationData.Data.posTo;
+//                                        listAdd(&runTaskHeader, runTask);
+//                                        break;
 
-                                    case 5:
-                                        runTask.cmd = 5;
-                                        runTask.data.uData = 1;
-                                        runTask.position = navigationOperationData.Data.posTo;
-                                        listAdd(&runTaskHeader, runTask);
-                                        break;
+//                                    case 5:
+//                                        runTask.cmd = 5;
+//                                        runTask.data.uData = 1;
+//                                        runTask.position = navigationOperationData.Data.posTo;
+//                                        listAdd(&runTaskHeader, runTask);
+//                                        break;
 
                                     case 6:
                                         runTask.cmd = 6;
@@ -871,17 +871,17 @@ void MotionTask(void const *parment)
 
                             break;
 
-                        case Enum_SetInOutSwitch:
-                            if (navigationOperationData.Data.op)
-                            {
-                                inOutTarget = InOutSwitchOut;
-                            }
-                            else
-                            {
-                                inOutTarget = InOutSwitchIn;
-                            }
+//                        case Enum_SetInOutSwitch:
+//                            if (navigationOperationData.Data.op)
+//                            {
+//                                inOutTarget = InOutSwitchOut;
+//                            }
+//                            else
+//                            {
+//                                inOutTarget = InOutSwitchIn;
+//                            }
 
-                            break;
+//                            break;
 
                         case Enum_disableMotor:
                             if (navigationOperationData.Data.op)
@@ -984,13 +984,13 @@ void MotionTask(void const *parment)
 
         if (1)
         {
-            static int thingSensorBak[3];
+            static int thingSensorBak[2];
             Belt_Ctrl.info.clock = (int)PreviousWakeTime;
             Belt_Ctrl.info.read_input[0] = getThingSensor(1, 25) == on ? 1 : 0;
-            Belt_Ctrl.info.read_input[1] = getThingSensor(2, 25) == on ? 1 : 0;
-            Belt_Ctrl.info.read_input[2] = getThingSensor(3, 25) == on ? 1 : 0;
+            //Belt_Ctrl.info.read_input[1] = getThingSensor(2, 25) == on ? 1 : 0;
+            Belt_Ctrl.info.read_input[1] = getThingSensor(3, 25) == on ? 1 : 0;
 
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 2; i++)
             {
                 if (thingSensorBak[i] != Belt_Ctrl.info.read_input[i])
                 {
@@ -1012,7 +1012,7 @@ void MotionTask(void const *parment)
                     {
                         beltCtrl(0, BeltFront, 20);
 
-                        if (!Belt_Ctrl.info.read_input[0] && Belt_Ctrl.info.read_input[1] && !Belt_Ctrl.info.read_input[2])
+                        if (!Belt_Ctrl.info.read_input[0] && !Belt_Ctrl.info.read_input[1])
                         {
                             if( BeltGetPack )
                             {
@@ -1084,7 +1084,7 @@ void MotionTask(void const *parment)
                     break;
 
                 case 6:
-                    if (!Belt_Ctrl.info.read_input[0] && !Belt_Ctrl.info.read_input[1] && !Belt_Ctrl.info.read_input[2])
+                    if (!Belt_Ctrl.info.read_input[0] && !Belt_Ctrl.info.read_input[1])
                     {
                         BeltGetPack = 1;
                         beltCtrl(1, BeltFront, 10);
@@ -1097,7 +1097,7 @@ void MotionTask(void const *parment)
                     break;
 
                 case 7:
-                    if (!Belt_Ctrl.info.read_input[0] && !Belt_Ctrl.info.read_input[1] && !Belt_Ctrl.info.read_input[2])
+                    if (!Belt_Ctrl.info.read_input[0] && !Belt_Ctrl.info.read_input[1])
                     {
                         BeltGetPack = 1;
                         beltCtrl(1, BeltRev, 10);
@@ -1198,53 +1198,6 @@ void MotionTask(void const *parment)
                                 listDeleteItemByIndex(&runTaskHeader, 1);
                                 debugOut(0, "Set speed by Running-task :%0.2f\r\n", agv.sSpeed_max);
                                 break;
-
-                            case 2:
-                                inOutTarget = InOutSwitchOut;
-                                listDeleteItemByIndex(&runTaskHeader, 1);
-                                break;
-
-                            case 3:
-                                inOutTarget = InOutSwitchIn;
-                                listDeleteItemByIndex(&runTaskHeader, 1);
-                                break;
-
-                            case 4:
-                                if ((getSwitchStatus() != InOutSwitchOut) || (switchReach != 1) || (targetLast != InOutSwitchOut))
-                                {
-                                    if (!agv.iEmergencyBySoftware)
-                                    {
-                                        debugOut(0, "[\t%d] target not reach [OUT] !!!!!!\r\n", PreviousWakeTime);
-                                    }
-
-                                    agv.iEmergencyBySoftware = true;
-                                }
-                                else
-                                {
-                                    listDeleteItemByIndex(&runTaskHeader, 1);
-                                }
-
-                                inOutTargetNow = InOutSwitchOut;
-                                break;
-
-                            case 5:
-                                if ((getSwitchStatus() != InOutSwitchIn) || (switchReach != 1) || (targetLast != InOutSwitchIn))
-                                {
-                                    if (!agv.iEmergencyBySoftware)
-                                    {
-                                        debugOut(0, "[\t%d] target not reach [IN] !!!!!!\r\n", PreviousWakeTime);
-                                    }
-
-                                    agv.iEmergencyBySoftware = true;
-                                }
-                                else
-                                {
-                                    listDeleteItemByIndex(&runTaskHeader, 1);
-                                }
-
-                                inOutTargetNow = InOutSwitchIn;
-                                break;
-
                             case 6:
                                 if (0)
                                 {
@@ -1451,6 +1404,8 @@ void MotionTask(void const *parment)
                     {
                         static float mm2RPM = 1.0 / (AGV_WheelDiameter * PI) * 60.0;
                         request_speed = (int)(((double)(MotionStatus.handSpeed * mm2RPM) * 512 * 10000 * 9.333333) / 1875);
+												//request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.411764) / 1875);
+												//request_speed = (int)(((double)(MotionStatus.handSpeed * mm2RPM) * 512 * 10000 * 9.411764) / 1875);
                     }
                 }
                 else
@@ -1464,6 +1419,7 @@ void MotionTask(void const *parment)
                 if (agv.iEmergencyByPause)
                 {
                     request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.333333) / 1875);
+										//request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.411764) / 1875);
                     /*
                     if( request_speed == 0 )
                     {
@@ -1485,6 +1441,7 @@ void MotionTask(void const *parment)
                     else
                     {
                         request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.333333) / 1875);
+											//request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.411764) / 1875);
                     }
                 }
             }

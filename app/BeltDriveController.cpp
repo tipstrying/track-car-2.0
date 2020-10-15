@@ -4,7 +4,7 @@ BeltDriveController::BeltDriveController()
 {
 	this->info.clock = 0;
 	this->info.motor_direction = false;
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < 2; i++)
 	{
 		this->info.read_input[i] = false;
 	}
@@ -48,18 +48,14 @@ void BeltDriveController::motion_ctrl(void)
 	switch (this->motion_control_step)
 	{
 	case Push_idle:
-		if (!this->info.read_input[0] && this->info.read_input[1] && this->info.read_input[2])
+		if (!this->info.read_input[0] && this->info.read_input[1])
 			this->motion_control_step = Push_none;
-		else if (!this->info.read_input[0] && !this->info.read_input[1] && this->info.read_input[2])
-			this->motion_control_step = Push_none;
-		else if (this->info.read_input[0] && this->info.read_input[1] && !this->info.read_input[2])
-			this->motion_control_step = Push_none;
-		else if (this->info.read_input[0] && !this->info.read_input[1] && !this->info.read_input[2])
+		else if (this->info.read_input[0] && !this->info.read_input[1])
 			this->motion_control_step = Push_none;
 		this->motor_ctrl(Push_idle);
 		break;
 	case Push_front:
-		if (!this->info.read_input[0] && !this->info.read_input[1] && !this->info.read_input[2])
+		if (!this->info.read_input[0] && !this->info.read_input[1])
 		{
 			if (this->info.clock - last_time_ctrl > this->info.sArriveCtrlTime)
 			{
@@ -74,7 +70,7 @@ void BeltDriveController::motion_ctrl(void)
 		}
 		break;
 	case Push_real:
-		if (!this->info.read_input[0] && !this->info.read_input[1] && !this->info.read_input[2])
+		if (!this->info.read_input[0] && !this->info.read_input[1])
 		{
 			if (this->info.clock - last_time_ctrl > this->info.sArriveCtrlTime)
 			{
@@ -90,29 +86,19 @@ void BeltDriveController::motion_ctrl(void)
 		break;
 
 	case Push_none:
-		if (!this->info.read_input[0] && this->info.read_input[1] && this->info.read_input[2])
+		if (!this->info.read_input[0] && this->info.read_input[1])
 		{
 			last_time_ctrl = this->info.clock;
 			this->motor_ctrl(Push_real);
 		}
-		else if (!this->info.read_input[0] && !this->info.read_input[1] && this->info.read_input[2])
-		{
-			last_time_ctrl = this->info.clock;
-			this->motor_ctrl(Push_real);
-		}
-		else if (this->info.read_input[0] && this->info.read_input[1] && !this->info.read_input[2])
-		{
-			last_time_ctrl = this->info.clock;
-			this->motor_ctrl(Push_front);
-		}
-		else if (this->info.read_input[0] && !this->info.read_input[1] && !this->info.read_input[2])
+		else if (this->info.read_input[0] && !this->info.read_input[1])
 		{
 			last_time_ctrl = this->info.clock;
 			this->motor_ctrl(Push_front);
 		}
 		else
 		{
-			if (!this->info.read_input[0] && !this->info.read_input[1] && !this->info.read_input[2] )
+			if (!this->info.read_input[0] && !this->info.read_input[1])
 			{
 				//如果物体太小那就多转一段距离，在检测看看，这个距离只能用时间来表示500ms
 				if (this->info.clock - last_time_ctrl > 500)
