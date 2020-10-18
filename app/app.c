@@ -77,8 +77,8 @@ void InitTask( void const * parment )
     osThreadDef( EthernetTask, W5500Task, osPriorityAboveNormal, 0, 3072  );
     osThreadCreate( osThread( EthernetTask ), NULL);
 
-    osThreadDef( modbus, modbusTask, osPriorityHigh, 0, 1280 );
-    osThreadCreate( osThread( modbus ), NULL);
+    //osThreadDef( modbus, modbusTask, osPriorityHigh, 0, 1280 );
+    //osThreadCreate( osThread( modbus ), NULL);
 
     uint32_t tick = osKernelSysTick();
 
