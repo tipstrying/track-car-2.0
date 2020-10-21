@@ -685,13 +685,13 @@ void MotionTask(void const *parment)
     osDelay(5000);
     MotionStatus.CanDelay = false;
     runTaskHeader.next = 0;
-    InOutSwitch inOutTarget = getSwitchStatus();
-    InOutSwitch inOutTargetNow;
+    //InOutSwitch inOutTarget = getSwitchStatus();
+    //InOutSwitch inOutTargetNow;
 
-    if (inOutTarget == InOutSwitchUnknow)
-    {
-        inOutTarget = InOutSwitchIn;
-    }
+//    if (inOutTarget == InOutSwitchUnknow)
+//    {
+//        inOutTarget = InOutSwitchIn;
+//    }
 
     /*
         while( Battery.Voltage < 25000 )
@@ -737,14 +737,14 @@ void MotionTask(void const *parment)
                                         if (runTask.position + navigationOperationData.Data.posTo < agv.AGV_Pos)
                                         {
                                             // back car
-                                            if (getSwitchStatus() == InOutSwitchIn)
-                                            {
+//                                            if (getSwitchStatus() == InOutSwitchIn)
+ //                                           {
                                                 AGV_Pos = runTask.position + navigationOperationData.Data.posTo;
-                                            }
-                                            else
-                                            {
-                                                inOutTarget = InOutSwitchIn;
-                                            }
+//                                            }
+//                                            else
+//                                            {
+//                                                inOutTarget = InOutSwitchIn;
+//                                            }
                                         }
                                         else
                                         {
@@ -756,14 +756,14 @@ void MotionTask(void const *parment)
                                         if (navigationOperationData.Data.posTo < agv.AGV_Pos)
                                         {
                                             // back car
-                                            if (getSwitchStatus() == InOutSwitchIn)
-                                            {
+//                                            if (getSwitchStatus() == InOutSwitchIn)
+//                                            {
                                                 AGV_Pos = navigationOperationData.Data.posTo;
-                                            }
-                                            else
-                                            {
-                                                inOutTarget = InOutSwitchIn;
-                                            }
+//                                            }
+//                                            else
+//                                            {
+//                                                inOutTarget = InOutSwitchIn;
+//                                            }
                                         }
                                         else
                                         {
@@ -775,14 +775,14 @@ void MotionTask(void const *parment)
                                 {
                                     if (navigationOperationData.Data.posTo < agv.AGV_Pos)
                                     {
-                                        if (getSwitchStatus() == InOutSwitchIn)
-                                        {
+//                                        if (getSwitchStatus() == InOutSwitchIn)
+ //                                       {
                                             AGV_Pos = navigationOperationData.Data.posTo;
-                                        }
-                                        else
-                                        {
-                                            inOutTarget = InOutSwitchIn;
-                                        }
+//                                        }
+//                                        else
+//                                        {
+//                                            inOutTarget = InOutSwitchIn;
+//                                        }
                                     }
                                     else
                                     {
@@ -1368,18 +1368,18 @@ void MotionTask(void const *parment)
             }
         }
 
-        if (1)
-        {
-            target = inOutTarget;
+//        if (1)
+//        {
+//            target = inOutTarget;
 
-            if (agv.iEmergencyBySoftware)
-            {
-                if (inOutTargetNow == getSwitchStatus())
-                {
-                    agv.iEmergencyBySoftware = false;
-                }
-            }
-        }
+//            if (agv.iEmergencyBySoftware)
+//            {
+//                if (inOutTargetNow == getSwitchStatus())
+//                {
+//                    agv.iEmergencyBySoftware = false;
+//                }
+//            }
+//        }
 
         if (MotionStatus.EcodeDelay)
         {
@@ -1403,7 +1403,7 @@ void MotionTask(void const *parment)
                     else
                     {
                         static float mm2RPM = 1.0 / (AGV_WheelDiameter * PI) * 60.0;
-                        request_speed = (int)(((double)(MotionStatus.handSpeed * mm2RPM) * 512 * 10000 * 9.333333) / 1875);
+                        request_speed = -(int)(((double)(MotionStatus.handSpeed * mm2RPM) * 512 * 10000 * 4.615384) / 1875);
 												//request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.411764) / 1875);
 												//request_speed = (int)(((double)(MotionStatus.handSpeed * mm2RPM) * 512 * 10000 * 9.411764) / 1875);
                     }
@@ -1418,7 +1418,7 @@ void MotionTask(void const *parment)
             {
                 if (agv.iEmergencyByPause)
                 {
-                    request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.333333) / 1875);
+                    request_speed = -(int)(((double)agv.Request_RPM * 512 * 10000 * 4.615384) / 1875);
 										//request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.411764) / 1875);
                     /*
                     if( request_speed == 0 )
@@ -1440,7 +1440,7 @@ void MotionTask(void const *parment)
                     }
                     else
                     {
-                        request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.333333) / 1875);
+                        request_speed = -(int)(((double)agv.Request_RPM * 512 * 10000 * 4.615384) / 1875);
 											//request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.411764) / 1875);
                     }
                 }

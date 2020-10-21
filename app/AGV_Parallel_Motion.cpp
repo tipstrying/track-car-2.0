@@ -299,7 +299,7 @@ void AGV_Parallel_Motion::DetectDynamics(void)
         static float moveingDelta; // mm
         moveingDelta = encoder_delta * Encoder2mm;
 
-        this->AGV_Pos += moveingDelta;
+        this->AGV_Pos -= moveingDelta;
     }
     taskEXIT_CRITICAL();
 }

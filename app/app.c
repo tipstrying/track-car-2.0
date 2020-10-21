@@ -47,8 +47,8 @@ void StartSwitchTask()
         }
     }
     vPortFree( pxTaskStatusArray );
-    osThreadDef( modbus, modbusTask, osPriorityHigh, 0, 1280 );
-    osThreadCreate( osThread( modbus ), NULL);
+ //   osThreadDef( modbus, modbusTask, osPriorityHigh, 0, 1280 );
+ //   osThreadCreate( osThread( modbus ), NULL);
     return;
 }
 

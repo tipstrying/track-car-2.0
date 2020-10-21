@@ -175,10 +175,10 @@ void beltOpHttpApi( int cmd )
         break;
     }
 }
-int InOutStatus()
-{
-    return getSwitchStatus();
-}
+//int InOutStatus()
+//{
+//    return getSwitchStatus();
+//}
 int GetBatteryVoltageHttpApi( float *Voltage )
 {
     /* Battery.Voltage; */ 

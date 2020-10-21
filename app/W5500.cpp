@@ -1046,20 +1046,20 @@ void socketServer_run(int i, FifoClass *in, FifoClass *out, uint16_t port, fun_p
                                         case 2022:
                                             if( 1 )
                                             {
-                                                InOutSwitch in = getSwitchStatus();
+//                                                InOutSwitch in = getSwitchStatus();
 
-                                                if( in == InOutSwitchIn )
-                                                {
-                                                    data[0] = 2;
-                                                }
-                                                else if( in == InOutSwitchOut )
-                                                {
-                                                    data[0] = 1;
-                                                }
-                                                else
-                                                {
+//                                                if( in == InOutSwitchIn )
+//                                                {
+//                                                    data[0] = 2;
+//                                                }
+//                                                else if( in == InOutSwitchOut )
+//                                                {
+//                                                    data[0] = 1;
+//                                                }
+//                                                else
+//                                                {
                                                     data[0] = 0;
-                                                }
+ //                                               }
 
                                                 PackLen = makePack( buff, packIndex, 12022, 0, 1, data );
                                                 out->pushData(buff, PackLen );

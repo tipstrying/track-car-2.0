@@ -46,11 +46,11 @@ uint8_t http_get_cgi_handler(uint8_t *uri_name, uint8_t *buf, uint32_t *file_len
         listConverToJson( &runTaskHeader, (char *)buf );
         len = strlen( (char *)buf );
     }
-    else if( strcmp( (const char *)uri_name, "getSwitchStatus.cgi" ) == 0 )
-    {
-        sprintf( (char *)buf, "{\"status\":%d}", InOutStatus() );
-        len = strlen( (char *)buf );
-    }
+//    else if( strcmp( (const char *)uri_name, "getSwitchStatus.cgi" ) == 0 )
+//    {
+//        sprintf( (char *)buf, "{\"status\":%d}", InOutStatus() );
+//        len = strlen( (char *)buf );
+//    }
     else if( strcmp( (const char *)uri_name, "position.cgi" ) == 0 )
     {
         float positon = 0;

@@ -336,48 +336,48 @@ int writeSwitchTypeFromBKP(int type)
     return 1;
 }
 
-InOutSwitch getSwitchStatus()
-{
-    static int type = -1;
-    if( type == -1 )
-    {
-        if( readSwitchTypeFromBKP( &type ) == 0 )
-            type = 2;
-    }
-    if( type == 2 )
-    {
-        if( HAL_GPIO_ReadPin( IN_6_GPIO_Port, IN_6_Pin ) && HAL_GPIO_ReadPin( IN_7_GPIO_Port, IN_7_Pin ) )
-        {
-            return InOutSwitchIn;
-        }
-        if( HAL_GPIO_ReadPin( IN_7_GPIO_Port, IN_7_Pin ) )
-        {
-            return InOutSwitchOut;
-        }
-        return InOutSwitchUnknow;
-    }
-    else if( type == 1 )
-    {
-        if( HAL_GPIO_ReadPin( IN_6_GPIO_Port, IN_6_Pin ) )
-        {
-            return InOutSwitchIn;
-        }
-        if( HAL_GPIO_ReadPin( IN_7_GPIO_Port, IN_7_Pin ) )
-        {
-            return InOutSwitchOut;
-        }
-        return InOutSwitchUnknow;
-    }
-    else
-    {
-        static int isDebugOut = 0;
-        if( !isDebugOut )
-        {
-            isDebugOut = 1;
-            debugOut(0, "[\t%d] Unknow Switch Sensor Type!!!!!!!\r\n", osKernelSysTick() );
-        }
-    }
-}
+//InOutSwitch getSwitchStatus()
+//{
+//    static int type = -1;
+//    if( type == -1 )
+//    {
+//        if( readSwitchTypeFromBKP( &type ) == 0 )
+//            type = 2;
+//    }
+//    if( type == 2 )
+//    {
+//        if( HAL_GPIO_ReadPin( IN_6_GPIO_Port, IN_6_Pin ) && HAL_GPIO_ReadPin( IN_7_GPIO_Port, IN_7_Pin ) )
+//        {
+//            return InOutSwitchIn;
+//        }
+//        if( HAL_GPIO_ReadPin( IN_7_GPIO_Port, IN_7_Pin ) )
+//        {
+//            return InOutSwitchOut;
+//        }
+//        return InOutSwitchUnknow;
+//    }
+//    else if( type == 1 )
+//    {
+//        if( HAL_GPIO_ReadPin( IN_6_GPIO_Port, IN_6_Pin ) )
+//        {
+//            return InOutSwitchIn;
+//        }
+//        if( HAL_GPIO_ReadPin( IN_7_GPIO_Port, IN_7_Pin ) )
+//        {
+//            return InOutSwitchOut;
+//        }
+//        return InOutSwitchUnknow;
+//    }
+//    else
+//    {
+//        static int isDebugOut = 0;
+//        if( !isDebugOut )
+//        {
+//            isDebugOut = 1;
+//            debugOut(0, "[\t%d] Unknow Switch Sensor Type!!!!!!!\r\n", osKernelSysTick() );
+//        }
+//    }
+//}
 
 OnOffDef getEmergencyKey()
 {
