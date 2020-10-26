@@ -9,20 +9,20 @@
 #include "usart.h"
 #include "app.h"
 
-#define OUT_UpDownC_Port    OUT_9_GPIO_Port
-#define OUT_UpDownC_Pin     OUT_9_Pin
+#define OUT_BeltDir_Port    OUT_1_GPIO_Port
+#define OUT_BeltDir_Pin     OUT_1_Pin
 
-#define OUT_UpDownB_Port    OUT_10_GPIO_Port
-#define OUT_UpDownB_Pin     OUT_10_Pin
+#define OUT_BeltC_Port    OUT_5_GPIO_Port
+#define OUT_BeltC_Pin     OUT_5_Pin
 
-#define OUT_Motor_Enable_Port   OUT_6_GPIO_Port
-#define OUT_Motor_Enable_Pin    OUT_6_Pin
+//#define OUT_Motor_Enable_Port   OUT_6_GPIO_Port
+//#define OUT_Motor_Enable_Pin    OUT_6_Pin
 
-#define IN_T1_Port  IN_2_GPIO_Port
-#define IN_T1_Pin   IN_2_Pin
+#define IN_T1_Port  IN_1_GPIO_Port
+#define IN_T1_Pin   IN_1_Pin
 
-#define IN_T2_Port  IN_3_GPIO_Port
-#define IN_T2_Pin   IN_3_Pin
+#define IN_T2_Port  IN_2_GPIO_Port
+#define IN_T2_Pin   IN_2_Pin
 
 #define IN_T3_Port  IN_4_GPIO_Port
 #define IN_T3_Pin   IN_4_Pin
@@ -33,6 +33,7 @@
 static xMBHandle       xMBMMaster;
 int prvInitHardwares ()
 {
+    /*
     USHORT modbusReadBackRegs[10];
     debugOut(0, "[\t%d] Waitting for Battery Voltage bigger then 25000mV\r\n", osKernelSysTick() );
     while( Battery.Voltage < 25000 )
@@ -124,83 +125,99 @@ int prvInitHardwares ()
     }
 
     return 0;
+    	*/
 }
 
 OnOffDef getThingSensor( int ID, int maxDelay )
 {
     static int delay[3];
+
     switch( ID )
     {
-    case 1:
-        if( HAL_GPIO_ReadPin( IN_T1_Port, IN_T1_Pin ) )
-        {
-            if( delay[0] > 0 )
+        case 1:
+            if( HAL_GPIO_ReadPin( IN_T1_Port, IN_T1_Pin ) )
             {
-                delay[0] --;
-                return off;
+                if( delay[0] > 0 )
+                {
+                    delay[0] --;
+                    return off;
+                }
+                else
+                {
+                    return on;
+                }
             }
             else
-                return on;
-        }
-        else
-        {
-            delay[0] = maxDelay;
-            return off;
-        }
-    case 2:
-        if( HAL_GPIO_ReadPin( IN_T2_Port, IN_T2_Pin ) )
-        {
-            if( delay[1] > 0 )
             {
-                delay[1]--;
+                delay[0] = maxDelay;
                 return off;
             }
-            else
-                return on;
-        }
-        else
-        {
-            delay[1] = maxDelay;
-            return off;
-        }
-    case 3:
-        if( HAL_GPIO_ReadPin( IN_T3_Port, IN_T3_Pin ) )
-        {
-            if( delay[2] > 0 )
+
+        case 2:
+            if( HAL_GPIO_ReadPin( IN_T2_Port, IN_T2_Pin ) )
             {
-                delay[2]--;
-                return off;
+                if( delay[1] > 0 )
+                {
+                    delay[1]--;
+                    return off;
+                }
+                else
+                {
+                    return on;
+                }
             }
             else
-                return on;
-        }
-        else
-        {
-            delay[2] = maxDelay;
+            {
+                delay[1] = maxDelay;
+                return off;
+            }
+
+        case 3:
+            if( HAL_GPIO_ReadPin( IN_T3_Port, IN_T3_Pin ) )
+            {
+                if( delay[2] > 0 )
+                {
+                    delay[2]--;
+                    return off;
+                }
+                else
+                {
+                    return on;
+                }
+            }
+            else
+            {
+                delay[2] = maxDelay;
+                return off;
+            }
+
+        default:
             return off;
-        }
-    default:
-        return off;
     }
 }
 int getThingSensorStatus( int type )
 {
     if( type )
+    {
         return HAL_GPIO_ReadPin( IN_T2_Port, IN_T2_Pin );
+    }
     else
+    {
         return ( HAL_GPIO_ReadPin( IN_T1_Port, IN_T1_Pin )  || HAL_GPIO_ReadPin( IN_T2_Port, IN_T2_Pin ) || HAL_GPIO_ReadPin( IN_T3_Port, IN_T3_Pin ) );
+    }
 }
 
 
 int writePosToBKP( float position, double mils )
 {
-    union {
+    union
+    {
         float fData;
         uint32_t uData;
         uint8_t Hex[4];
     } u32Tof32;
-
-    union {
+    union
+    {
         double dData;
         uint32_t uData[2];
         uint8_t Hex[8];
@@ -208,19 +225,21 @@ int writePosToBKP( float position, double mils )
     u64ToHex.dData = mils;
     u32Tof32.fData = position;
     uint32_t sum = 0;
+
     for( int i = 0; i < 4; i++ )
     {
         sum += u32Tof32.Hex[i];
     }
+
     for( int i = 0; i < 8; i++ )
     {
         sum += u64ToHex.Hex[i];
     }
+
     HAL_RTCEx_BKUPWrite( &hrtc, RTC_BKP_DR10, u32Tof32.uData );
     HAL_RTCEx_BKUPWrite( &hrtc, RTC_BKP_DR11, u64ToHex.uData[0] );
     HAL_RTCEx_BKUPWrite( &hrtc, RTC_BKP_DR12, u64ToHex.uData[1] );
     HAL_RTCEx_BKUPWrite( &hrtc, RTC_BKP_DR13, sum );
-
 }
 /* BKP map:
 DR0: bootloader flag-> "appM" load app
@@ -234,28 +253,29 @@ DR14: switchType
 */
 int readPosFromBKP( float *position, double *mils )
 {
-    union {
+    union
+    {
         float fData;
         uint32_t uData;
         uint8_t Hex[4];
 
     } u32Tof32;
-
-    union {
+    union
+    {
         double dData;
         uint32_t uData[2];
         uint8_t Hex[8];
     } u64ToHex;
-
     u32Tof32.uData = HAL_RTCEx_BKUPRead( &hrtc, RTC_BKP_DR10 );
     u64ToHex.uData[0] = HAL_RTCEx_BKUPRead( &hrtc, RTC_BKP_DR11 );
     u64ToHex.uData[1] = HAL_RTCEx_BKUPRead( &hrtc, RTC_BKP_DR12 );
-
     uint32_t sum = 0;
+
     for( int i = 0; i < 4; i++ )
     {
         sum += u32Tof32.Hex[i];
     }
+
     for( int i = 0; i < 8; i++ )
     {
         sum += u64ToHex.Hex[i];
@@ -268,10 +288,13 @@ int readPosFromBKP( float *position, double *mils )
             *position = u32Tof32.fData;
             *mils = u64ToHex.dData;
         }
+
         return 1;
     }
     else
+    {
         return 0;
+    }
 }
 void setITFlag( ISREnumDef isr )
 {
@@ -280,16 +303,17 @@ void setITFlag( ISREnumDef isr )
 
 int readSwitchTypeFromBKP(int *type)
 {
-    union {
+    union
+    {
         float fData;
         uint32_t uData;
         char Hex[4];
     } u32Tof32;
-
     char buff[10];
     memset( buff, 0, sizeof(buff) );
     u32Tof32.uData = HAL_RTCEx_BKUPRead( &hrtc, RTC_BKP_DR14 );
     memcpy( buff, u32Tof32.Hex, 4 );
+
     if( strcmp( "1Ser", buff ) == 0 )
     {
         *type = 1;
@@ -299,16 +323,24 @@ int readSwitchTypeFromBKP(int *type)
         *type = 2;
     }
     else
+    {
         *type = 0;
+    }
+
     if( *type )
+    {
         return 1;
+    }
     else
+    {
         return 0;
+    }
 }
 
 int writeSwitchTypeFromBKP(int type)
 {
-    union {
+    union
+    {
         float fData;
         uint32_t uData;
         char Hex[4];
@@ -316,22 +348,25 @@ int writeSwitchTypeFromBKP(int type)
 
     switch( type )
     {
-    case 1:
-        u32Tof32.Hex[0] = '1';
-        u32Tof32.Hex[1] = 'S';
-        u32Tof32.Hex[2] = 'e';
-        u32Tof32.Hex[3] = 'r';
-        break;
-    case 2:
-        u32Tof32.Hex[0] = '2';
-        u32Tof32.Hex[1] = 'S';
-        u32Tof32.Hex[2] = 'e';
-        u32Tof32.Hex[3] = 'r';
-        break;
-    default:
-        u32Tof32.uData = 0;
-        break;
+        case 1:
+            u32Tof32.Hex[0] = '1';
+            u32Tof32.Hex[1] = 'S';
+            u32Tof32.Hex[2] = 'e';
+            u32Tof32.Hex[3] = 'r';
+            break;
+
+        case 2:
+            u32Tof32.Hex[0] = '2';
+            u32Tof32.Hex[1] = 'S';
+            u32Tof32.Hex[2] = 'e';
+            u32Tof32.Hex[3] = 'r';
+            break;
+
+        default:
+            u32Tof32.uData = 0;
+            break;
     }
+
     HAL_RTCEx_BKUPWrite( &hrtc, RTC_BKP_DR14, u32Tof32.uData );
     return 1;
 }
@@ -381,10 +416,12 @@ int writeSwitchTypeFromBKP(int type)
 
 OnOffDef getEmergencyKey()
 {
-    static struct {
+    static struct
+    {
         int OnOff;
         int timeOut;
     } KeyStatus;
+
     if( KeyStatus.OnOff == on )
     {
         if( !HAL_GPIO_ReadPin( IN_Emergency_Port, IN_Emergency_Pin ) )
@@ -395,7 +432,9 @@ OnOffDef getEmergencyKey()
         else
         {
             if( KeyStatus.timeOut > 0 )
+            {
                 KeyStatus.timeOut --;
+            }
             else
             {
                 KeyStatus.OnOff = off;
@@ -408,7 +447,9 @@ OnOffDef getEmergencyKey()
         if( !HAL_GPIO_ReadPin( IN_Emergency_Port, IN_Emergency_Pin ) )
         {
             if( KeyStatus.timeOut > 0 )
+            {
                 KeyStatus.timeOut --;
+            }
             else
             {
                 KeyStatus.OnOff = on;
@@ -421,11 +462,13 @@ OnOffDef getEmergencyKey()
             KeyStatus.timeOut = 10;
         }
     }
+
     return KeyStatus.OnOff;
 }
 static OnOffDef getPowerKey()
 {
     static int firstBootUp = 1;
+
     if( firstBootUp )
     {
         if( !HAL_GPIO_ReadPin( IN_18_GPIO_Port, IN_18_Pin ) )
@@ -433,8 +476,11 @@ static OnOffDef getPowerKey()
             firstBootUp = 0;
         }
         else
+        {
             return off;
+        }
     }
+
     if( HAL_GPIO_ReadPin( IN_18_GPIO_Port, IN_18_Pin ) )
     {
         return on;
@@ -456,6 +502,7 @@ OnOffDef powerKeyWork( uint32_t clock)
     PowerCount.Poweroff = 0;
     PowerCount.savePowerStatus = 0;
     PowerCount.flag = 0;
+
     if (getPowerKey() == on)
     {
         if (PowerCount.flag)
@@ -478,9 +525,34 @@ OnOffDef powerKeyWork( uint32_t clock)
             //setPowerKey(off);
             return on;
         }
+
         PowerCount.flag = 0;
     }
+
     return off;
+}
+int beltCtrl( int isRun, BeltDirectionDef dir)
+{
+    if(isRun)
+    {
+        HAL_GPIO_WritePin(OUT_BeltC_Port, OUT_BeltC_Pin, GPIO_PIN_SET);
+
+        if(dir == BeltFront)
+        {
+            HAL_GPIO_WritePin(OUT_BeltDir_Port, OUT_BeltDir_Pin, GPIO_PIN_SET);
+        }
+        else
+        {
+            HAL_GPIO_WritePin(OUT_BeltDir_Port, OUT_BeltDir_Pin, GPIO_PIN_RESET);
+        }
+    }
+    else
+    {
+        HAL_GPIO_WritePin(OUT_BeltC_Port, OUT_BeltC_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(OUT_BeltDir_Port, OUT_BeltDir_Pin, GPIO_PIN_RESET);
+    }
+
+    return 0;
 }
 /*
 void setPowerKey( OnOffDef status )

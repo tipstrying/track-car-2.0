@@ -14,10 +14,10 @@
 
 #define MaxSpeed 2000
 
-extern QueueHandle_t SwitchBeltTaskQue;
-extern int switchReach;
-extern InOutSwitch target;
-extern InOutSwitch targetLast;
+//extern QueueHandle_t SwitchBeltTaskQue;
+//extern int switchReach;
+//extern InOutSwitch target;
+//extern InOutSwitch targetLast;
 static float lastPosition;
 
 #ifdef __cplusplus
@@ -603,6 +603,7 @@ int isPackOnCar()
         }
     }
 }
+static int m_status;
 void MotionTask(void const *parment)
 {
     double milagesXBack = 0;
@@ -687,12 +688,10 @@ void MotionTask(void const *parment)
     runTaskHeader.next = 0;
     //InOutSwitch inOutTarget = getSwitchStatus();
     //InOutSwitch inOutTargetNow;
-
-//    if (inOutTarget == InOutSwitchUnknow)
-//    {
-//        inOutTarget = InOutSwitchIn;
-//    }
-
+    //    if (inOutTarget == InOutSwitchUnknow)
+    //    {
+    //        inOutTarget = InOutSwitchIn;
+    //    }
     /*
         while( Battery.Voltage < 25000 )
         {
@@ -729,6 +728,7 @@ void MotionTask(void const *parment)
                             if (/* navigationOperationData.Data.posTo < agv.AGV_Pos */ 1)
                             {
                                 RunTaskDef runTask;
+                                m_status = 1;
 
                                 if (listGetItemByCMD(&runTaskHeader, 6, &runTask))
                                 {
@@ -737,14 +737,14 @@ void MotionTask(void const *parment)
                                         if (runTask.position + navigationOperationData.Data.posTo < agv.AGV_Pos)
                                         {
                                             // back car
-//                                            if (getSwitchStatus() == InOutSwitchIn)
- //                                           {
-                                                AGV_Pos = runTask.position + navigationOperationData.Data.posTo;
-//                                            }
-//                                            else
-//                                            {
-//                                                inOutTarget = InOutSwitchIn;
-//                                            }
+                                            //                                            if (getSwitchStatus() == InOutSwitchIn)
+                                            //                                           {
+                                            AGV_Pos = runTask.position + navigationOperationData.Data.posTo;
+                                            //                                            }
+                                            //                                            else
+                                            //                                            {
+                                            //                                                inOutTarget = InOutSwitchIn;
+                                            //                                            }
                                         }
                                         else
                                         {
@@ -756,14 +756,14 @@ void MotionTask(void const *parment)
                                         if (navigationOperationData.Data.posTo < agv.AGV_Pos)
                                         {
                                             // back car
-//                                            if (getSwitchStatus() == InOutSwitchIn)
-//                                            {
-                                                AGV_Pos = navigationOperationData.Data.posTo;
-//                                            }
-//                                            else
-//                                            {
-//                                                inOutTarget = InOutSwitchIn;
-//                                            }
+                                            //                                            if (getSwitchStatus() == InOutSwitchIn)
+                                            //                                            {
+                                            AGV_Pos = navigationOperationData.Data.posTo;
+                                            //                                            }
+                                            //                                            else
+                                            //                                            {
+                                            //                                                inOutTarget = InOutSwitchIn;
+                                            //                                            }
                                         }
                                         else
                                         {
@@ -775,14 +775,14 @@ void MotionTask(void const *parment)
                                 {
                                     if (navigationOperationData.Data.posTo < agv.AGV_Pos)
                                     {
-//                                        if (getSwitchStatus() == InOutSwitchIn)
- //                                       {
-                                            AGV_Pos = navigationOperationData.Data.posTo;
-//                                        }
-//                                        else
-//                                        {
-//                                            inOutTarget = InOutSwitchIn;
-//                                        }
+                                        //                                        if (getSwitchStatus() == InOutSwitchIn)
+                                        //                                       {
+                                        AGV_Pos = navigationOperationData.Data.posTo;
+                                        //                                        }
+                                        //                                        else
+                                        //                                        {
+                                        //                                            inOutTarget = InOutSwitchIn;
+                                        //                                        }
                                     }
                                     else
                                     {
@@ -829,33 +829,33 @@ void MotionTask(void const *parment)
                                         listAdd(&runTaskHeader, runTask);
                                         break;
 
-//                                    case 2:
-//                                        runTask.cmd = 2;
-//                                        runTask.data.uData = 0;
-//                                        runTask.position = navigationOperationData.Data.posTo;
-//                                        listAdd(&runTaskHeader, runTask);
-//                                        break;
+                                    //                                    case 2:
+                                    //                                        runTask.cmd = 2;
+                                    //                                        runTask.data.uData = 0;
+                                    //                                        runTask.position = navigationOperationData.Data.posTo;
+                                    //                                        listAdd(&runTaskHeader, runTask);
+                                    //                                        break;
 
-//                                    case 3:
-//                                        runTask.cmd = 3;
-//                                        runTask.data.uData = 1;
-//                                        runTask.position = navigationOperationData.Data.posTo;
-//                                        listAdd(&runTaskHeader, runTask);
-//                                        break;
+                                    //                                    case 3:
+                                    //                                        runTask.cmd = 3;
+                                    //                                        runTask.data.uData = 1;
+                                    //                                        runTask.position = navigationOperationData.Data.posTo;
+                                    //                                        listAdd(&runTaskHeader, runTask);
+                                    //                                        break;
 
-//                                    case 4:
-//                                        runTask.cmd = 4;
-//                                        runTask.data.uData = 0;
-//                                        runTask.position = navigationOperationData.Data.posTo;
-//                                        listAdd(&runTaskHeader, runTask);
-//                                        break;
+                                    //                                    case 4:
+                                    //                                        runTask.cmd = 4;
+                                    //                                        runTask.data.uData = 0;
+                                    //                                        runTask.position = navigationOperationData.Data.posTo;
+                                    //                                        listAdd(&runTaskHeader, runTask);
+                                    //                                        break;
 
-//                                    case 5:
-//                                        runTask.cmd = 5;
-//                                        runTask.data.uData = 1;
-//                                        runTask.position = navigationOperationData.Data.posTo;
-//                                        listAdd(&runTaskHeader, runTask);
-//                                        break;
+                                    //                                    case 5:
+                                    //                                        runTask.cmd = 5;
+                                    //                                        runTask.data.uData = 1;
+                                    //                                        runTask.position = navigationOperationData.Data.posTo;
+                                    //                                        listAdd(&runTaskHeader, runTask);
+                                    //                                        break;
 
                                     case 6:
                                         runTask.cmd = 6;
@@ -871,17 +871,17 @@ void MotionTask(void const *parment)
 
                             break;
 
-//                        case Enum_SetInOutSwitch:
-//                            if (navigationOperationData.Data.op)
-//                            {
-//                                inOutTarget = InOutSwitchOut;
-//                            }
-//                            else
-//                            {
-//                                inOutTarget = InOutSwitchIn;
-//                            }
+                        //                        case Enum_SetInOutSwitch:
+                        //                            if (navigationOperationData.Data.op)
+                        //                            {
+                        //                                inOutTarget = InOutSwitchOut;
+                        //                            }
+                        //                            else
+                        //                            {
+                        //                                inOutTarget = InOutSwitchIn;
+                        //                            }
 
-//                            break;
+                        //                            break;
 
                         case Enum_disableMotor:
                             if (navigationOperationData.Data.op)
@@ -988,7 +988,7 @@ void MotionTask(void const *parment)
             Belt_Ctrl.info.clock = (int)PreviousWakeTime;
             Belt_Ctrl.info.read_input[0] = getThingSensor(1, 25) == on ? 1 : 0;
             //Belt_Ctrl.info.read_input[1] = getThingSensor(2, 25) == on ? 1 : 0;
-            Belt_Ctrl.info.read_input[1] = getThingSensor(3, 25) == on ? 1 : 0;
+            Belt_Ctrl.info.read_input[1] = getThingSensor(2, 25) == on ? 1 : 0;
 
             for (int i = 0; i < 2; i++)
             {
@@ -1004,13 +1004,14 @@ void MotionTask(void const *parment)
             }
 
             Belt_Ctrl.work();
+            //beltCtrl(1,BeltFront);
 
             switch (BeltOperating)
             {
                 case 0:
                     if (Belt_Ctrl.info.motor_stop)
                     {
-                        beltCtrl(0, BeltFront, 20);
+                        beltCtrl(0, BeltFront);
 
                         if (!Belt_Ctrl.info.read_input[0] && !Belt_Ctrl.info.read_input[1])
                         {
@@ -1022,7 +1023,7 @@ void MotionTask(void const *parment)
                     }
                     else
                     {
-                        beltCtrl(1, Belt_Ctrl.info.motor_direction == true ? BeltFront : BeltRev, 10);
+                        beltCtrl(1, Belt_Ctrl.info.motor_direction == true ? BeltFront : BeltRev);
                     }
 
                     break;
@@ -1038,11 +1039,11 @@ void MotionTask(void const *parment)
 
                     if (BeltOperatingTime > 0)
                     {
-                        beltCtrl(1, BeltFront, 10);
+                        beltCtrl(1, BeltFront);
                     }
                     else
                     {
-                        beltCtrl(0, BeltFront, 10);
+                        beltCtrl(0, BeltFront);
                         BeltOperating = 0;
                         BeltGetPack = 0;
                     }
@@ -1060,11 +1061,11 @@ void MotionTask(void const *parment)
 
                     if (BeltOperatingTime > 0)
                     {
-                        beltCtrl(1, BeltRev, 10);
+                        beltCtrl(1, BeltRev);
                     }
                     else
                     {
-                        beltCtrl(0, BeltRev, 10);
+                        beltCtrl(0, BeltRev);
                         BeltOperating = 0;
                         BeltGetPack = 0;
                     }
@@ -1072,22 +1073,22 @@ void MotionTask(void const *parment)
                     break;
 
                 case 3:
-                    beltCtrl(0, BeltFront, 10);
+                    beltCtrl(0, BeltFront);
                     break;
 
                 case 4:
-                    beltCtrl(1, BeltFront, 10);
+                    beltCtrl(1, BeltFront);
                     break;
 
                 case 5:
-                    beltCtrl(1, BeltRev, 10);
+                    beltCtrl(1, BeltRev);
                     break;
 
                 case 6:
                     if (!Belt_Ctrl.info.read_input[0] && !Belt_Ctrl.info.read_input[1])
                     {
                         BeltGetPack = 1;
-                        beltCtrl(1, BeltFront, 10);
+                        beltCtrl(1, BeltFront);
                     }
                     else
                     {
@@ -1100,7 +1101,7 @@ void MotionTask(void const *parment)
                     if (!Belt_Ctrl.info.read_input[0] && !Belt_Ctrl.info.read_input[1])
                     {
                         BeltGetPack = 1;
-                        beltCtrl(1, BeltRev, 10);
+                        beltCtrl(1, BeltRev);
                     }
                     else
                     {
@@ -1198,6 +1199,7 @@ void MotionTask(void const *parment)
                                 listDeleteItemByIndex(&runTaskHeader, 1);
                                 debugOut(0, "Set speed by Running-task :%0.2f\r\n", agv.sSpeed_max);
                                 break;
+
                             case 6:
                                 if (0)
                                 {
@@ -1368,18 +1370,18 @@ void MotionTask(void const *parment)
             }
         }
 
-//        if (1)
-//        {
-//            target = inOutTarget;
+        //        if (1)
+        //        {
+        //            target = inOutTarget;
 
-//            if (agv.iEmergencyBySoftware)
-//            {
-//                if (inOutTargetNow == getSwitchStatus())
-//                {
-//                    agv.iEmergencyBySoftware = false;
-//                }
-//            }
-//        }
+        //            if (agv.iEmergencyBySoftware)
+        //            {
+        //                if (inOutTargetNow == getSwitchStatus())
+        //                {
+        //                    agv.iEmergencyBySoftware = false;
+        //                }
+        //            }
+        //        }
 
         if (MotionStatus.EcodeDelay)
         {
@@ -1404,8 +1406,8 @@ void MotionTask(void const *parment)
                     {
                         static float mm2RPM = 1.0 / (AGV_WheelDiameter * PI) * 60.0;
                         request_speed = -(int)(((double)(MotionStatus.handSpeed * mm2RPM) * 512 * 10000 * 4.615384) / 1875);
-												//request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.411764) / 1875);
-												//request_speed = (int)(((double)(MotionStatus.handSpeed * mm2RPM) * 512 * 10000 * 9.411764) / 1875);
+                        //request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.411764) / 1875);
+                        //request_speed = (int)(((double)(MotionStatus.handSpeed * mm2RPM) * 512 * 10000 * 9.411764) / 1875);
                     }
                 }
                 else
@@ -1419,7 +1421,7 @@ void MotionTask(void const *parment)
                 if (agv.iEmergencyByPause)
                 {
                     request_speed = -(int)(((double)agv.Request_RPM * 512 * 10000 * 4.615384) / 1875);
-										//request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.411764) / 1875);
+                    //request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.411764) / 1875);
                     /*
                     if( request_speed == 0 )
                     {
@@ -1441,7 +1443,7 @@ void MotionTask(void const *parment)
                     else
                     {
                         request_speed = -(int)(((double)agv.Request_RPM * 512 * 10000 * 4.615384) / 1875);
-											//request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.411764) / 1875);
+                        //request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.411764) / 1875);
                     }
                 }
             }
@@ -1569,7 +1571,6 @@ void MotionTask(void const *parment)
                                         {
                                             i32ToHex.Data = 0;
                                             i16ToHex.Data = 0x06;
-																						
                                         }
                                         else
                                         {
@@ -1589,14 +1590,20 @@ void MotionTask(void const *parment)
                                     {
                                         if( MotionStatus.Voltage < 50000 )
                                         {
-                                            i32ToHex.Data = 0;
-                                            i16ToHex.Data = 0x06;
-																						
+                                            //                                            i32ToHex.Data = 0;
+                                            //                                            i16ToHex.Data = 0x06;
+                                            m_status = 0;
                                         }
-                                        else
+
+                                        if(m_status)
                                         {
                                             i32ToHex.Data = request_speed;
                                             i16ToHex.Data = 0x0f;
+                                        }
+                                        else
+                                        {
+                                            i32ToHex.Data = 0;
+                                            i16ToHex.Data = 0x06;
                                         }
                                     }
                                     else

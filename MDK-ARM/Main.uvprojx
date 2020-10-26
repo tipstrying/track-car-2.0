@@ -81,7 +81,7 @@
           </BeforeMake>
           <AfterMake>
             <RunUserProg1>1</RunUserProg1>
-            <RunUserProg2>1</RunUserProg2>
+            <RunUserProg2>0</RunUserProg2>
             <UserProg1Name>C:\Keil_v5\ARM\ARMCC\bin\fromelf.exe  --bin -o  "update.bin" "#L"</UserProg1Name>
             <UserProg2Name>cp.bat</UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
@@ -436,11 +436,6 @@
               <FileName>BeltDriveController.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>..\app\BeltDriveController.cpp</FilePath>
-            </File>
-            <File>
-              <FileName>modbusTask.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\app\modbusTask.c</FilePath>
             </File>
           </Files>
         </Group>

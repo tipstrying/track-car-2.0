@@ -12,6 +12,7 @@ BeltDriveController::BeltDriveController()
 	this->motion_control_step = Push_idle;
 	this->info.motor_stop = false;
 	this->info.iEmergency = false;
+	//this->info.sArriveCtrlTime = 100;
 }
 
 BeltDriveController::~BeltDriveController()

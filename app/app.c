@@ -65,8 +65,8 @@ void InitTask( void const * parment )
     }
     taskEXIT_CRITICAL();
 
-    osThreadDef( u2RecService, uart2RecTask, osPriorityHigh, 0, 256 );
-    osThreadCreate( osThread( u2RecService ), NULL);
+//    osThreadDef( u2RecService, uart2RecTask, osPriorityHigh, 0, 256 );
+//    osThreadCreate( osThread( u2RecService ), NULL);
 
  //   osThreadDef( BatteryTask, UartTask, osPriorityAboveNormal, 0, 256 );
  //   osThreadCreate( osThread( BatteryTask ), NULL);
@@ -108,7 +108,7 @@ void vApplicationTickHook( void )
     {
         /* 心跳�*/
         HAL_GPIO_TogglePin( SLEEP_GPIO_Port, SLEEP_Pin );
-       // HAL_GPIO_WritePin( OUT_4_GPIO_Port, OUT_4_Pin, GPIO_PIN_SET );
+        HAL_GPIO_TogglePin( OUT_2_GPIO_Port, OUT_2_Pin );
         i = 0;
     }
     //HAL_IWDG_Refresh(&hiwdg);

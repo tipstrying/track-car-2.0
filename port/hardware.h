@@ -19,11 +19,11 @@ extern "C" {
 #define OUT_LED_KEY_Pin     OUT_2_Pin
 
 
-typedef enum {
-    InOutSwitchUnknow = 0,
-    InOutSwitchIn = 1,
-    InOutSwitchOut = 2,
-} InOutSwitch;
+//typedef enum {
+//    InOutSwitchUnknow = 0,
+//    InOutSwitchIn = 1,
+//    InOutSwitchOut = 2,
+//} InOutSwitch;
 
 typedef enum {
     BeltFront = 0,
@@ -50,17 +50,17 @@ int prvInitHardwares ();
     
 OnOffDef getEmergencyKey();
 OnOffDef getPowerKey();
-int beltCtrl( int isRun, BeltDirectionDef dir, int speed );
+int beltCtrl( int isRun, BeltDirectionDef dir);
 void setPowerKey( OnOffDef status );
 OnOffDef getThingSensor( int ID, int maxDelay );
 
-InOutSwitch getSwitchStatus();
-InOutSwitch setSwitch( InOutSwitch target );
+//InOutSwitch getSwitchStatus();
+//InOutSwitch setSwitch( InOutSwitch target );
 OnOffDef powerKeyWork( uint32_t clock);
 int writePosToBKP( float position, double mils );
 int readPosFromBKP( float *position, double *mils );
  int getThingSensorStatus( int type);
-int readSwitchTypeFromBKP(int *type);
+//int readSwitchTypeFromBKP(int *type);
 int writeSwitchTypeFromBKP(int type);
 void setITFlag( ISREnumDef isr );
 
