@@ -26,6 +26,8 @@ int SetSleepModeHttpApi( int isSleep );
 int cancelNavigationHttpApi();
 int GetMotorCurrentHttpApi( float *current );
 int clearMotoralarmHttpApi();
+int GetMotionStatusHttpApi();
+int GetPosHttpApi(float *pos);
     
 #ifdef __cplusplus
 }

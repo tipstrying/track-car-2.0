@@ -18,6 +18,7 @@
 #include "httpapi.h"
 #include "listRunTask.h"
 #include "buildTime.h"
+#include "w5500.h"
 #ifdef _USE_FLASH_
 #include "dataflash.h"
 #endif
@@ -31,14 +32,18 @@ uint8_t http_get_cgi_handler(uint8_t *uri_name, uint8_t *buf, uint32_t *file_len
     if (strcmp((const char *)uri_name, "status.cgi") == 0)
     {
         double mils;
-        float sp, spMax, pos, voltage, current;
+        float sp, spMax, pos, voltage, current,posnext;
+				int MotionStatus;
         GetSpeedHttpApi( &sp );
         GetMaxSpeedHttpApi( &spMax );
         GetPositionHttpApi( &pos );
         GetBatteryVoltageHttpApi( &voltage );
         getMilagesHttpApi( &mils );
         GetMotorCurrentHttpApi( &current );
-        sprintf( (char *)buf, "{\"sp\":%0.2f, \"spMax\":%0.2f, \"pos\":%0.2f, \"milages\":%0.2lf, \"Bv\":%0.1f, \"C1\":%0.3f}", sp, spMax, pos, mils, voltage, current );
+				MotionStatus = GetMotionStatusHttpApi();
+				GetPosHttpApi(&posnext);
+			
+			sprintf( (char *)buf, "{\"sp\":%0.2f, \"spMax\":%0.2f, \"pos\":%0.2f, \"milages\":%0.2lf, \"Bv\":%0.1f, \"C1\":%0.3f, \"port\":%d, \"MotionStatus\":%d, \"posnext\":%0.2f}", sp, spMax, pos, mils, voltage, current,getSn_SR( 0 ) == SOCK_ESTABLISHED?1:0,MotionStatus,posnext );
         len = strlen( (const char*)buf );
     }
     else if( strcmp( (const char *)uri_name, "getruntasklist.cgi" ) == 0 )

@@ -17,6 +17,12 @@ int GetPositionHttpApi( float *pos )
     GetPosition( pos );
     return 0;
 }
+int GetPosHttpApi(float *pos)
+{
+		GetNextPiont(pos);
+		return 0;
+		
+}
 int GetSpeedHttpApi( float *sp )
 {
     GetSpeed( sp );
@@ -26,6 +32,11 @@ int GetMaxSpeedHttpApi( float *sp )
 {
     GetMaxSpeed( sp );
     return 0;
+}
+int GetMotionStatusHttpApi()
+{
+		int status = GetMotionStatus();
+		return status;
 }
 int getMilagesHttpApi ( double * mils )
 {
