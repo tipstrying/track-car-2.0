@@ -16,6 +16,7 @@ AGV_Parallel_Motion::AGV_Parallel_Motion()
     this->sArriveCtrlTime = 300; // 20 * sample_Time  ms
     this->sAcceleration = 1500;
     this->sDeceleration_distance = 5;
+		this->iEmergencyArrived = false;
 
     this->EncoderValue = 0;
     this->move_to_step = ms_Idle;

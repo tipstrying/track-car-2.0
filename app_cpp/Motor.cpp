@@ -729,6 +729,7 @@ void MotionTask(void const *parment)
                             {
                                 RunTaskDef runTask;
                                 m_status = 1;
+																//agv.iEmergencyArrived = false;
 
                                 if (listGetItemByCMD(&runTaskHeader, 6, &runTask))
                                 {
@@ -910,6 +911,7 @@ void MotionTask(void const *parment)
                             {
                                 debugOut(0, "[\t%d] <INFO> <Motion> {Exit Pause} exit pause mode\r\n", PreviousWakeTime);
                                 agv.iEmergencyByPause = false;
+																agv.iEmergencyArrived = false;
                             }
 
                             break;
@@ -1568,6 +1570,18 @@ void MotionTask(void const *parment)
                                     if (abs(request_speed) < 10)
                                     {
                                         if( MotionStatus.Voltage < 50000 )
+                                        {
+                                            agv.iEmergencyArrived = true;
+                                            /*i32ToHex.Data = 0;
+                                            i16ToHex.Data = 0x06;*/
+                                        }
+
+                                        /* else
+                                         {
+                                             i32ToHex.Data = request_speed;
+                                             i16ToHex.Data = 0xf;
+                                         }*/
+                                        if(agv.iEmergencyArrived)
                                         {
                                             i32ToHex.Data = 0;
                                             i16ToHex.Data = 0x06;

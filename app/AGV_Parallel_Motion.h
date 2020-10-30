@@ -33,6 +33,7 @@ public:
     bool iEmergencyByCancel;
     bool iEmergencyByError;
     bool iEmergencyByMotorDisable;
+		bool iEmergencyArrived;
 
     float Request_Speed;
     float Request_RPM;
