@@ -1450,7 +1450,7 @@ void MotionTask(void const *parment)
                     else
                     {
                         static float mm2RPM = 1.0 / (AGV_WheelDiameter * PI) * 60.0;
-                        request_speed = (int)(((double)(MotionStatus.handSpeed * mm2RPM) * 512 * 10000 * 9.333333) / 1875);
+                        request_speed = (int)(((double)(MotionStatus.handSpeed * mm2RPM) * 512 * 10000 * 9.411764) / 1875);
                     }
                 }
                 else
@@ -1463,7 +1463,7 @@ void MotionTask(void const *parment)
             {
                 if (agv.iEmergencyByPause)
                 {
-                    request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.333333) / 1875);
+                    request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.411764) / 1875);
                     /*
                     if( request_speed == 0 )
                     {
@@ -1484,7 +1484,7 @@ void MotionTask(void const *parment)
                     }
                     else
                     {
-                        request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.333333) / 1875);
+                        request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.411764) / 1875);
                     }
                 }
             }
