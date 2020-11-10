@@ -603,6 +603,7 @@ int isPackOnCar()
         }
     }
 }
+static int m_status;
 void MotionTask(void const *parment)
 {
     double milagesXBack = 0;
@@ -729,6 +730,7 @@ void MotionTask(void const *parment)
                             if (/* navigationOperationData.Data.posTo < agv.AGV_Pos */ 1)
                             {
                                 RunTaskDef runTask;
+                                m_status = 1;
 
                                 if (listGetItemByCMD(&runTaskHeader, 6, &runTask))
                                 {
@@ -908,6 +910,7 @@ void MotionTask(void const *parment)
                             }
                             else
                             {
+                                agv.iEmergencyByMotorArrived = false;
                                 debugOut(0, "[\t%d] <INFO> <Motion> {Exit Pause} exit pause mode\r\n", PreviousWakeTime);
                                 agv.iEmergencyByPause = false;
                             }
@@ -1450,7 +1453,8 @@ void MotionTask(void const *parment)
                     else
                     {
                         static float mm2RPM = 1.0 / (AGV_WheelDiameter * PI) * 60.0;
-                        request_speed = (int)(((double)(MotionStatus.handSpeed * mm2RPM) * 512 * 10000 * 9.411764) / 1875);
+                        //request_speed = (int)(((double)(MotionStatus.handSpeed * mm2RPM) * 512 * 10000 * 9.411764) / 1875);
+												request_speed = (int)(((double)(MotionStatus.handSpeed * mm2RPM) * 512 * 10000 * 9.333333) / 1875);
                     }
                 }
                 else
@@ -1463,7 +1467,8 @@ void MotionTask(void const *parment)
             {
                 if (agv.iEmergencyByPause)
                 {
-                    request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.411764) / 1875);
+                    //request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.411764) / 1875);
+										request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.333333) / 1875);
                     /*
                     if( request_speed == 0 )
                     {
@@ -1484,7 +1489,8 @@ void MotionTask(void const *parment)
                     }
                     else
                     {
-                        request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.411764) / 1875);
+                        //request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.411764) / 1875);
+												request_speed = (int)(((double)agv.Request_RPM * 512 * 10000 * 9.333333) / 1875);
                     }
                 }
             }
@@ -1610,9 +1616,15 @@ void MotionTask(void const *parment)
                                     {
                                         if( MotionStatus.Voltage < 50000 )
                                         {
+                                            /*i32ToHex.Data = 0;
+                                            i16ToHex.Data = 0x06;*/
+                                            agv.iEmergencyByMotorArrived = true;
+                                        }
+
+                                        if(agv.iEmergencyByMotorArrived)
+                                        {
                                             i32ToHex.Data = 0;
                                             i16ToHex.Data = 0x06;
-																						
                                         }
                                         else
                                         {
@@ -1632,14 +1644,20 @@ void MotionTask(void const *parment)
                                     {
                                         if( MotionStatus.Voltage < 50000 )
                                         {
-                                            i32ToHex.Data = 0;
-                                            i16ToHex.Data = 0x06;
-																						
+                                            /*i32ToHex.Data = 0;
+                                            i16ToHex.Data = 0x06;*/
+                                            m_status = 0;
                                         }
-                                        else
+
+                                        if(m_status)
                                         {
                                             i32ToHex.Data = request_speed;
                                             i16ToHex.Data = 0x0f;
+                                        }
+                                        else
+                                        {
+                                            i32ToHex.Data = 0;
+                                            i16ToHex.Data = 0x06;
                                         }
                                     }
                                     else
