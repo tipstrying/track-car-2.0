@@ -163,8 +163,16 @@ int listDeleteItemByIndex( RunTaskDef *header, int Index )
             if( index == Index )
             {
                 tmp = next->next;
+								if(next->next->next == NULL)
+								{
+										next->next = NULL;
+								}
+								else
+								{
+										next->next = next->next->next;
+								}
                 listDelCallBack( *tmp );
-                next->next = next->next->next;
+                //next->next = next->next->next;
                 vPortFree( tmp );
                 return pdTRUE;
             }
