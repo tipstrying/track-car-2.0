@@ -1078,38 +1078,39 @@ void socketServer_run(int i, FifoClass *in, FifoClass *out, uint16_t port, fun_p
                             in->popData(buff, 1);
                         }
                     }
-
-                    break;
-
-                case SOCK_CLOSE_WAIT:
-                    if (socketServer[i].streamIn)
-                    {
-                        socketServer[i].streamIn->clean();
-                    }
-
-                    if (socketServer[i].streamOut)
-                    {
-                        socketServer[i].streamOut->clean();
-                    }
-
-                    close(i);
-
-                    if (func2)
-                    {
-                        func2(1);
-                    }
-
-                    break;
-
-                case SOCK_CLOSED:
-                    socket(i, Sn_MR_TCP, port, Sn_MR_ND);
-                    break;
-
-                default:
-                    break;
                 }
             }
+
+            break;
+
+        case SOCK_CLOSE_WAIT:
+            if (socketServer[i].streamIn)
+            {
+                socketServer[i].streamIn->clean();
+            }
+
+            if (socketServer[i].streamOut)
+            {
+                socketServer[i].streamOut->clean();
+            }
+
+            close(i);
+
+            if (func2)
+            {
+                func2(1);
+            }
+
+            break;
+
+        case SOCK_CLOSED:
+            socket(i, Sn_MR_TCP, port, Sn_MR_ND);
+            break;
+
+        default:
+            break;
     }
+
 }
 
 int getFreeSocketID()
