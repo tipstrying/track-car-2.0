@@ -1073,10 +1073,10 @@ void socketServer_run(int i, FifoClass *in, FifoClass *out, uint16_t port, fun_p
                                 }
                             }
                         }
-                        else
-                        {
-                            in->popData(buff, 1);
-                        }
+                    }
+                    else
+                    {
+                        in->popData(buff, 1);
                     }
                 }
             }
@@ -1110,7 +1110,6 @@ void socketServer_run(int i, FifoClass *in, FifoClass *out, uint16_t port, fun_p
         default:
             break;
     }
-
 }
 
 int getFreeSocketID()
