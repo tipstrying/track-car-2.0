@@ -290,6 +290,17 @@ bool CanTx(int ID, int iLength, char iArray[8])
         return true;
     }
 }
+bool CanTxRemote(int ID)
+{
+		if(SendFrameIDToCan1((ID)))
+		{
+				return false;
+		}
+		else
+		{
+				return true;
+		}
+}
 bool CanRx(int *oID, int *oLength, char oArray[])
 {
     extern QueueHandle_t can1Queue;
@@ -1330,6 +1341,16 @@ void MotionTask(void const *parment)
                 AGV_Pos = agv.AGV_Pos;
             }
         }
+				if(canOpenStatus.pollStep > 0)
+				{
+						if(MotionStatus.Voltage < 40000)
+						{
+								debugOut(0,"[\t%d]volatge is %d\r\n",osKernelSysTick(),MotionStatus.Voltage);
+								request_speed = 0;
+								agv.iEmergencyByPause = true;
+						}
+				
+				}
 
         if (1)
         {
@@ -1513,8 +1534,15 @@ void MotionTask(void const *parment)
 
                         // osDelay(10);
                         break;
+										case 1:
+												if(1/*CanTxRemote(0x701)*/)
+												{
+														canOpenStatus.pollStep++;
+											
+												}
+												break;
 
-                    case 1:
+                    case 2:
 
                         /*
                         CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_4Bit23, 0x60ff, 0, request_speed);
@@ -1638,10 +1666,11 @@ void MotionTask(void const *parment)
                             rpdoData[6] = 3;
                             CanTx(0x141, 7, rpdoData);
                         }
+												canOpenStatus.pollStep = 1;
 
                         break;
 
-                    case 2:
+                    case 3:
                         if (MotorModeWord_PDO != 0)
                         {
                             CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x6040, 0, 6);
@@ -1649,7 +1678,7 @@ void MotionTask(void const *parment)
 
                         break;
 
-                    case 3:
+                    case 4:
                         if (!MotionStatus.enable)
                         {
                             CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x6040, 0, 0xf);
@@ -1661,28 +1690,28 @@ void MotionTask(void const *parment)
 
                         break;
 
-                    case 4:
+                    case 5:
                         if ((MotorStatusWord_PDO & 0x08) != 0)
                         {
                             CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x6040, 0, 0x86);
-                            canOpenStatus.pollStep = 6;
+                            canOpenStatus.pollStep = 7;
                         }
                         else
                         {
-                            canOpenStatus.pollStep = 3;
+                            canOpenStatus.pollStep = 4;
                         }
 
                         break;
 
-                    case 5:
+                    case 6:
                         CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x1017, 0, 1000);
                         canOpenStatus.heartBeatDelay = 0;
                         canOpenStatus.pollStep = 1;
                         break;
 
-                    case 6:
+                    case 7:
                         CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x6040, 0, 6);
-                        canOpenStatus.pollStep = 3;
+                        canOpenStatus.pollStep = 4;
                         break;
 
                     default:
