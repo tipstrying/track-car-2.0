@@ -109,6 +109,7 @@ void vApplicationTickHook( void )
         /* 心跳�*/
         HAL_GPIO_TogglePin( SLEEP_GPIO_Port, SLEEP_Pin );
         HAL_GPIO_TogglePin( OUT_2_GPIO_Port, OUT_2_Pin );
+				//HAL_GPIO_TogglePin(OUT_3_GPIO_Port,OUT_3_Pin);
         i = 0;
     }
     //HAL_IWDG_Refresh(&hiwdg);
