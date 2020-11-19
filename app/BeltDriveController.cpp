@@ -12,7 +12,7 @@ BeltDriveController::BeltDriveController()
 	this->motion_control_step = Push_idle;
 	this->info.motor_stop = false;
 	this->info.iEmergency = false;
-	//this->info.sArriveCtrlTime = 100;
+	this->info.sArriveCtrlTime = 10;
 }
 
 BeltDriveController::~BeltDriveController()
@@ -99,10 +99,10 @@ void BeltDriveController::motion_ctrl(void)
 		}
 		else
 		{
-			if (!this->info.read_input[0] && !this->info.read_input[1])
+			if ((!this->info.read_input[0] && !this->info.read_input[1]))
 			{
 				//如果物体太小那就多转一段距离，在检测看看，这个距离只能用时间来表示500ms
-				if (this->info.clock - last_time_ctrl > 500)
+				if (this->info.clock - last_time_ctrl > 100)
 				{
 					this->motor_ctrl(Push_idle);
 					this->motion_control_step = Push_idle;

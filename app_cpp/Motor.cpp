@@ -290,17 +290,7 @@ bool CanTx(int ID, int iLength, char iArray[8])
         return true;
     }
 }
-bool CanTxRemote(int ID)
-{
-		if(SendFrameIDToCan1((ID)))
-		{
-				return false;
-		}
-		else
-		{
-				return true;
-		}
-}
+
 bool CanRx(int *oID, int *oLength, char oArray[])
 {
     extern QueueHandle_t can1Queue;
@@ -600,7 +590,14 @@ int isPackOnCar()
 {
     if (BeltOperating == 6 || BeltOperating == 7)
     {
-        return getThingSensorStatus(1);
+        if(getThingSensorStatus(0) || getThingSensorStatus(1))
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
     }
     else
     {
@@ -610,7 +607,14 @@ int isPackOnCar()
         }
         else
         {
-            return getThingSensorStatus(0);
+            if(getThingSensorStatus(0) || getThingSensorStatus(1))
+            {
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
         }
     }
 }
@@ -740,7 +744,8 @@ void MotionTask(void const *parment)
                             {
                                 RunTaskDef runTask;
                                 m_status = 1;
-																//agv.iEmergencyArrived = false;
+
+                                //agv.iEmergencyArrived = false;
 
                                 if (listGetItemByCMD(&runTaskHeader, 6, &runTask))
                                 {
@@ -922,7 +927,7 @@ void MotionTask(void const *parment)
                             {
                                 debugOut(0, "[\t%d] <INFO> <Motion> {Exit Pause} exit pause mode\r\n", PreviousWakeTime);
                                 agv.iEmergencyByPause = false;
-																agv.iEmergencyArrived = false;
+                                agv.iEmergencyArrived = false;
                             }
 
                             break;
@@ -1341,16 +1346,16 @@ void MotionTask(void const *parment)
                 AGV_Pos = agv.AGV_Pos;
             }
         }
-				if(canOpenStatus.pollStep > 0)
-				{
-						if(MotionStatus.Voltage < 40000)
-						{
-								debugOut(0,"[\t%d]volatge is %d\r\n",osKernelSysTick(),MotionStatus.Voltage);
-								request_speed = 0;
-								agv.iEmergencyByPause = true;
-						}
-				
-				}
+
+        if(canOpenStatus.pollStep > 0)
+        {
+            if(MotionStatus.Voltage < 40000)
+            {
+                debugOut(0, "[\t%d]volatge is %d\r\n", osKernelSysTick(), MotionStatus.Voltage);
+                request_speed = 0;
+                agv.iEmergencyByPause = true;
+            }
+        }
 
         if (1)
         {
@@ -1534,13 +1539,14 @@ void MotionTask(void const *parment)
 
                         // osDelay(10);
                         break;
-										case 1:
-												if(1/*CanTxRemote(0x701)*/)
-												{
-														canOpenStatus.pollStep++;
-											
-												}
-												break;
+
+                    case 1:
+                        if(1/*CanTxRemote(0x701)*/)
+                        {
+                            canOpenStatus.pollStep++;
+                        }
+
+                        break;
 
                     case 2:
 
@@ -1666,8 +1672,8 @@ void MotionTask(void const *parment)
                             rpdoData[6] = 3;
                             CanTx(0x141, 7, rpdoData);
                         }
-												canOpenStatus.pollStep = 1;
 
+                        canOpenStatus.pollStep = 1;
                         break;
 
                     case 3:
