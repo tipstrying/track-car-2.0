@@ -49,6 +49,8 @@ QueueHandle_t setZerpSemap = 0;
 QueueHandle_t SwitchIN6Semap = 0;
 QueueHandle_t SwitchIN7Semap = 0;
 
+BaseType_t MotionAlarmTime;
+
 void listAddCallBack(RunTaskDef data)
 {
     if (DebugCtrl.AddRunTask)
@@ -290,6 +292,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 bool CanTx(int ID, int iLength, char iArray[8])
 {
+		BuffCanData(0,ID,(uint8_t *)iArray,iLength);
     if (SendBuffToCan1((uint8_t *)&iArray[0], ID, iLength))
     {
         return false;
@@ -316,7 +319,7 @@ bool CanRx(int *oID, int *oLength, char oArray[])
             {
                 oArray[i] = can1Data.Data[i];
             }
-
+						BuffCanData( 0, *oID, (uint8_t *)oArray, *oLength );
             if (DebugCtrl.enableCanRawData)
             {
                 if (/* *oLength == 1 && oArray[0] == 0x7f */ 0)
@@ -459,6 +462,9 @@ void Rx_PDO_Commplate(int oID, char Array[8], int len)
                     {
                         MotionStatus.alarm = true;
                         static uint16_t alarmCodeBak;
+												
+												MotionAlarmTime = osKernelSysTick();
+												SetCanBuffOutEnable();
 
                         if (alarmCodeBak != alarmCode)
                         {
@@ -466,6 +472,7 @@ void Rx_PDO_Commplate(int oID, char Array[8], int len)
                             alarmCodeBak = alarmCode;
                         }
                     }
+										
                 }
                 else
                 {

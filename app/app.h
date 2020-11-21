@@ -85,6 +85,8 @@ void W5500Task( void const * par );
 void UartTask( void const * par );
 void CLITask( void const * parment );
 int debugOut( int isISR, const char *fmt, ... );
+int BuffCanData( int isISR, int ID, uint8_t *buff, int len );
+int SetCanBuffOutEnable();
 
 #ifdef __cplusplus
 }

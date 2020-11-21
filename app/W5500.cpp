@@ -109,6 +109,7 @@ CONFIG_MSG SetNetWorkParment(void)
 }
 
 static FifoClass debugFifoBuff;
+extern BaseType_t MotionAlarmTime;
 
 static int sockertID[MAX_SOCK_NUM - MAX_HTTPSOCK] = {0};
 typedef int (*fun_ptr)(int);
@@ -133,6 +134,8 @@ typedef struct
 } networkDef;
 
 networkDef socketServer[4];
+static FifoClass canDataFifoBuff;
+static bool CanDataOutEnable = false;
 static CONFIG_MSG networkconfig = SetNetWorkParment();
 void socketServer_run(int i, FifoClass *in, FifoClass *out, uint16_t port, fun_ptr func1, fun_ptr func2, int FD);
 int createSocket(FifoClass *in, FifoClass *out, uint16_t port, fun_ptr onCreatep, fun_ptr onClosep, BaseType_t timeout);
@@ -218,6 +221,7 @@ void W5500Task(void const *par)
     httpServer_init(TX_BUF, RX_BUF, MAX_HTTPSOCK, socknumlist);
     startCLITask();
     static FifoClass dataIn, dataOut;
+    //static FifoClass CanDataBuff;
     createSocket(&dataIn, &dataOut, 8802, serverConnectOk, serverDisconnect, 3000);
 
     for (;;)
@@ -254,6 +258,18 @@ void W5500Task(void const *par)
                 }
             }
         }
+				if(CanDataOutEnable)
+				{
+						if(canDataFifoBuff.available())
+						{
+								uint8_t data[100];
+								canDataFifoBuff.popData();
+								int len = 
+								debugFifoBuff.pushData(can);
+						
+						}
+				
+				}
     }
 }
 
@@ -1046,21 +1062,19 @@ void socketServer_run(int i, FifoClass *in, FifoClass *out, uint16_t port, fun_p
                                         case 2022:
                                             if( 1 )
                                             {
-//                                                InOutSwitch in = getSwitchStatus();
-
-//                                                if( in == InOutSwitchIn )
-//                                                {
-//                                                    data[0] = 2;
-//                                                }
-//                                                else if( in == InOutSwitchOut )
-//                                                {
-//                                                    data[0] = 1;
-//                                                }
-//                                                else
-//                                                {
-                                                    data[0] = 0;
- //                                               }
-
+                                                //                                                InOutSwitch in = getSwitchStatus();
+                                                //                                                if( in == InOutSwitchIn )
+                                                //                                                {
+                                                //                                                    data[0] = 2;
+                                                //                                                }
+                                                //                                                else if( in == InOutSwitchOut )
+                                                //                                                {
+                                                //                                                    data[0] = 1;
+                                                //                                                }
+                                                //                                                else
+                                                //                                                {
+                                                data[0] = 0;
+                                                //                                               }
                                                 PackLen = makePack( buff, packIndex, 12022, 0, 1, data );
                                                 out->pushData(buff, PackLen );
                                             }
@@ -1314,10 +1328,37 @@ extern "C"
     int fputc(int c, FILE *f);
     int debugOut(int isISR, const char *fmt, ...);
     static int inHandlerMode (void);
+    int BuffCanData( int isISR, int ID, uint8_t *buff, int len );
+    int SetCanBuffOutEnable();
 }
 static int inHandlerMode (void)
 {
     return __get_IPSR() != 0;
+}
+int BuffCanData( int isISR, int ID, uint8_t *buff, int len )
+{
+    static char strBuff[100];
+    sprintf(strBuff, "[\t%d] Can ID: %02X, DLC: %d Data: ", osKernelSysTick(), ID, len );
+
+    for( int i = 0; i < len; i++ )
+    {
+        sprintf( strBuff + strlen(strBuff), "%02X ", buff[i] );
+    }
+
+    sprintf( strBuff + strlen(strBuff), "\r\n" );
+    //canDataFifoBuff.pushData((uint8_t *)strBuff,100);
+    taskENTER_CRITICAL();
+    {
+				//debugFifoBuff.pushData((uint8_t *)strBuff,strlen(strBuff));
+        canDataFifoBuff.pushData( (uint8_t *) strBuff, strlen(strBuff) );
+    }
+    taskEXIT_CRITICAL();
+    return 0;
+}
+int SetCanBuffOutEnable()
+{
+    CanDataOutEnable = true;
+    return 0;
 }
 int debugOut(int isISR, const char *fmt, ...)
 {
