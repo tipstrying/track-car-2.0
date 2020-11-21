@@ -64,6 +64,7 @@ float getRunAcc();
 void ClearMotorAlarm();
 uint8_t GetMotionStatus();
 void GetMotorVoltage( unsigned short *Voltage );
+int Set_light_status(void);
 
 void getTS_CURVEPAR( float *k, float *j, float *a, float *v );
 void setTS_CURVEPAR( float k, float j, float a, float v );

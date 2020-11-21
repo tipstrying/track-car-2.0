@@ -621,6 +621,43 @@ void canHeartbeat(int oID, CANopenMaster::CANopenResponse::te_HeartBeat oStatus)
     }
 }
 
+int Set_light_status(void)
+{
+    static int i;
+
+    if(MotionStatus.alarm)
+    {
+        HAL_GPIO_WritePin(OUT_3_GPIO_Port, OUT_3_Pin, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(OUT_2_GPIO_Port, OUT_2_Pin, GPIO_PIN_SET);
+    }
+    else if(agv.iEmergencyByError)
+    {
+        HAL_GPIO_WritePin(OUT_2_GPIO_Port, OUT_2_Pin, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(OUT_3_GPIO_Port, OUT_3_Pin, GPIO_PIN_RESET);
+    }
+    else if(agv.iEmergencyByPause)
+    {
+        HAL_GPIO_WritePin(OUT_2_GPIO_Port, OUT_2_Pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(OUT_3_GPIO_Port, OUT_3_Pin, GPIO_PIN_SET);
+    }
+    else
+    {
+        if(i < 1000)
+        {
+            i++;
+        }
+        else
+        {
+            HAL_GPIO_TogglePin(OUT_2_GPIO_Port, OUT_2_Pin);
+            i = 0;
+        }
+
+        HAL_GPIO_WritePin(OUT_3_GPIO_Port, OUT_3_Pin, GPIO_PIN_RESET);
+    }
+
+    return 0;
+}
+
 void cancelNavigate()
 {
     agv.clearMotionStatusError();
@@ -767,7 +804,6 @@ void MotionTask(void const *parment)
     MotionStatus.CanDelay = false;
     runTaskHeader.next = 0;
     static int first_boot = 0;
-		
     //InOutSwitch inOutTarget = getSwitchStatus();
     //InOutSwitch inOutTargetNow;
     //    if (inOutTarget == InOutSwitchUnknow)
@@ -1066,7 +1102,7 @@ void MotionTask(void const *parment)
                 }
             }
         }
-
+				Set_light_status();
         if (1)
         {
             static int thingSensorBak[2];
@@ -1096,7 +1132,7 @@ void MotionTask(void const *parment)
                 case 0:
                     if (Belt_Ctrl.info.motor_stop)
                     {
-                        beltCtrl(0, BeltFront,0);
+                        beltCtrl(0, BeltFront, 0);
 
                         if (!Belt_Ctrl.info.read_input[0] && !Belt_Ctrl.info.read_input[1])
                         {
@@ -1108,7 +1144,7 @@ void MotionTask(void const *parment)
                     }
                     else
                     {
-                        beltCtrl(1, Belt_Ctrl.info.motor_direction == true ? BeltFront : BeltRev,2);
+                        beltCtrl(1, Belt_Ctrl.info.motor_direction == true ? BeltFront : BeltRev, 2);
                     }
 
                     break;
@@ -1124,11 +1160,11 @@ void MotionTask(void const *parment)
 
                     if (BeltOperatingTime > 0)
                     {
-                        beltCtrl(1, BeltRev,1);
+                        beltCtrl(1, BeltRev, 1);
                     }
                     else
                     {
-                        beltCtrl(0, BeltRev,0);
+                        beltCtrl(0, BeltRev, 0);
                         BeltOperating = 0;
                         BeltGetPack = 0;
                     }
@@ -1146,11 +1182,11 @@ void MotionTask(void const *parment)
 
                     if (BeltOperatingTime > 0)
                     {
-                        beltCtrl(1, BeltFront,1);
+                        beltCtrl(1, BeltFront, 1);
                     }
                     else
                     {
-                        beltCtrl(0, BeltFront,0);
+                        beltCtrl(0, BeltFront, 0);
                         BeltOperating = 0;
                         BeltGetPack = 0;
                     }
@@ -1158,22 +1194,22 @@ void MotionTask(void const *parment)
                     break;
 
                 case 3:
-                    beltCtrl(0, BeltFront,1);
+                    beltCtrl(0, BeltFront, 1);
                     break;
 
                 case 4:
-                    beltCtrl(1, BeltRev,1);
+                    beltCtrl(1, BeltRev, 1);
                     break;
 
                 case 5:
-                    beltCtrl(1, BeltFront,1);
+                    beltCtrl(1, BeltFront, 1);
                     break;
 
                 case 6:
                     if (!Belt_Ctrl.info.read_input[0] && !Belt_Ctrl.info.read_input[1])
                     {
                         BeltGetPack = 1;
-                        beltCtrl(1, BeltRev,1);
+                        beltCtrl(1, BeltRev, 1);
                     }
                     else
                     {
@@ -1186,7 +1222,7 @@ void MotionTask(void const *parment)
                     if (!Belt_Ctrl.info.read_input[0] && !Belt_Ctrl.info.read_input[1])
                     {
                         BeltGetPack = 1;
-                        beltCtrl(1, BeltFront,1);
+                        beltCtrl(1, BeltFront, 1);
                     }
                     else
                     {
