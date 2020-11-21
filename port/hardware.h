@@ -50,7 +50,8 @@ int prvInitHardwares ();
     
 OnOffDef getEmergencyKey();
 OnOffDef getPowerKey();
-int beltCtrl( int isRun, BeltDirectionDef dir);
+//int beltCtrl( int isRun, BeltDirectionDef dir);
+int beltCtrl( int isRun, BeltDirectionDef dir,int cmd);
 void setPowerKey( OnOffDef status );
 OnOffDef getThingSensor( int ID, int maxDelay );
 

@@ -93,6 +93,15 @@ static struct
 
 } MotionStatus;
 
+static struct
+{
+    bool CanDelay;
+    bool CanRestDelay;
+    bool EcodeDelay;
+    bool CanRestartDelay;
+
+} BeltMotionStatus;
+
 int IsMotorAlarm()
 {
     if (agv.iEmergencyByPause)
@@ -562,6 +571,51 @@ void canHeartbeat(int oID, CANopenMaster::CANopenResponse::te_HeartBeat oStatus)
 
             break;
 
+        case 2:
+            if( BeltMotionStatus.CanDelay )
+            {
+                if( DebugCtrl.enableStartUp )
+                {
+                    taskENTER_CRITICAL();
+                    {
+                        printf( "[\t%d] Motor 2 Up\r\n", osKernelSysTick() );
+                    }
+                    taskEXIT_CRITICAL();
+                }
+            }
+
+            BeltMotionStatus.CanDelay = false;
+
+            if(oStatus == 0x00)
+            {
+                if(BeltMotionStatus.CanRestDelay)
+                {
+                    //MotionStatus.CanRestartDelay[1] = false;
+                    BeltMotionStatus.CanRestDelay = false;
+                    taskENTER_CRITICAL();
+                    {
+                        printf("[\t%d] Motor 2 restart\r\n", osKernelSysTick());
+                    }
+                    taskEXIT_CRITICAL();
+                }
+            }
+
+            if( oStatus == 0x7f )
+            {
+                if( BeltMotionStatus.CanRestartDelay )
+                {
+                    BeltMotionStatus.CanRestartDelay = false;
+                    BeltMotionStatus.EcodeDelay = true;
+                    taskENTER_CRITICAL();
+                    {
+                        printf( "[\t%d] Motor 2 Rest OK\r\n", osKernelSysTick() );
+                    }
+                    taskEXIT_CRITICAL();
+                }
+            }
+
+            break;
+
         default:
             break;
     }
@@ -619,6 +673,7 @@ int isPackOnCar()
     }
 }
 static int m_status;
+extern int speed;
 void MotionTask(void const *parment)
 {
     double milagesXBack = 0;
@@ -632,6 +687,11 @@ void MotionTask(void const *parment)
         int heartBeatDelay;
         int alarmBak[2];
     } canOpenStatus;
+    struct
+    {
+        int pollStep;
+
+    } BeltcanopenStatus;
     //    if( CanManualQueue == 0 )
     //    {
     //        CanManualQueue = xQueueCreate( 5, sizeof( CanManualDef ) );
@@ -644,6 +704,10 @@ void MotionTask(void const *parment)
     MotionStatus.alarmCleanDisable = false;
     MotionStatus.startUp = true;
     MotionStatus.bootUp = true;
+    BeltMotionStatus.CanDelay = true;
+    BeltMotionStatus.CanRestDelay = true;
+    BeltMotionStatus.EcodeDelay = true;
+    BeltMotionStatus.CanRestartDelay = true;
     MotionStatus.startUpErrorFix = true;
     // defatult enable EXTI, Navigation, Switch, Operation, StartUp log
     DebugCtrl.enableNavigation = 1;
@@ -682,6 +746,7 @@ void MotionTask(void const *parment)
     /* power key */
     canOpenStatus.count = 0;
     canOpenStatus.pollStep = -1;
+    BeltcanopenStatus.pollStep = 0;
     canOpenStatus.TemperatureDelay = 0;
     uint32_t TickCount = 0;
 
@@ -701,6 +766,8 @@ void MotionTask(void const *parment)
     osDelay(5000);
     MotionStatus.CanDelay = false;
     runTaskHeader.next = 0;
+    static int first_boot = 0;
+		
     //InOutSwitch inOutTarget = getSwitchStatus();
     //InOutSwitch inOutTargetNow;
     //    if (inOutTarget == InOutSwitchUnknow)
@@ -1029,7 +1096,7 @@ void MotionTask(void const *parment)
                 case 0:
                     if (Belt_Ctrl.info.motor_stop)
                     {
-                        beltCtrl(0, BeltFront);
+                        beltCtrl(0, BeltFront,0);
 
                         if (!Belt_Ctrl.info.read_input[0] && !Belt_Ctrl.info.read_input[1])
                         {
@@ -1041,7 +1108,7 @@ void MotionTask(void const *parment)
                     }
                     else
                     {
-                        beltCtrl(1, Belt_Ctrl.info.motor_direction == true ? BeltFront : BeltRev);
+                        beltCtrl(1, Belt_Ctrl.info.motor_direction == true ? BeltFront : BeltRev,2);
                     }
 
                     break;
@@ -1057,11 +1124,11 @@ void MotionTask(void const *parment)
 
                     if (BeltOperatingTime > 0)
                     {
-                        beltCtrl(1, BeltFront);
+                        beltCtrl(1, BeltRev,1);
                     }
                     else
                     {
-                        beltCtrl(0, BeltFront);
+                        beltCtrl(0, BeltRev,0);
                         BeltOperating = 0;
                         BeltGetPack = 0;
                     }
@@ -1079,11 +1146,11 @@ void MotionTask(void const *parment)
 
                     if (BeltOperatingTime > 0)
                     {
-                        beltCtrl(1, BeltRev);
+                        beltCtrl(1, BeltFront,1);
                     }
                     else
                     {
-                        beltCtrl(0, BeltRev);
+                        beltCtrl(0, BeltFront,0);
                         BeltOperating = 0;
                         BeltGetPack = 0;
                     }
@@ -1091,22 +1158,22 @@ void MotionTask(void const *parment)
                     break;
 
                 case 3:
-                    beltCtrl(0, BeltFront);
+                    beltCtrl(0, BeltFront,1);
                     break;
 
                 case 4:
-                    beltCtrl(1, BeltFront);
+                    beltCtrl(1, BeltRev,1);
                     break;
 
                 case 5:
-                    beltCtrl(1, BeltRev);
+                    beltCtrl(1, BeltFront,1);
                     break;
 
                 case 6:
                     if (!Belt_Ctrl.info.read_input[0] && !Belt_Ctrl.info.read_input[1])
                     {
                         BeltGetPack = 1;
-                        beltCtrl(1, BeltFront);
+                        beltCtrl(1, BeltRev,1);
                     }
                     else
                     {
@@ -1119,7 +1186,7 @@ void MotionTask(void const *parment)
                     if (!Belt_Ctrl.info.read_input[0] && !Belt_Ctrl.info.read_input[1])
                     {
                         BeltGetPack = 1;
-                        beltCtrl(1, BeltRev);
+                        beltCtrl(1, BeltFront,1);
                     }
                     else
                     {
@@ -1351,12 +1418,14 @@ void MotionTask(void const *parment)
         {
             if(MotionStatus.Voltage < 40000)
             {
-                debugOut(0, "[\t%d]volatge is %d\r\n", osKernelSysTick(), MotionStatus.Voltage);
+                //debugOut(0, "[\t%d]volatge is %d\r\n", osKernelSysTick(), MotionStatus.Voltage);
                 request_speed = 0;
                 agv.iEmergencyByPause = true;
             }
         }
 
+        //CANopen_Tx.write(2, CANopenMaster::CANopenRequest::Master2Slave_request_4Bit23, 0x60ff, 0, 0x00000100);
+        //osDelay(1000);
         if (1)
         {
             if (xSemaphoreTake(setZerpSemap, 0) == pdPASS)
@@ -1534,7 +1603,7 @@ void MotionTask(void const *parment)
                         if (CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Start_Remote_Node))
                         {
                             canOpenStatus.pollStep++;
-                            debugOut(0, "[\t%d] Start CanOpen Node ID:1 [ok]\r\n", osKernelSysTick());
+                            //debugOut(0, "[\t%d] Start CanOpen Node ID:1 [ok]\r\n", osKernelSysTick());
                         }
 
                         // osDelay(10);
@@ -1724,6 +1793,96 @@ void MotionTask(void const *parment)
                         canOpenStatus.pollStep = 0;
                         break;
                 }
+            }
+        }
+
+        static int cout = 0;
+
+        if(cout++ >= 5)
+        {
+            cout = 0;
+
+            switch(BeltcanopenStatus.pollStep)
+            {
+                case 0:
+                    if(BeltMotionStatus.CanDelay)
+                    {
+                        break;
+                    }
+
+                    BeltcanopenStatus.pollStep++;
+                    break;
+
+                case 1:
+                    /*if(1)
+                    {
+                    					CANopen_Tx.write( 2, CANopenMaster::CANopenRequest::Rest_node );
+                    }
+
+                    osDelay(2000);*/
+                    BeltcanopenStatus.pollStep++;
+                    break;
+
+                case 2:
+
+                    //                if(CANopen_Tx.initialzation(2))
+                    //                {
+                    //                    BeltcanopenStatus.pollStep++;
+                    //                }
+                    if(CANopen_Tx.initialzationPDO(2))
+                    {
+                        BeltcanopenStatus.pollStep++;
+                    }
+
+                    break;
+
+                case 3:
+                    if(CANopen_Tx.initialzation(2))
+                    {
+                        BeltcanopenStatus.pollStep++;
+                    }
+
+                    break;
+
+                case 4:
+                    if(/*CANopen_Tx.initialzation_can_abort(2)*/1)
+                    {
+                        BeltcanopenStatus.pollStep++;
+                    }
+
+                    break;
+
+                case 5:
+                    if(CANopen_Tx.write(2, CANopenMaster::CANopenRequest::Start_Remote_Node))
+                    {
+                        BeltcanopenStatus.pollStep++;
+                    }
+
+                    break;
+
+                case 6:
+                    if(1)
+                    {
+                        CANopen_Tx.write(2, CANopenMaster::CANopenRequest::Master2Slave_request_4Bit23, 0x60ff, 0, speed);
+                        BeltcanopenStatus.pollStep++;
+                    }
+
+                    break;
+
+                case 7:
+                    CANopen_Tx.write(2, CANopenMaster::CANopenRequest::Master2Slave_request_1Bit2f, 0X2300, 02, 0X00000001);
+                    BeltcanopenStatus.pollStep++;
+                    break;
+
+                case 8:
+                    CANopen_Tx.write(2, CANopenMaster::CANopenRequest::Master2Slave_request_1Bit2f, 0X2300, 01, 0X00000001);
+                    BeltcanopenStatus.pollStep++;
+                    BeltcanopenStatus.pollStep = 6;
+                    break;
+
+                default:
+                    BeltcanopenStatus.pollStep = 0;
+                    break;
             }
         }
 

@@ -78,6 +78,7 @@ namespace CANopenMaster
 			初始化完成后，进入Pre-Operational状态（对应心跳报文中的0x7F）。
 			*/
 			Rest_Node = 128,
+			Rest_node = 129,
 			Rest_Communication = 130
 		}te_NMT_NodeCtrl;
 		//ID = 000, 数据为一个字节的的NMT状态 + Node-ID
@@ -102,7 +103,9 @@ namespace CANopenMaster
 		bool(*Event_Tx_Work)(int iID, int iLength, char iArray[8]);
 		int clock_time;
 		int set_speed;		
-		bool initialzation( int iNode_ID, bool isNew );
+		//bool initialzation( int iNode_ID, bool isNew );
+		bool initialzation( int iNode_ID );
+		bool initialzation_can_abort(int iNode_ID);
         bool initialzationPDO(int iNode_ID);
         bool InitialisingWithOutAcc( int iNode_ID );
         void polling(char iSize, ...);	

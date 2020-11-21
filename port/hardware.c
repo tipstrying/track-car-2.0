@@ -127,7 +127,7 @@ int prvInitHardwares ()
     return 0;
     	*/
 }
-
+int speed;
 OnOffDef getThingSensor( int ID, int maxDelay )
 {
     static int delay[3];
@@ -531,25 +531,28 @@ OnOffDef powerKeyWork( uint32_t clock)
 
     return off;
 }
-int beltCtrl( int isRun, BeltDirectionDef dir)
+int beltCtrl( int isRun, BeltDirectionDef dir,int cmd)
 {
     if(isRun)
     {
-        HAL_GPIO_WritePin(OUT_BeltC_Port, OUT_BeltC_Pin, GPIO_PIN_SET);
+				int data = 4000/cmd;
+        //HAL_GPIO_WritePin(OUT_BeltC_Port, OUT_BeltC_Pin, GPIO_PIN_SET);
 
         if(dir == BeltFront)
         {
-            HAL_GPIO_WritePin(OUT_BeltDir_Port, OUT_BeltDir_Pin, GPIO_PIN_SET);
+            /*HAL_GPIO_WritePin(OUT_BeltDir_Port, OUT_BeltDir_Pin, GPIO_PIN_SET)*/speed = -data;
         }
         else
         {
-            HAL_GPIO_WritePin(OUT_BeltDir_Port, OUT_BeltDir_Pin, GPIO_PIN_RESET);
+						speed = data;
+            /*HAL_GPIO_WritePin(OUT_BeltDir_Port, OUT_BeltDir_Pin, GPIO_PIN_RESET)*/;
         }
     }
     else
     {
-        HAL_GPIO_WritePin(OUT_BeltC_Port, OUT_BeltC_Pin, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(OUT_BeltDir_Port, OUT_BeltDir_Pin, GPIO_PIN_RESET);
+        /*HAL_GPIO_WritePin(OUT_BeltC_Port, OUT_BeltC_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(OUT_BeltDir_Port, OUT_BeltDir_Pin, GPIO_PIN_RESET);*/
+				speed = 0;
     }
 
     return 0;
