@@ -258,18 +258,26 @@ void W5500Task(void const *par)
                 }
             }
         }
-				if(CanDataOutEnable)
-				{
-						if(canDataFifoBuff.available())
-						{
-								uint8_t data[100];
-								canDataFifoBuff.popData();
-								int len = 
-								debugFifoBuff.pushData(can);
-						
+
+        if(CanDataOutEnable)
+        {
+            int len = canDataFifoBuff.available();
+
+            if(len)
+            {
+                uint8_t *data;
+                taskENTER_CRITICAL();
+                {
+                    canDataFifoBuff.popData(data, len);
+                    debugFifoBuff.pushData(data, len);
+                }
+                taskEXIT_CRITICAL();
+            }
+						if((osKernelSysTick() - MotionAlarmTime) > 5000)
+						{								
+								CanDataOutEnable = false;
 						}
-				
-				}
+        }
     }
 }
 
@@ -1349,7 +1357,7 @@ int BuffCanData( int isISR, int ID, uint8_t *buff, int len )
     //canDataFifoBuff.pushData((uint8_t *)strBuff,100);
     taskENTER_CRITICAL();
     {
-				//debugFifoBuff.pushData((uint8_t *)strBuff,strlen(strBuff));
+        //debugFifoBuff.pushData((uint8_t *)strBuff,strlen(strBuff));
         canDataFifoBuff.pushData( (uint8_t *) strBuff, strlen(strBuff) );
     }
     taskEXIT_CRITICAL();

@@ -55,7 +55,7 @@ int GetMotorCurrentHttpApi( float *current )
     *current = ((float)c1) / 55.7;
     return 0;
 }
-void GetIOStatusHttpApi(char *IOString)
+void GetIOStatusHttpApi(uint8_t *IOString)
 {
     GPIO_TypeDef * InPort[] = { IN_1_GPIO_Port, IN_2_GPIO_Port, IN_3_GPIO_Port, IN_4_GPIO_Port, IN_5_GPIO_Port, IN_6_GPIO_Port, IN_7_GPIO_Port, IN_8_GPIO_Port, IN_9_GPIO_Port, IN_10_GPIO_Port, IN_11_GPIO_Port, IN_12_GPIO_Port, IN_13_GPIO_Port, IN_14_GPIO_Port, IN_15_GPIO_Port, IN_16_GPIO_Port, IN_17_GPIO_Port, IN_18_GPIO_Port, IN_19_GPIO_Port, IN_20_GPIO_Port };
     uint16_t       InPin[] = { IN_1_Pin, IN_2_Pin, IN_3_Pin, IN_4_Pin, IN_5_Pin, IN_6_Pin, IN_7_Pin, IN_8_Pin, IN_9_Pin, IN_10_Pin, IN_11_Pin, IN_12_Pin, IN_13_Pin, IN_14_Pin, IN_15_Pin, IN_16_Pin, IN_17_Pin, IN_18_Pin, IN_19_Pin, IN_20_Pin };
@@ -63,21 +63,21 @@ void GetIOStatusHttpApi(char *IOString)
     uint16_t       OutPin[] = { OUT_1_Pin, OUT_2_Pin, OUT_3_Pin, OUT_4_Pin, OUT_5_Pin, OUT_6_Pin, OUT_7_Pin, OUT_8_Pin, OUT_9_Pin, OUT_10_Pin };
     //static int finish = 0;
     //sprintf( IOString, "IO Status\r\n" );
-    sprintf( IOString + strlen( IOString ), "InPut:\r\n" );
+    sprintf( (char *)IOString + strlen( (char *)IOString ), "InPut:\r\n" );
 
     for( int i = 0; i < ( sizeof( InPort) / sizeof( InPort[0] ) ); i++ )
     {
-        sprintf( IOString + strlen( IOString ), "IN %d -> %d\t", i + 1, HAL_GPIO_ReadPin( InPort[i], InPin[i] ) );
+        sprintf( (char *)IOString + strlen( (char *)IOString ), "IN %d -> %d\t", i + 1, HAL_GPIO_ReadPin( InPort[i], InPin[i] ) );
     }
 
-    sprintf( IOString + strlen( IOString ), "\r\nOutPut:\r\n" );
+    sprintf( (char *)IOString + strlen( (char *)IOString ), "\r\nOutPut:\r\n" );
 
     for( int i = 0; i < ( sizeof( OutPort) / sizeof( OutPort[0] ) ); i++ )
     {
-        sprintf( IOString + strlen( IOString ), "Out %d -> %d\t", i + 1, HAL_GPIO_ReadPin( OutPort[i], OutPin[i] ) );
+        sprintf( (char *)IOString + strlen( (char *)IOString ), "Out %d -> %d\t", i + 1, HAL_GPIO_ReadPin( OutPort[i], OutPin[i] ) );
     }
 
-    sprintf( IOString + strlen( IOString ), "\r\n" );
+    sprintf( (char *)IOString + strlen( (char *)IOString ), "\r\n" );
 }
 int SetPositionHttpApi( float pos )
 {

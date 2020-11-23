@@ -28,7 +28,7 @@ int GetMotorCurrentHttpApi( float *current );
 int clearMotoralarmHttpApi();
 int GetMotionStatusHttpApi();
 int GetPosHttpApi(float *pos);
-void GetIOStatusHttpApi(char *IOString);
+void GetIOStatusHttpApi(uint8_t *IOString);
     
 #ifdef __cplusplus
 }

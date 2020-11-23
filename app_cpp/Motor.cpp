@@ -634,20 +634,44 @@ int Set_light_status(void)
 
     if(MotionStatus.alarm)
     {
-        HAL_GPIO_WritePin(OUT_3_GPIO_Port, OUT_3_Pin, GPIO_PIN_SET);
+				set_key_disable();
         HAL_GPIO_WritePin(OUT_2_GPIO_Port, OUT_2_Pin, GPIO_PIN_SET);
+        //HAL_GPIO_WritePin(OUT_2_GPIO_Port, OUT_2_Pin, GPIO_PIN_SET);
     }
-    else if(agv.iEmergencyByError)
-    {
-        HAL_GPIO_WritePin(OUT_2_GPIO_Port, OUT_2_Pin, GPIO_PIN_SET);
-        HAL_GPIO_WritePin(OUT_3_GPIO_Port, OUT_3_Pin, GPIO_PIN_RESET);
-    }
+		else if(agv.iEmergencyByError)
+		{
+				set_key_disable();
+				if(i < 100)
+					i++;
+				else
+				{
+						HAL_GPIO_TogglePin(OUT_2_GPIO_Port,OUT_2_Pin);
+						i = 0;
+				}
+		}
     else if(agv.iEmergencyByPause)
     {
-        HAL_GPIO_WritePin(OUT_2_GPIO_Port, OUT_2_Pin, GPIO_PIN_RESET);
+				set_key_disable();
+				/*if(i < 500)
+				{
+						i++;
+				}
+				else
+				{
+						HAL_GPIO_TogglePin(OUT_2_GPIO_Port, OUT_2_Pin);
+						i = 0;
+				}*/
+					
+        HAL_GPIO_WritePin(OUT_2_GPIO_Port, OUT_2_Pin, GPIO_PIN_SET);
         HAL_GPIO_WritePin(OUT_3_GPIO_Port, OUT_3_Pin, GPIO_PIN_SET);
     }
-    else
+		else
+		{
+				set_key_enable();
+				HAL_GPIO_WritePin(OUT_2_GPIO_Port, OUT_2_Pin, GPIO_PIN_RESET);
+		}
+
+   /* else
     {
         if(i < 1000)
         {
@@ -655,12 +679,12 @@ int Set_light_status(void)
         }
         else
         {
-            HAL_GPIO_TogglePin(OUT_2_GPIO_Port, OUT_2_Pin);
+            HAL_GPIO_TogglePin(OUT_3_GPIO_Port, OUT_3_Pin);
             i = 0;
         }
 
-        HAL_GPIO_WritePin(OUT_3_GPIO_Port, OUT_3_Pin, GPIO_PIN_RESET);
-    }
+        HAL_GPIO_WritePin(OUT_2_GPIO_Port, OUT_2_Pin, GPIO_PIN_RESET);
+    }*/
 
     return 0;
 }
