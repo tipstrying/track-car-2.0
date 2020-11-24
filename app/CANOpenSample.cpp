@@ -644,6 +644,7 @@ bool CANopenRequest::initialzation( int iNode_ID )
         case 0:
             if (this->write(iNode_ID, Master2Slave_request_2Bit2b, 0x6040, 0, 0x00000006))
             {
+								
                 this->polling_step++;
             }
 
@@ -672,13 +673,10 @@ bool CANopenRequest::initialzation( int iNode_ID )
             }
 
             break;
-
-        //    case 4:
-        //        if (this->write(iNode_ID, Master2Slave_request_4Bit23, 0x60ff, 0, 0x000000ff))
-        //            this->polling_step++;
-        //        break;
+				
+						
         case 4:
-            if (this->write(iNode_ID, Master2Slave_request_4Bit23, 0x6083, 0, 0x000003E8))//
+            if (this->write(iNode_ID, Master2Slave_request_4Bit23, 0x6083, 0, 0x000003E8))
             {
                 this->polling_step++;
             }
@@ -716,28 +714,62 @@ bool CANopenRequest::initialzation( int iNode_ID )
             }
 
             break;
-            //    case 8:
-            //        if (this->write(iNode_ID, Master2Slave_request_4Bit23, 0x60ff, 0, 0x00000000))
-            //            this->polling_step++;
-            //        break;
-            //    case 7:
-            //        if( this->write(iNode_ID, Master2Slave_request_4Bit23, 0x5004,0, 6666 ) )
-            //            this->polling_step++;
-            //        break;
-            //    case 8:
-            //        if( this->write(iNode_ID, Master2Slave_request_4Bit23, 0x5003,0, 20000 ) )
-            //            this->polling_step++;
-            //    case 9:
-            //        if( this->write(iNode_ID, Master2Slave_request_4Bit23, 0x5000,0, 1000 ) )
-            //            this->polling_step++;
-            //    case 10:
-            //        if( this->write(iNode_ID, Master2Slave_request_4Bit23, 0x5001,0, 1500 ) )
-            //            this->polling_step++;
-            //        break;
+
     }
 
     return (this->polling_step > 8);
 }
+/*bool CANopenRequest::initialzation( int iNode_ID )
+{
+    static int last_Node_ID = 0;
+    if( iNode_ID == 0 && iNode_ID > 127)
+        return false;
+    if( iNode_ID != last_Node_ID )
+    {
+        last_Node_ID = iNode_ID;
+        this->polling_step = 0;
+    }
+    switch (this->polling_step)
+    {
+    case 0:
+        if (this->write(iNode_ID, Master2Slave_request_2Bit2b, 0x6040, 0, 0x00000006))
+            this->polling_step++;
+        break;
+    case 1:
+        if (this->write(iNode_ID, Master2Slave_request_2Bit2b, 0x6040, 0, 0x00000007))
+            this->polling_step++;
+        break;
+    case 2:
+        if (this->write(iNode_ID, Master2Slave_request_2Bit2b, 0x6040, 0, 0x0000010f))
+            this->polling_step++;
+        break;
+    case 3:
+        if (this->write(iNode_ID, Master2Slave_request_1Bit2f, 0x6060, 0, 0x00000003))
+            this->polling_step++;
+        break;
+    case 4:
+        if (this->write(iNode_ID, Master2Slave_request_4Bit23, 0x60ff, 0, 0x000000ff))
+            this->polling_step++;
+        break;
+    case 5:
+        if (this->write(iNode_ID, Master2Slave_request_4Bit23, 0x6083, 0, 0x00000064))//
+            this->polling_step++;
+        break;
+    case 6:
+        if (this->write(iNode_ID, Master2Slave_request_4Bit23, 0x6084, 0, 0x00000064))
+            this->polling_step++;
+        break;
+    case 7:
+        if (this->write(iNode_ID, Master2Slave_request_2Bit2b, 0x6040, 0, 0x000000f))
+            this->polling_step++;
+        break;
+    case 8:
+        if (this->write(iNode_ID, Master2Slave_request_4Bit23, 0x60ff, 0, 0x00000000))
+            this->polling_step++;
+        break;
+    }
+    return (this->polling_step > 8);
+}*/
 bool CANopenRequest::initialzation_can_abort(int iNode_ID)
 {
     static int last_Node_ID = 0;

@@ -134,7 +134,7 @@ typedef struct
 } networkDef;
 
 networkDef socketServer[4];
-static FifoClass canDataFifoBuff;
+
 static bool CanDataOutEnable = false;
 static CONFIG_MSG networkconfig = SetNetWorkParment();
 void socketServer_run(int i, FifoClass *in, FifoClass *out, uint16_t port, fun_ptr func1, fun_ptr func2, int FD);
@@ -222,7 +222,7 @@ void W5500Task(void const *par)
     httpServer_init(TX_BUF, RX_BUF, MAX_HTTPSOCK, socknumlist);
     startCLITask();
     static FifoClass dataIn, dataOut;
-    //static FifoClass CanDataBuff;
+    
     createSocket(&dataIn, &dataOut, 8802, serverConnectOk, serverDisconnect, 3000);
 
     for (;;)
@@ -260,26 +260,7 @@ void W5500Task(void const *par)
             }
         }
 
-        if(CanDataOutEnable)
-        {
-            int len = canDataFifoBuff.available();
 
-            if(len)
-            {
-                static uint8_t data[2048];
-                taskENTER_CRITICAL();
-                {
-                    canDataFifoBuff.popData(data, len);
-                    debugFifoBuff.pushData(data, len);
-                }
-                taskEXIT_CRITICAL();
-            }
-
-            if((osKernelSysTick() - MotionAlarmTime) > 5000)
-            {
-                CanDataOutEnable = false;
-            }
-        }
     }
 }
 
@@ -1357,7 +1338,7 @@ static int inHandlerMode (void)
     return __get_IPSR() != 0;
 }
 
-int BuffCanData( int isISR, int ID, uint8_t *buff, int len )
+/*int BuffCanData( int isISR, int ID, uint8_t *buff, int len )
 {
     static char strBuff[100];
     sprintf(strBuff, "[\t%d] Can ID: %02X, DLC: %d Data: ", osKernelSysTick(), ID, len );
@@ -1376,7 +1357,7 @@ int BuffCanData( int isISR, int ID, uint8_t *buff, int len )
     }
     taskEXIT_CRITICAL();
     return 0;
-}
+}*/
 int SetCanBuffOutEnable()
 {
     CanDataOutEnable = true;

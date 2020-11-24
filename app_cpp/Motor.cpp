@@ -293,7 +293,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 bool CanTx(int ID, int iLength, char iArray[8])
 {
-    BuffCanData(0, ID, (uint8_t *)iArray, iLength);
+
 
     if (SendBuffToCan1((uint8_t *)&iArray[0], ID, iLength))
     {
@@ -322,7 +322,7 @@ bool CanRx(int *oID, int *oLength, char oArray[])
                 oArray[i] = can1Data.Data[i];
             }
 
-            BuffCanData( 0, *oID, (uint8_t *)oArray, *oLength );
+
 
             if (DebugCtrl.enableCanRawData)
             {
@@ -1865,7 +1865,7 @@ void MotionTask(void const *parment)
             switch(BeltcanopenStatus.pollStep)
             {
                 case 0:
-                    if(BeltMotionStatus.CanDelay)
+                    if(BeltMotionStatus.CanRestartDelay)
                     {
                         break;
                     }
@@ -1874,12 +1874,6 @@ void MotionTask(void const *parment)
                     break;
 
                 case 1:
-                    /*if(1)
-                    {
-                    					CANopen_Tx.write( 2, CANopenMaster::CANopenRequest::Rest_node );
-                    }
-
-                    osDelay(2000);*/
                     BeltcanopenStatus.pollStep++;
                     break;
 
@@ -1889,7 +1883,7 @@ void MotionTask(void const *parment)
                     //                {
                     //                    BeltcanopenStatus.pollStep++;
                     //                }
-                    if(CANopen_Tx.initialzationPDO(2))
+                    if(/*CANopen_Tx.initialzationPDO(2)*/1)
                     {
                         BeltcanopenStatus.pollStep++;
                     }
@@ -1901,7 +1895,7 @@ void MotionTask(void const *parment)
                     {
                         BeltcanopenStatus.pollStep++;
                     }
-
+										osDelay(100);
                     break;
 
                 case 4:
@@ -1925,7 +1919,7 @@ void MotionTask(void const *parment)
                     if(1)
                     {
                         CANopen_Tx.write(2, CANopenMaster::CANopenRequest::Master2Slave_request_4Bit23, 0x60ff, 0, speed);
-                        BeltcanopenStatus.pollStep++;
+                        //BeltcanopenStatus.pollStep++;
                     }
 
                     break;
