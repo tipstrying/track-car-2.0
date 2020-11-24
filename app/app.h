@@ -87,8 +87,10 @@ void CLITask( void const * parment );
 int debugOut( int isISR, const char *fmt, ... );
 int BuffCanData( int isISR, int ID, uint8_t *buff, int len );
 int SetCanBuffOutEnable();
-void set_key_disable(void);
-void set_key_enable(void);
+void set_key_disable();
+void set_key_enable();
+int GetMainSocketStatus();
+int SetCanBuffOutDisable();
 
 #ifdef __cplusplus
 }

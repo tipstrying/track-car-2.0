@@ -155,6 +155,7 @@ static int serverDisconnect(int ip)
     }
 }
 
+
 void W5500Task(void const *par)
 {
     uint8_t txsize[MAX_SOCK_NUM] = {2, 2, 2, 2, 2, 2, 2, 2};
@@ -265,7 +266,7 @@ void W5500Task(void const *par)
 
             if(len)
             {
-                uint8_t *data;
+                static uint8_t data[2048];
                 taskENTER_CRITICAL();
                 {
                     canDataFifoBuff.popData(data, len);
@@ -273,10 +274,11 @@ void W5500Task(void const *par)
                 }
                 taskEXIT_CRITICAL();
             }
-						if((osKernelSysTick() - MotionAlarmTime) > 5000)
-						{								
-								CanDataOutEnable = false;
-						}
+
+            if((osKernelSysTick() - MotionAlarmTime) > 5000)
+            {
+                CanDataOutEnable = false;
+            }
         }
     }
 }
@@ -1133,7 +1135,17 @@ void socketServer_run(int i, FifoClass *in, FifoClass *out, uint16_t port, fun_p
             }
     }
 }
-
+int GetMainSocketStatus()
+{
+    if(getSn_SR(0) == SOCK_ESTABLISHED)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
 int getFreeSocketID()
 {
     for (int i = 0; i < 4; i++)
@@ -1338,11 +1350,13 @@ extern "C"
     static int inHandlerMode (void);
     int BuffCanData( int isISR, int ID, uint8_t *buff, int len );
     int SetCanBuffOutEnable();
+		int SetCanBuffOutDisable();
 }
 static int inHandlerMode (void)
 {
     return __get_IPSR() != 0;
 }
+
 int BuffCanData( int isISR, int ID, uint8_t *buff, int len )
 {
     static char strBuff[100];
@@ -1367,6 +1381,11 @@ int SetCanBuffOutEnable()
 {
     CanDataOutEnable = true;
     return 0;
+}
+int SetCanBuffOutDisable()
+{
+		CanDataOutEnable = false;
+		return 0;
 }
 int debugOut(int isISR, const char *fmt, ...)
 {

@@ -35,6 +35,7 @@ uint8_t http_get_cgi_handler(uint8_t *uri_name, uint8_t *buf, uint32_t *file_len
 				//char *IOString;
         float sp, spMax, pos, voltage, current,posnext;
 				int MotionStatus;
+				//int SensorStatus[3];
         GetSpeedHttpApi( &sp );
         GetMaxSpeedHttpApi( &spMax );
         GetPositionHttpApi( &pos );
@@ -43,11 +44,20 @@ uint8_t http_get_cgi_handler(uint8_t *uri_name, uint8_t *buf, uint32_t *file_len
         GetMotorCurrentHttpApi( &current );
 				MotionStatus = GetMotionStatusHttpApi();
 				GetPosHttpApi(&posnext);
+				//GetIOStatus(SensorStatus);
 				//GetIOStatusHttpApi(IOString);
 			
-				sprintf( (char *)buf, "{\"sp\":%0.2f, \"spMax\":%0.2f, \"pos\":%0.2f, \"milages\":%0.2lf, \"Bv\":%0.1f, \"C1\":%0.3f, \"port\":%d, \"MotionStatus\":%d, \"posnext\":%0.2f}", sp, spMax, pos, mils, voltage, current,getSn_SR( 0 ) == SOCK_ESTABLISHED?1:0,MotionStatus,posnext);
+			sprintf( (char *)buf, "{\"sp\":%0.2f, \"spMax\":%0.2f, \"pos\":%0.2f, \"milages\":%0.2lf, \"Bv\":%0.1f, \"C1\":%0.3f, \"port\":%d, \"MotionStatus\":%d, \"posnext\":%0.2f}", sp, spMax, pos, mils, voltage, current,getSn_SR( 0 ) == SOCK_ESTABLISHED?1:0,MotionStatus,posnext);
         len = strlen( (const char*)buf );
     }
+		else if(strcmp((const char *)uri_name,"IOStatus.cgi") == 0)
+		{
+				int SensorStatus[3];
+				GetIOStatus(SensorStatus);
+				sprintf((char *)buf, "{\"T1\":%d, \"T2\":%d, \"zero\":%d}",SensorStatus[0],SensorStatus[1],SensorStatus[2]);
+				len = strlen((const char*)buf);
+				
+		}
     else if( strcmp( (const char *)uri_name, "getruntasklist.cgi" ) == 0 )
     {
         listConverToJson( &runTaskHeader, (char *)buf );
@@ -109,6 +119,18 @@ uint8_t http_get_cgi_handler(uint8_t *uri_name, uint8_t *buf, uint32_t *file_len
         sprintf( (char *)buf, "cancel ok ok\r\n" );
         len = strlen( (char *)buf );
     }
+		else if(strcmp((const char *)uri_name,"setcan.cgi") == 0)
+		{
+				SetCanData();
+				sprintf((char *)buf,"set can ok\r\n");
+				len = strlen((char *)buf);
+		}
+				else if(strcmp((const char *)uri_name,"setcandis.cgi") == 0)
+		{
+				SetCanDataDisable();
+				sprintf((char *)buf,"set can ok\r\n");
+				len = strlen((char *)buf);
+		}
     else
     {
         // CGI file not found
@@ -191,6 +213,14 @@ uint8_t http_post_cgi_handler(uint8_t *uri_name, st_http_request *p_http_request
         }
         else
             len = 0;
+    }
+		else if( strcmp( (const char *)uri_name, "beltmove.cgi" ) == 0 )
+    {
+        uint8_t *cmdString = get_http_param_value((char *)p_http_request->URI, "cmd");
+        if( cmdString )
+            SetBeltMoving( ATOI( cmdString, 10 ) );
+        sprintf( (char *)buf, "set op ok\r\n" );
+        len = strlen( (char *)buf );
     }
     else if( strcmp( (const char *)uri_name, "beltTest.cgi" ) == 0 )
     {

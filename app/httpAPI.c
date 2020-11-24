@@ -12,6 +12,14 @@
 #include "hardware.h"
 #include "app.h"
 
+int GetIOStatus(int *data)
+{
+	*data = HAL_GPIO_ReadPin(IN_1_GPIO_Port,IN_1_Pin) ? 1: 0;
+	*(data+1) = HAL_GPIO_ReadPin(IN_2_GPIO_Port,IN_2_Pin) ? 1 : 0;
+	*(data+2) = HAL_GPIO_ReadPin(IN_5_GPIO_Port,IN_5_Pin) ? 1 : 0;
+	return 0;
+	
+}
 int GetPositionHttpApi( float *pos )
 {
     GetPosition( pos );
@@ -54,6 +62,32 @@ int GetMotorCurrentHttpApi( float *current )
 
     *current = ((float)c1) / 55.7;
     return 0;
+}
+int SetCanData()
+{
+		SetCanBuffOutEnable();
+		return 0;
+}
+int SetCanDataDisable()
+{
+		SetCanBuffOutDisable();
+		return 0;
+}
+int SetBeltMoving(int cmd)
+{
+		NavigationOperationStd NavData;
+		NavData.cmd = Enum_PushThing;
+		NavData.Data.op = cmd;
+		
+		if( xQueueSend( NavigationOperationQue, &NavData, 100 ) == pdPASS )
+    {
+        debugOut( 0, "[\t%d] Set belt move: %d\r\n",cmd );
+        return pdTRUE;
+    }
+    else
+    {
+        return pdFALSE;
+    }
 }
 void GetIOStatusHttpApi(uint8_t *IOString)
 {

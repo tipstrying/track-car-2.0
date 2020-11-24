@@ -21,11 +21,11 @@ QueueHandle_t chargeOperationQue = 0;
 
 static int key = 1;
 
-void set_key_disable(void)
+void set_key_disable()
 {
     key = 0;
 }
-void set_key_enable(void)
+void set_key_enable()
 {
 		key = 1;
 }

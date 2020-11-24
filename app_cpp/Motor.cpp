@@ -11,6 +11,7 @@
 #include "rtc.h"
 #include "listRunTask.h"
 #include "BeltDriveController.h"
+#include "w5500.h"
 
 #define MaxSpeed 2000
 
@@ -292,7 +293,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 bool CanTx(int ID, int iLength, char iArray[8])
 {
-		BuffCanData(0,ID,(uint8_t *)iArray,iLength);
+    BuffCanData(0, ID, (uint8_t *)iArray, iLength);
+
     if (SendBuffToCan1((uint8_t *)&iArray[0], ID, iLength))
     {
         return false;
@@ -319,7 +321,9 @@ bool CanRx(int *oID, int *oLength, char oArray[])
             {
                 oArray[i] = can1Data.Data[i];
             }
-						BuffCanData( 0, *oID, (uint8_t *)oArray, *oLength );
+
+            BuffCanData( 0, *oID, (uint8_t *)oArray, *oLength );
+
             if (DebugCtrl.enableCanRawData)
             {
                 if (/* *oLength == 1 && oArray[0] == 0x7f */ 0)
@@ -462,9 +466,8 @@ void Rx_PDO_Commplate(int oID, char Array[8], int len)
                     {
                         MotionStatus.alarm = true;
                         static uint16_t alarmCodeBak;
-												
-												MotionAlarmTime = osKernelSysTick();
-												SetCanBuffOutEnable();
+                        MotionAlarmTime = osKernelSysTick();
+                        SetCanBuffOutEnable();
 
                         if (alarmCodeBak != alarmCode)
                         {
@@ -472,7 +475,6 @@ void Rx_PDO_Commplate(int oID, char Array[8], int len)
                             alarmCodeBak = alarmCode;
                         }
                     }
-										
                 }
                 else
                 {
@@ -628,63 +630,48 @@ void canHeartbeat(int oID, CANopenMaster::CANopenResponse::te_HeartBeat oStatus)
     }
 }
 
-int Set_light_status(void)
+int Set_light_status()
 {
     static int i;
 
     if(MotionStatus.alarm)
     {
-				set_key_disable();
+        set_key_disable();
         HAL_GPIO_WritePin(OUT_2_GPIO_Port, OUT_2_Pin, GPIO_PIN_SET);
-        //HAL_GPIO_WritePin(OUT_2_GPIO_Port, OUT_2_Pin, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(OUT_3_GPIO_Port, OUT_3_Pin, GPIO_PIN_RESET);
     }
-		else if(agv.iEmergencyByError)
-		{
-				set_key_disable();
-				if(i < 100)
-					i++;
-				else
-				{
-						HAL_GPIO_TogglePin(OUT_2_GPIO_Port,OUT_2_Pin);
-						i = 0;
-				}
-		}
-    else if(agv.iEmergencyByPause)
+    else if(agv.iEmergencyByError)
     {
-				set_key_disable();
-				/*if(i < 500)
-				{
-						i++;
-				}
-				else
-				{
-						HAL_GPIO_TogglePin(OUT_2_GPIO_Port, OUT_2_Pin);
-						i = 0;
-				}*/
-					
-        HAL_GPIO_WritePin(OUT_2_GPIO_Port, OUT_2_Pin, GPIO_PIN_SET);
-        HAL_GPIO_WritePin(OUT_3_GPIO_Port, OUT_3_Pin, GPIO_PIN_SET);
-    }
-		else
-		{
-				set_key_enable();
-				HAL_GPIO_WritePin(OUT_2_GPIO_Port, OUT_2_Pin, GPIO_PIN_RESET);
-		}
+        set_key_disable();
+        HAL_GPIO_WritePin(OUT_3_GPIO_Port, OUT_3_Pin, GPIO_PIN_RESET);
 
-   /* else
-    {
-        if(i < 1000)
+        if(i < 500)
         {
             i++;
         }
         else
         {
-            HAL_GPIO_TogglePin(OUT_3_GPIO_Port, OUT_3_Pin);
+            HAL_GPIO_TogglePin(OUT_2_GPIO_Port, OUT_2_Pin);
             i = 0;
         }
-
+    }
+    else if(GetMainSocketStatus() == 0)
+    {
+        set_key_disable();
+        HAL_GPIO_WritePin(OUT_3_GPIO_Port, OUT_3_Pin, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(OUT_2_GPIO_Port, OUT_2_Pin, GPIO_PIN_SET);
+    }
+    else if(agv.iEmergencyByPause)
+    {
+        set_key_disable();
         HAL_GPIO_WritePin(OUT_2_GPIO_Port, OUT_2_Pin, GPIO_PIN_RESET);
-    }*/
+        HAL_GPIO_WritePin(OUT_3_GPIO_Port, OUT_3_Pin, GPIO_PIN_SET);
+    }
+    else
+    {
+        set_key_enable();
+        HAL_GPIO_WritePin(OUT_2_GPIO_Port, OUT_2_Pin, GPIO_PIN_RESET);
+    }
 
     return 0;
 }
@@ -742,6 +729,7 @@ int isPackOnCar()
 }
 static int m_status;
 extern int speed;
+static bool first_belt_initialize = false;
 void MotionTask(void const *parment)
 {
     double milagesXBack = 0;
@@ -1133,7 +1121,9 @@ void MotionTask(void const *parment)
                 }
             }
         }
-				Set_light_status();
+
+        Set_light_status();
+
         if (1)
         {
             static int thingSensorBak[2];
@@ -1664,97 +1654,105 @@ void MotionTask(void const *parment)
                     }
                 }
 
-                switch (canOpenStatus.pollStep)
+                if(first_belt_initialize)
                 {
-                    case 0:
-                        if (CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Start_Remote_Node))
-                        {
-                            canOpenStatus.pollStep++;
-                            //debugOut(0, "[\t%d] Start CanOpen Node ID:1 [ok]\r\n", osKernelSysTick());
-                        }
-
-                        // osDelay(10);
-                        break;
-
-                    case 1:
-                        if(1/*CanTxRemote(0x701)*/)
-                        {
-                            canOpenStatus.pollStep++;
-                        }
-
-                        break;
-
-                    case 2:
-
-                        /*
-                        CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_4Bit23, 0x60ff, 0, request_speed);
-                        if( MotionStatus.startUp )
-                            MotionStatus.startUp = false;
-                        */
-                        if (1)
-                        {
-                            char rpdoData[8];
-                            union
+                    switch (canOpenStatus.pollStep)
+                    {
+                        case 0:
+                            if (CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Start_Remote_Node))
                             {
-                                int Data;
-                                char Hex[4];
-                            } i32ToHex;
-                            union
-                            {
-                                short Data;
-                                char Hex[2];
-                            } i16ToHex;
+                                canOpenStatus.pollStep++;
+                                //debugOut(0, "[\t%d] Start CanOpen Node ID:1 [ok]\r\n", osKernelSysTick());
+                            }
 
-                            if (MotionStatus.handSpeedMode)
+                            // osDelay(10);
+                            break;
+
+                        case 1:
+                            if(1/*CanTxRemote(0x701)*/)
                             {
-                                if (abs(request_speed) > 10)
+                                canOpenStatus.pollStep++;
+                            }
+
+                            break;
+
+                        case 2:
+
+                            /*
+                            CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_4Bit23, 0x60ff, 0, request_speed);
+                            if( MotionStatus.startUp )
+                                MotionStatus.startUp = false;
+                            */
+                            if (1)
+                            {
+                                char rpdoData[8];
+                                union
                                 {
-                                    i32ToHex.Data = request_speed;
-                                    i16ToHex.Data = 0x0f;
-                                }
-                                else
+                                    int Data;
+                                    char Hex[4];
+                                } i32ToHex;
+                                union
                                 {
-                                    if (PreviousWakeTime >= MotionStatus.handSpeedTime)
+                                    short Data;
+                                    char Hex[2];
+                                } i16ToHex;
+
+                                if (MotionStatus.handSpeedMode)
+                                {
+                                    if (abs(request_speed) > 10)
                                     {
-                                        if (PreviousWakeTime - MotionStatus.handSpeedTime > 100)
-                                        {
-                                            i32ToHex.Data = 0;
-                                            i16ToHex.Data = 0x06;
-                                        }
-                                        else
-                                        {
-                                            i32ToHex.Data = 0;
-                                            i16ToHex.Data = 0x0f;
-                                        }
+                                        i32ToHex.Data = request_speed;
+                                        i16ToHex.Data = 0x0f;
                                     }
                                     else
                                     {
-                                        MotionStatus.handSpeedTime = PreviousWakeTime;
+                                        if (PreviousWakeTime >= MotionStatus.handSpeedTime)
+                                        {
+                                            if (PreviousWakeTime - MotionStatus.handSpeedTime > 100)
+                                            {
+                                                i32ToHex.Data = 0;
+                                                i16ToHex.Data = 0x06;
+                                            }
+                                            else
+                                            {
+                                                i32ToHex.Data = 0;
+                                                i16ToHex.Data = 0x0f;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            MotionStatus.handSpeedTime = PreviousWakeTime;
+                                        }
                                     }
                                 }
-                            }
-                            else
-                            {
-                                if (agv.iEmergencyByPause)
+                                else
                                 {
-                                    if (abs(request_speed) < 10)
+                                    if (agv.iEmergencyByPause)
                                     {
-                                        if( MotionStatus.Voltage < 50000 )
+                                        if (abs(request_speed) < 10)
                                         {
-                                            agv.iEmergencyArrived = true;
-                                            /*i32ToHex.Data = 0;
-                                            i16ToHex.Data = 0x06;*/
-                                        }
+                                            if( MotionStatus.Voltage < 50000 )
+                                            {
+                                                agv.iEmergencyArrived = true;
+                                                /*i32ToHex.Data = 0;
+                                                i16ToHex.Data = 0x06;*/
+                                            }
 
-                                        /* else
-                                         {
-                                             i32ToHex.Data = request_speed;
-                                             i16ToHex.Data = 0xf;
-                                         }*/
-                                        if(agv.iEmergencyArrived)
-                                        {
-                                            i32ToHex.Data = 0;
-                                            i16ToHex.Data = 0x06;
+                                            /* else
+                                             {
+                                                 i32ToHex.Data = request_speed;
+                                                 i16ToHex.Data = 0xf;
+                                             }*/
+                                            if(agv.iEmergencyArrived)
+                                            {
+                                                i32ToHex.Data = 0;
+                                                i16ToHex.Data = 0x06;
+                                            }
+                                            else
+                                            {
+                                                i32ToHex.Data = request_speed;
+                                                i16ToHex.Data = 0xf;
+                                            }
                                         }
                                         else
                                         {
@@ -1764,101 +1762,96 @@ void MotionTask(void const *parment)
                                     }
                                     else
                                     {
-                                        i32ToHex.Data = request_speed;
-                                        i16ToHex.Data = 0xf;
-                                    }
-                                }
-                                else
-                                {
-                                    if (agv.Motion_Status_Now == AGV_Parallel_Motion::ms_Arrived)
-                                    {
-                                        if( MotionStatus.Voltage < 50000 )
+                                        if (agv.Motion_Status_Now == AGV_Parallel_Motion::ms_Arrived)
                                         {
-                                            //                                            i32ToHex.Data = 0;
-                                            //                                            i16ToHex.Data = 0x06;
-                                            m_status = 0;
-                                        }
+                                            if( MotionStatus.Voltage < 50000 )
+                                            {
+                                                //                                            i32ToHex.Data = 0;
+                                                //                                            i16ToHex.Data = 0x06;
+                                                m_status = 0;
+                                            }
 
-                                        if(m_status)
+                                            if(m_status)
+                                            {
+                                                i32ToHex.Data = request_speed;
+                                                i16ToHex.Data = 0x0f;
+                                            }
+                                            else
+                                            {
+                                                i32ToHex.Data = 0;
+                                                i16ToHex.Data = 0x06;
+                                            }
+                                        }
+                                        else
                                         {
                                             i32ToHex.Data = request_speed;
                                             i16ToHex.Data = 0x0f;
                                         }
-                                        else
-                                        {
-                                            i32ToHex.Data = 0;
-                                            i16ToHex.Data = 0x06;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        i32ToHex.Data = request_speed;
-                                        i16ToHex.Data = 0x0f;
                                     }
                                 }
+
+                                for (int i = 0; i < 4; i++)
+                                {
+                                    rpdoData[i] = i32ToHex.Hex[i];
+                                }
+
+                                rpdoData[4] = i16ToHex.Hex[0];
+                                rpdoData[5] = i16ToHex.Hex[1];
+                                rpdoData[6] = 3;
+                                CanTx(0x141, 7, rpdoData);
                             }
 
-                            for (int i = 0; i < 4; i++)
-                            {
-                                rpdoData[i] = i32ToHex.Hex[i];
-                            }
-
-                            rpdoData[4] = i16ToHex.Hex[0];
-                            rpdoData[5] = i16ToHex.Hex[1];
-                            rpdoData[6] = 3;
-                            CanTx(0x141, 7, rpdoData);
-                        }
-
-                        canOpenStatus.pollStep = 1;
-                        break;
-
-                    case 3:
-                        if (MotorModeWord_PDO != 0)
-                        {
-                            CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x6040, 0, 6);
-                        }
-
-                        break;
-
-                    case 4:
-                        if (!MotionStatus.enable)
-                        {
-                            CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x6040, 0, 0xf);
-                        }
-                        else
-                        {
                             canOpenStatus.pollStep = 1;
-                        }
+                            break;
 
-                        break;
+                        case 3:
+                            if (MotorModeWord_PDO != 0)
+                            {
+                                CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x6040, 0, 6);
+                            }
 
-                    case 5:
-                        if ((MotorStatusWord_PDO & 0x08) != 0)
-                        {
-                            CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x6040, 0, 0x86);
-                            canOpenStatus.pollStep = 7;
-                        }
-                        else
-                        {
+                            break;
+
+                        case 4:
+                            if (!MotionStatus.enable)
+                            {
+                                CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x6040, 0, 0xf);
+                            }
+                            else
+                            {
+                                canOpenStatus.pollStep = 1;
+                            }
+
+                            break;
+
+                        case 5:
+                            if ((MotorStatusWord_PDO & 0x08) != 0)
+                            {
+                                CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x6040, 0, 0x86);
+                                canOpenStatus.pollStep = 7;
+                            }
+                            else
+                            {
+                                canOpenStatus.pollStep = 4;
+                            }
+
+                            break;
+
+                        case 6:
+                            CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x1017, 0, 1000);
+                            canOpenStatus.heartBeatDelay = 0;
+                            canOpenStatus.pollStep = 1;
+                            break;
+
+                        case 7:
+                            CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x6040, 0, 6);
                             canOpenStatus.pollStep = 4;
-                        }
+                            break;
 
-                        break;
-
-                    case 6:
-                        CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x1017, 0, 1000);
-                        canOpenStatus.heartBeatDelay = 0;
-                        canOpenStatus.pollStep = 1;
-                        break;
-
-                    case 7:
-                        CANopen_Tx.write(1, CANopenMaster::CANopenRequest::Master2Slave_request_2Bit2b, 0x6040, 0, 6);
-                        canOpenStatus.pollStep = 4;
-                        break;
-
-                    default:
-                        canOpenStatus.pollStep = 0;
-                        break;
+                        default:
+                            canOpenStatus.pollStep = 0;
+                            break;
+                    }
                 }
             }
         }
@@ -1925,6 +1918,7 @@ void MotionTask(void const *parment)
                         BeltcanopenStatus.pollStep++;
                     }
 
+                    first_belt_initialize = true;
                     break;
 
                 case 6:

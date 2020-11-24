@@ -29,6 +29,10 @@ int clearMotoralarmHttpApi();
 int GetMotionStatusHttpApi();
 int GetPosHttpApi(float *pos);
 void GetIOStatusHttpApi(uint8_t *IOString);
+int GetIOStatus(int *data);
+int SetBeltMoving(int cmd);
+int SetCanData();
+int SetCanDataDisable();
     
 #ifdef __cplusplus
 }
